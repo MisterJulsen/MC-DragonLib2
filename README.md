@@ -39,7 +39,7 @@ dependencies {
     implementation("de.mrjulsen.mcdragonlib:dragonlib-forge:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
 }
 ```
-As the project is based on [Architectury API](https://docs.architectury.dev/), you also need  its repository.
+As the project is based on [Architectury API](https://docs.architectury.dev/), you also need its repository.
 
 #### 2. Add the following lines to your `mods.toml`:
 ```toml
@@ -68,13 +68,12 @@ allprojects {
     }
 }
 ```
-As the project is based on [Architectury API](https://docs.architectury.dev/), you also need  its repository.
 
 #### 2. Add the following line to all `build.gradle` files of all your sub-projects (forge, fabric, common).
-Replace `<LOADER>` with the specific loader (e.g. `forge`) and also use `fabric` in your common project.
+Replace `<LOADER>` with the specific loader (e.g. `forge`) and use `fabric` in your common project.
 ```groovy
 dependencies {
-    modApi("de.mrjulsen.mcdragonlib:dragonlib-<LODER>:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
+    modApi("de.mrjulsen.mcdragonlib:dragonlib-<LOADER>:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
 }
 ```
 
