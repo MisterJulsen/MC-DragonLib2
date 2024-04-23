@@ -52,7 +52,8 @@ As the project is based on [Architectury API](https://docs.architectury.dev/), y
 ```
 
 ## Architectury Loom Multiloader project setup
-#### 1. Add the following content to the `build.gradle` of your root project:
+#### 1. First download an [Architecury Template](https://github.com/architectury/architectury-templates/releases/) and import it as gradle project.
+#### 2. Add the following content to the `build.gradle` of your root project:
 
 ```groovy
 allprojects {
@@ -69,7 +70,7 @@ allprojects {
 }
 ```
 
-#### 2. Add the following line to all `build.gradle` files of all your sub-projects (forge, fabric, common).
+#### 3. Add the following line to all `build.gradle` files of all your sub-projects (forge, fabric, common).
 Replace `<LOADER>` with the specific loader (e.g. `forge`) and use `fabric` in your common project.
 ```groovy
 dependencies {
@@ -77,7 +78,7 @@ dependencies {
 }
 ```
 
-#### 3. Add the following lines to your `mods.toml`:
+#### 4. Add the following lines to your `mods.toml`:
 ```toml
 [[dependencies.<YOUR_MODID>]]
     modId="dragonlib"
