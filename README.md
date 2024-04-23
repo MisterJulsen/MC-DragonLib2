@@ -20,14 +20,18 @@ If you are developer and find the features useful, you can use it if you want. H
 
 You can find all available major versions of DragonLib on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/dragonlib/files) or [Modrinth](https://www.curseforge.com/minecraft/mc-mods/dragonlib).
 
-## Forge project dependency
+## ForgeGradle project setup
 #### 1. Add the following content to your `build.gradle`:
 
 ```groovy
 repositories {
-    maven {
-        name = "DragonLib"
+    maven { // DragonLib
+        name = "MrJulsen's Mod Resources"
         url = "https://raw.githubusercontent.com/MisterJulsen/modsrepo/main/maven"
+    }
+    maven {
+        name = "Architectury API"
+        url "https://maven.architectury.dev/"
     }
 }
 
@@ -35,8 +39,46 @@ dependencies {
     implementation("de.mrjulsen.mcdragonlib:dragonlib-forge:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
 }
 ```
+As the project is based on [Architectury API](https://docs.architectury.dev/), you also need  its repository.
 
 #### 2. Add the following lines to your `mods.toml`:
+```toml
+[[dependencies.<YOUR_MODID>]]
+    modId="dragonlib"
+    mandatory=true
+    versionRange="[<MINECRAFT_VERSION>,<NAXT_MAJOR_MINECRAFT_VERSION>)"
+    ordering="NONE"
+    side="BOTH"
+```
+
+## Architectury Loom Multiloader project setup
+#### 1. Add the following content to the `build.gradle` of your root project:
+
+```groovy
+allprojects {
+    repositories {
+        maven { // DragonLib
+            name = "MrJulsen's Mod Resources"
+            url = "https://raw.githubusercontent.com/MisterJulsen/modsrepo/main/maven"
+        }
+        maven { // Forge Config Api (required for fabric version of DragonLib)
+            name = "Fuzs Mod Resources"
+            url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+        }
+    }
+}
+```
+As the project is based on [Architectury API](https://docs.architectury.dev/), you also need  its repository.
+
+#### 2. Add the following line to all `build.gradle` files of all your sub-projects (forge, fabric, common).
+Replace `<LOADER>` with the specific loader (e.g. `forge`) and also use `fabric` in your common project.
+```groovy
+dependencies {
+    modApi("de.mrjulsen.mcdragonlib:dragonlib-<LODER>:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
+}
+```
+
+#### 3. Add the following lines to your `mods.toml`:
 ```toml
 [[dependencies.<YOUR_MODID>]]
     modId="dragonlib"
