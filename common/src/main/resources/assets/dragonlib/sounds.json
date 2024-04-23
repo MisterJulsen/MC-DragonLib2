@@ -1,0 +1,25 @@
+{
+  "dragon_growl": {
+    "subtitle": "sounds.dragonlib.dragon_growl",
+    "sounds": [
+      "dragonlib:dragon_growl1",
+      "dragonlib:dragon_growl2",
+      "dragonlib:dragon_growl3"
+    ]
+  },
+  "dragon_roar": {
+    "subtitle": "sounds.dragonlib.dragon_roar",
+    "sounds": [
+      "dragonlib:dragon_roar1",
+      "dragonlib:dragon_roar2",
+      "dragonlib:dragon_roar3",
+      "dragonlib:dragon_roar4",
+      "dragonlib:dragon_roar5",
+      "dragonlib:dragon_roar6",
+      "dragonlib:dragon_roar7",
+      "dragonlib:dragon_roar8",
+      "dragonlib:dragon_roar9",
+      "dragonlib:dragon_roar10"
+    ]
+  }
+}

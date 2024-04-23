@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "dragonlib",
+  "version": "${version}",
+  "name": "DragonLib",
+  "description": "DragonLib is a small and simple Multiloader Minecraft Library Mod which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. If you are a developer and want to use the mod, then you are welcome, but at your own risk!",
+  "authors": [
+    "MrJulsen"
+  ],
+  "contact": {
+    "homepage": "https://github.com/MisterJulsen/MC-DragonLib2",
+    "sources": "https://github.com/MisterJulsen/MC-DragonLib2",
+    "issues": "https://github.com/MisterJulsen/MC-DragonLib2/issues"
+  },
+  "license": "GNU General Public License v3.0",
+  "icon": "mod_icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.mrjulsen.mcdragonlib.fabric.DragonLibFabric"
+    ]
+  },
+  "mixins": [
+    "dragonlib.mixins.json",
+    "dragonlib-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.18.2",
+    "architectury": ">=4.11.93"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "Discord": "https://discord.gg/AeSbNgvc7f"
+      },
+      "badges": [ "library" ],
+      "update_checker": true
+    }
+  }
+}

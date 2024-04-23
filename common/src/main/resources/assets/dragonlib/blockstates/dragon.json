@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "dragonlib:block/dragon"
+    }
+  }
+}

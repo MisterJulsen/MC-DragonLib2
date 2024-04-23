@@ -1,0 +1,37 @@
+modLoader = "javafml"
+loaderVersion = "[40,)"
+#issueTrackerURL = "https://github.com/MisterJulsen/MC-DragonLib2/issues"
+license = "GNU General Public License v3.0"
+
+[[mods]]
+modId = "dragonlib"
+version = "${version}"
+displayName = "DragonLib"
+authors = "MrJulsen"
+credits = "This mod includes Architectury API"
+displayURL = "https://github.com/MisterJulsen/MC-DragonLib2"
+logoFile = "mod_logo.png"
+description = '''
+DragonLib is a small and simple Multiloader Minecraft Library Mod based which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. New functionality may be added at any time when needed by my mods. If you are developer feel free to use this library in your projects.
+'''
+
+[[dependencies.dragonlib]]
+modId = "forge"
+mandatory = true
+versionRange = "[40,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.dragonlib]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.dragonlib]]
+modId = "architectury"
+mandatory = true
+versionRange = "[4.11.93,)"
+ordering = "AFTER"
+side = "BOTH"

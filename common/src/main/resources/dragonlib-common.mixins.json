@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "de.mrjulsen.mcdragonlib.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+    "FontAccessor",
+    "BakedGlyphAccessor",
+    "AbstractWidgetAccessor",
+    "WindowResizeMixin"
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
