@@ -4,9 +4,9 @@
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/YnDoeHs.png" href="https://discord.gg/AeSbNgvc7f" alt="Discord">
-  <img src="https://i.imgur.com/uLIB4gb.png" href="https://modrinth.com/mod/dragonlib" alt="CurseForge">
-  <img src="https://i.imgur.com/XZYlGVF.png" href="https://www.curseforge.com/minecraft/mc-mods/dragonlib" alt="Modrinth">
+  <a href="https://discord.gg/AeSbNgvc7f"><img src="https://i.imgur.com/YnDoeHs.png" alt="Discord"></a>
+  <a href="https://modrinth.com/mod/dragonlib"><img src="https://i.imgur.com/uLIB4gb.png" alt="CurseForge"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/dragonlib"><img src="https://i.imgur.com/XZYlGVF.png" alt="Modrinth"></a>
 </p>
 
 DragonLib is a small and simple Multiloader Minecraft Library Mod which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. New functionality may be added at any time when needed by my mods.
