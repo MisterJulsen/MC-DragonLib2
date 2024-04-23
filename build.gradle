@@ -49,7 +49,17 @@ allprojects {
         options.release = 17
     }
 
+publishing {
+    repositories {
+        maven {
+            name "GitHub"
+            url "file://${System.getProperty('user.home')}/.m2/github/maven"
+        }
+    }
+}
+
     java {
         withSourcesJar()
+        withJavadocJar()
     }
 }
