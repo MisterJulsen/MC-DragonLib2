@@ -3,12 +3,17 @@ package de.mrjulsen.mcdragonlib;
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 
+import de.mrjulsen.mcdragonlib.client.OverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
@@ -123,8 +128,8 @@ public class DragonLib {
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
+    @SuppressWarnings("resource")
     public static void init() {
-        //ITEMS.register();
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
             WritableSignPacket.class
@@ -133,6 +138,40 @@ public class DragonLib {
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
+            });
+
+            
+
+            // Overlay Renderer
+            ClientGuiEvent.RENDER_HUD.register((poseStack, partialTicks) -> {
+                OverlayManager.renderAll(poseStack, partialTicks);
+            });
+
+            ClientRawInputEvent.KEY_PRESSED.register((mc, keyCode, scanCode, action, modifiers) -> {
+                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
+                    if (overlay.keyPressed(keyCode, scanCode, modifiers)) {
+                        return EventResult.interruptTrue();
+                    }
+                }
+                return EventResult.interruptFalse();
+            });
+
+            ClientRawInputEvent.MOUSE_CLICKED_POST.register((mc, mouseX, mouseY, button) -> {
+                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
+                    if (overlay.mouseClicked(mouseX, mouseY, button)) {
+                        return EventResult.interruptTrue();
+                    }
+                }
+                return EventResult.interruptFalse();
+            });
+
+            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollDelta) -> {
+                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
+                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), scrollDelta)) {
+                        return EventResult.interruptTrue();
+                    }
+                }
+                return EventResult.interruptFalse();
             });
         }
 
@@ -145,7 +184,13 @@ public class DragonLib {
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
         });
-
+        
+        /*
+        ClientLifecycleEvent.CLIENT_SETUP.register((mc) -> {
+            OverlayManager.add(new TestOverlay());
+            OverlayManager.add(new TickOverlay());
+        });
+        */
         
 
         // After loading
