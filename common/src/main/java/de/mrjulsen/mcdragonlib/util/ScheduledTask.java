@@ -120,7 +120,7 @@ public final class ScheduledTask<T> {
         }
     }
 
-    private static final record ScheduledTaskContext(Level level, int iteration) {}
+    public static final record ScheduledTaskContext(Level level, int iteration) {}
 
 }
 
