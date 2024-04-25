@@ -138,12 +138,16 @@ public class DragonLib {
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
+                OverlayManager.tickAll();
             });
 
             
 
             // Overlay Renderer
             ClientGuiEvent.RENDER_HUD.register((poseStack, partialTicks) -> {
+                if (Minecraft.getInstance().font == null) {
+                    return;
+                }
                 OverlayManager.renderAll(poseStack, partialTicks);
             });
 
@@ -183,14 +187,7 @@ public class DragonLib {
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-        });
-        
-        /*
-        ClientLifecycleEvent.CLIENT_SETUP.register((mc) -> {
-            OverlayManager.add(new TestOverlay());
-            OverlayManager.add(new TickOverlay());
-        });
-        */
+        });        
         
 
         // After loading

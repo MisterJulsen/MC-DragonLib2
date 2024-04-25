@@ -10,7 +10,8 @@ public class TestOverlay extends DLOverlayScreen {
 
     @Override
     public void render(Graphics graphics, float partialTicks, int screenWidth, int screenHeight) {
-        GuiUtils.drawString(graphics, font, 10, 10, TextUtils.text("Test Text Overlay"), 0xFFFF0000, EAlignment.LEFT, true);
+        GuiUtils.drawString(graphics, getFont(), 10, 10, TextUtils.text("Test Text Overlay"), 0xFFFF0000, EAlignment.LEFT, true);
+
     }
     
 }

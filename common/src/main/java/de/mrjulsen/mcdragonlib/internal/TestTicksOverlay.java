@@ -17,7 +17,8 @@ public class TestTicksOverlay extends DLOverlayScreen {
 
     @Override
     public void render(Graphics graphics, float partialTicks, int screenWidth, int screenHeight) {
-        GuiUtils.drawString(graphics, font, 10, 20, TextUtils.text(String.valueOf(ticks)), 0xFFFF0000, EAlignment.LEFT, true);
+        GuiUtils.drawString(graphics, getFont(), 10, 20, TextUtils.text(String.valueOf(ticks)), 0xFFFF0000, EAlignment.LEFT, true);
+
     }
     
 }
