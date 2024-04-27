@@ -140,7 +140,6 @@ public class DragonLib {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
             });
-
             
 
             // Overlay Renderer
@@ -157,7 +156,7 @@ public class DragonLib {
                         return EventResult.interruptTrue();
                     }
                 }
-                return EventResult.interruptFalse();
+                return EventResult.pass();
             });
 
             ClientRawInputEvent.MOUSE_CLICKED_POST.register((mc, mouseX, mouseY, button) -> {
@@ -166,7 +165,7 @@ public class DragonLib {
                         return EventResult.interruptTrue();
                     }
                 }
-                return EventResult.interruptFalse();
+                return EventResult.pass();
             });
 
             ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollDelta) -> {
@@ -175,7 +174,7 @@ public class DragonLib {
                         return EventResult.interruptTrue();
                     }
                 }
-                return EventResult.interruptFalse();
+                return EventResult.pass();
             });
         }
 
