@@ -120,16 +120,16 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
-    public final void renderBackground(PoseStack poseStack) {
+    public void renderBackground(PoseStack poseStack) {
         super.renderBackground(poseStack);
     }
 
     @Override
-    public final void renderBackground(PoseStack poseStack, int i) {
+    public void renderBackground(PoseStack poseStack, int i) {
         super.renderBackground(poseStack, i);
     }
 
-    public void renderDirtBackground(Graphics graphics) {
+    public void renderScreenBackground(Graphics graphics) {
         renderBackground(graphics.poseStack());
     }
 
@@ -162,9 +162,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     protected <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
+        /*
         if (!(guiEventListener instanceof IDragonLibWidget)) {
             throw new IllegalArgumentException("Only DragonLib Widgets are allowed in this type of Screen.");
         }
+        */
         return super.addWidget(guiEventListener);
     }
 
