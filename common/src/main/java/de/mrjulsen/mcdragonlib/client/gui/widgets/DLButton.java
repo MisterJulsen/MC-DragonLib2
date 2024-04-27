@@ -12,7 +12,6 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
@@ -29,7 +28,7 @@ public class DLButton extends Button implements IDragonLibWidget {
 
     @SuppressWarnings({ "unchecked", "resource" })
     public <T extends DLButton> DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage, Consumer<T> pOnPress) {
-        super(pX, pY, MathUtils.clamp(pWidth, 0, 394), MathUtils.clamp(pHeight, 0, 34), pMessage, (btn) -> pOnPress.accept((T)btn));
+        super(pX, pY, pWidth, pHeight, pMessage, (btn) -> pOnPress.accept((T)btn));
         this.font = Minecraft.getInstance().font;
     }
 
