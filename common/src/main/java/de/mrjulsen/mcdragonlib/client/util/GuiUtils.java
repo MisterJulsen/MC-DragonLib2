@@ -7,24 +7,16 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
-import de.mrjulsen.mcdragonlib.client.render.CustomRenderTarget;
 import de.mrjulsen.mcdragonlib.core.ColorObject;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
@@ -47,72 +39,16 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 
 public class GuiUtils {
-    /**
-     * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/gui/UIRenderHelper.java
-     */
-    protected static CustomRenderTarget framebuffer;
 
-    /**
-     * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/gui/UIRenderHelper.java
-     */
-    public static void init() {
-        RenderSystem.recordRenderCall(() -> {
-            Window mainWindow = Minecraft.getInstance().getWindow();
-            framebuffer = CustomRenderTarget.create(mainWindow);
-        });
-    }
-
-    public static CustomRenderTarget getFramebuffer() {
-        return framebuffer;
-    }
-
-    /**
-     * Switch from src to dst, after copying the contents of src to dst.
-     * 
-     * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/gui/UIRenderHelper.java
-     */
-    public static void swapAndBlitColor(RenderTarget src, RenderTarget dst) {
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, src.frameBufferId);
-        GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, dst.frameBufferId);
-        GlStateManager._glBlitFrameBuffer(0, 0, src.viewWidth, src.viewHeight, 0, 0, dst.viewWidth, dst.viewHeight, GL30.GL_COLOR_BUFFER_BIT, GL20.GL_LINEAR);
-        GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, dst.frameBufferId);
-    }
-
-    /**
-     * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/content/trains/schedule/ScheduleScreen.java
-     */
-    public static void startStencil(Graphics graphics, float x, float y, float w, float h) {
-        RenderSystem.clear(GL30.GL_STENCIL_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-
-        GL11.glDisable(GL11.GL_STENCIL_TEST);
-        RenderSystem.stencilMask(~0);
-        RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, Minecraft.ON_OSX);
-        GL11.glEnable(GL11.GL_STENCIL_TEST);
-        RenderSystem.stencilOp(GL11.GL_REPLACE, GL11.GL_KEEP, GL11.GL_KEEP);
-        RenderSystem.stencilMask(0xFF);
-        RenderSystem.stencilFunc(GL11.GL_NEVER, 1, 0xFF);
-
+    public static void enableScissor(Graphics graphics, int x, int y, int w, int h) {
+        int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();
+        RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
         graphics.poseStack().pushPose();
-        graphics.poseStack().translate(x, y, 0);
-        graphics.poseStack().scale(w, h, 1);
-        GuiUtils.fillGradient(graphics, -100, 0, 0, 1, 1, 0xff000000, 0xff000000);
+    }
+
+    public static void disableScissor(Graphics graphics) {
         graphics.poseStack().popPose();
-
-        GL11.glEnable(GL11.GL_STENCIL_TEST);
-        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
-        RenderSystem.stencilFunc(GL11.GL_EQUAL, 1, 0xFF);
-    }
-
-    public static void updateWindowSize(Window window) {
-        if (getFramebuffer() != null)
-            getFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-    }
-
-    /**
-     * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/content/trains/schedule/ScheduleScreen.java
-     */
-    public static void endStencil() {
-        GL11.glDisable(GL11.GL_STENCIL_TEST);
+        RenderSystem.disableScissor();
     }
 
     public static void playButtonSound() {
@@ -315,14 +251,10 @@ public class GuiUtils {
         Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder buffer = tessellator.getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, z)
-                .color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y, z).color(startRed, startGreen, startBlue, startAlpha)
-                .endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, z).color(endRed, endGreen, endBlue, endAlpha)
-                .endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, z).color(endRed, endGreen, endBlue, endAlpha)
-                .endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
         tessellator.end();
 
         RenderSystem.disableBlend();
@@ -338,13 +270,16 @@ public class GuiUtils {
         fill(graphics, area.getRight() - 1, area.getTop() + 1, 1, area.getHeight() - 2, borderColor);
     }
 
-    public static void drawString(Graphics graphics, Font font, int x, int y, Component text, int color, EAlignment alignment, boolean shadow) {
+    public static void drawString(Graphics graphics, Font font, int x, int y, String text, int color, EAlignment alignment, boolean shadow) {
+        drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, shadow);
+    }
+
+    public static void drawString(Graphics graphics, Font font, int x, int y, FormattedText text, int color, EAlignment alignment, boolean shadow) {
         int width = font.width(text);
         int offset = 0;
         switch (alignment) {
             default:
             case LEFT:
-                ;
                 break;
             case CENTER:
                 offset = -width / 2;
@@ -355,9 +290,9 @@ public class GuiUtils {
         }
 
         if (shadow) {
-            GuiComponent.drawString(graphics.poseStack(), font, text, x + offset, y, color);
+            GuiComponent.drawString(graphics.poseStack(), font, toFormattedCharSequence(text), x + offset, y, color);
         } else {
-            font.draw(graphics.poseStack(), text, x + offset, y, color);
+            font.draw(graphics.poseStack(), toFormattedCharSequence(text), x + offset, y, color);
         }
     }
 
