@@ -13,6 +13,10 @@ public abstract class DLOverlayScreen implements ITickable {
     public Font getFont() {
         return Minecraft.getInstance().font;
     }
+
+    public Minecraft mc() {
+        return Minecraft.getInstance();
+    }
     
     public final long getId() {
         return id;
