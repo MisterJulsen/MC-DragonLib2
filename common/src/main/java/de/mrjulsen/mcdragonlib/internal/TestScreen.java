@@ -42,7 +42,7 @@ public class TestScreen extends DLScreen {
 
         addRenderableWidget(new DLCheckBox(170, 100, 100, "CheckBox Widget Text", true, (cb) -> {
             System.out.println("Checkbox state is: " + cb.isChecked());
-        }));
+        })).active = false;
         
         addRenderableWidget(new DLIconButton(ButtonType.DEFAULT, AreaStyle.BROWN, sprite, 170, 50, 100, 20, title, (b) -> {}));
         addRenderableWidget(new DLItemButton(ButtonType.DEFAULT, AreaStyle.BROWN, new ItemStack(DragonLib.DRAGON_BLOCK.get()), 170, 75, 100, 20, null, (b) -> {}));

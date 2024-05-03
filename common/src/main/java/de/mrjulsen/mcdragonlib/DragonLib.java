@@ -67,7 +67,7 @@ public class DragonLib {
 
     public static final int NATIVE_UI_FONT_COLOR = 0xFF404040;
     public static final int NATIVE_BUTTON_FONT_COLOR_ACTIVE = 0xFFFFFFFF;
-    public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFFA0A0A0;
+    public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFF9E9E9E;
     public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
     
     /** 🐉 */ public static final Component TEXT_DRAGON = TextUtils.translate("text." + MODID + ".dragon");
