@@ -1,8 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
-import de.mrjulsen.mcdragonlib.util.TextUtils;
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
@@ -28,7 +26,7 @@ public class DragonLibBlock extends Block {
     @Override
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
         if (Platform.isDevelopmentEnvironment() && level.isClientSide()) {
-            DLScreen.setScreen(new TestScreen(TextUtils.text("TestScreen")));
+            ClientWrapper.openTestScreen();
         }
         return InteractionResult.SUCCESS;
     }

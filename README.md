@@ -16,7 +16,7 @@ If you are developer and find the features useful, you can use it if you want. H
 ## Versions
 | Minecraft Version | Latest DragonLib Version|
 | - | - |
-| 1.18.2 | 2.1.5 |
+| 1.18.2 | 2.1.6 |
 
 You can find all available major versions of DragonLib on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/dragonlib/files) or [Modrinth](https://www.curseforge.com/minecraft/mc-mods/dragonlib).
 
