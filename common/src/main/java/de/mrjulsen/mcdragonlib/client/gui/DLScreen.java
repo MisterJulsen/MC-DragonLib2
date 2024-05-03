@@ -86,6 +86,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
             }
         }
         DLItemButton.renderAllItemButtonTooltips(this, graphics, mouseX, mouseY);
+        tooltips.forEach(x -> x.render(this, graphics, mouseX, mouseY));
 
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(0, 0, 500);
