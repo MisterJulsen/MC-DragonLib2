@@ -4,6 +4,7 @@ plugins {
 
 loom {
     forge {
+        mixinConfig "dragonlib-common.mixins.json"
         mixinConfig "dragonlib.mixins.json"
     }
 }
