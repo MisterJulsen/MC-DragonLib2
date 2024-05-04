@@ -4,27 +4,24 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.KeybindComponent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public final class TextUtils {
 
     public static MutableComponent text(String text) {
-        return new TextComponent(text);
+        return Component.literal(text);
     }
 
     public static MutableComponent translate(String text, Object... args) {
-        return new TranslatableComponent(text, args);
+        return Component.translatable(text, args);
     }
 
     public static MutableComponent translate(String text) {
-        return new TranslatableComponent(text);
+        return Component.translatable(text);
     }
 
     public static MutableComponent keybind(String key) {
-        return new KeybindComponent(key);
+        return Component.keybind(key);
     }
 
     public static MutableComponent empty() {

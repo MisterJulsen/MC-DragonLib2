@@ -197,7 +197,6 @@ public class WritableSignScreen extends DLScreen {
                     Tesselator tesselator = Tesselator.getInstance();
                     BufferBuilder bufferbuilder = tesselator.getBuilder();
                     RenderSystem.setShader(GameRenderer::getPositionColorShader);
-                    RenderSystem.disableTexture();
                     RenderSystem.enableColorLogicOp();
                     RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
                     bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
@@ -207,16 +206,15 @@ public class WritableSignScreen extends DLScreen {
                     bufferbuilder.vertex(poseStack.last().pose(), (float)l2, (float)a, 0.0F).color(0, 0, 255, 255).endVertex();
                     bufferbuilder.vertex(poseStack.last().pose(), (float)l2, (float)b, 0.0F).color(0, 0, 255, 255).endVertex();
                     bufferbuilder.vertex(poseStack.last().pose(), (float)k2, (float)b, 0.0F).color(0, 0, 255, 255).endVertex();
-                    bufferbuilder.end();
-                    BufferUploader.end(bufferbuilder);
+                    BufferUploader.drawWithShader(bufferbuilder.end());
                     RenderSystem.disableColorLogicOp();
-                    RenderSystem.enableTexture();
                 }
             }
             poseStack.popPose();
         }
 
     }
+
     public void renderSign(PoseStack poseStack) {
         poseStack.setIdentity();
         poseStack.pushPose();

@@ -63,7 +63,7 @@ public class FontUtils {
     }
 
     public GlyphInfo getGlyphInfo(int charCode) {
-        return fontSet.getGlyphInfo(charCode);
+        return fontSet.getGlyphInfo(charCode, false);
     }
 
     public BakedGlyph getGlyph(int charCode) {
