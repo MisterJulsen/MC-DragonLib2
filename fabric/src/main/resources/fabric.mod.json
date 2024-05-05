@@ -21,15 +21,12 @@
     ]
   },
   "mixins": [
-    "dragonlib.mixins.json",
     "dragonlib-common.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.15.11",
-    "minecraft": "~1.19.2",
-    "java": ">=17",
-    "architectury": ">=6.6.92",
-    "fabric-api": "*"
+    "fabric": "*",
+    "minecraft": ">=1.19.2",
+    "architectury": ">=6.5.85"
   },
   "custom": {
     "modmenu": {

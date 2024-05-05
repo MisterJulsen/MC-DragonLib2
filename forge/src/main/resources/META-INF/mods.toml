@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-issueTrackerURL = "https://github.com/MisterJulsen/MC-DragonLib2/issues"
+#issueTrackerURL = "https://github.com/MisterJulsen/MC-DragonLib2/issues"
 license = "GNU General Public License v3.0"
 
 [[mods]]
@@ -32,6 +32,6 @@ side = "BOTH"
 [[dependencies.dragonlib]]
 modId = "architectury"
 mandatory = true
-versionRange = "[6.6.92,)"
+versionRange = "[6.5.85,)"
 ordering = "AFTER"
 side = "BOTH"
