@@ -62,24 +62,24 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
         switch (getAlignment()) {            
             case LEFT:
                 if (this.getMessage() != null) {
-                    GuiUtils.drawString(graphics, font, x + 2 + 16 + 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
+                    GuiUtils.drawString(graphics, font, getX() + 2 + 16 + 4, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x + 2, y + height / 2 - 8);
+                graphics.graphics().renderItem(item, getX() + 2, getY() + height / 2 - 8);
                 break;
             case RIGHT:
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
-                    GuiUtils.drawString(graphics, font, x + width - 2 + 2, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.RIGHT, false);
+                    GuiUtils.drawString(graphics, font, getX() + width - 2 + 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.RIGHT, false);
                 }
-                Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x + width - 2 - labelWidth - 16, y + height / 2 - 8);
+                graphics.graphics().renderItem(item, getX() + width - 2 - labelWidth - 16, getY() + height / 2 - 8);
                 break;
             case CENTER:
             default:
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
-                    GuiUtils.drawString(graphics, font, x + width / 2 + 8 + 2, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.CENTER, false);
+                    GuiUtils.drawString(graphics, font, getX() + width / 2 + 8 + 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.CENTER, false);
                 }
-                Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x + width / 2 - 8 - labelWidth / 2, y + height / 2 - 8);
+                graphics.graphics().renderItem(item, getX() + width / 2 - 8 - labelWidth / 2, getY() + height / 2 - 8);
                 break;
         }
         
@@ -87,7 +87,7 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
 
     public void renderTooltip(Screen parent, Graphics graphics, int pMouseX, int pMouseY) {
         if (isMouseOver(pMouseX, pMouseY) && renderItemTooltip) {
-            GuiUtils.renderTooltip(parent, this, parent.getTooltipFromItem(getItem()), -1, graphics, pMouseX, pMouseY);
+            GuiUtils.renderTooltip(parent, this, Screen.getTooltipFromItem(Minecraft.getInstance(), getItem()), -1, graphics, pMouseX, pMouseY);
         }
     }
 

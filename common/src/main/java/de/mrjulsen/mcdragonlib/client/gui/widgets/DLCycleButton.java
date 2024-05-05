@@ -7,8 +7,6 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.ImmutableList;
-import de.mrjulsen.mcdragonlib.util.TextUtils;
-import net.minecraft.client.gui.components.TooltipAccessor;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,7 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 
-public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
+public class DLCycleButton<T> extends DLButton {
     static final BooleanSupplier DEFAULT_ALT_LIST_SELECTOR = Screen::hasAltDown;
     private static final List<Boolean> BOOLEAN_OPTIONS = ImmutableList.of(Boolean.TRUE, Boolean.FALSE);
     private final Component name;
@@ -28,14 +26,12 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
     private final Function<T, Component> valueStringifier;
     private final Function<DLCycleButton<T>, MutableComponent> narrationProvider;
     private final DLCycleButton.OnValueChange<T> onValueChange;
-    private final DLCycleButton.TooltipSupplier<T> tooltipSupplier;
     private final boolean displayOnlyValue;
 
     DLCycleButton(int pX, int pY, int pWidth, int pHeight, Component pMessage, Component pName, int pIndex,
             T pValue, DLCycleButton.ValueListSupplier<T> pValues, Function<T, Component> pValueStringifier,
             Function<DLCycleButton<T>, MutableComponent> pNarrationProvider,
-            DLCycleButton.OnValueChange<T> pOnValueChange,
-            DLCycleButton.TooltipSupplier<T> pTooltipSupplier, boolean pDisplayOnlyValue) {
+            DLCycleButton.OnValueChange<T> pOnValueChange, boolean pDisplayOnlyValue) {
         super(pX, pY, pWidth, pHeight, pMessage);
         this.name = pName;
         this.index = pIndex;
@@ -44,7 +40,6 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
         this.valueStringifier = pValueStringifier;
         this.narrationProvider = pNarrationProvider;
         this.onValueChange = pOnValueChange;
-        this.tooltipSupplier = pTooltipSupplier;
         this.displayOnlyValue = pDisplayOnlyValue;
     }
 
@@ -112,29 +107,23 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
         return this.narrationProvider.apply(this);
     }
 
-    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-        pNarrationElementOutput.add(NarratedElementType.TITLE, this.createNarrationMessage());
+    @Override
+    public void updateWidgetNarration(NarrationElementOutput arg) {
+        arg.add(NarratedElementType.TITLE, (Component)this.createNarrationMessage());
         if (this.active) {
-            T t = this.getCycledValue(1);
-            Component component = this.createLabelForValue(t);
+            T object = this.getCycledValue(1);
+            Component component = this.createLabelForValue(object);
             if (this.isFocused()) {
-                pNarrationElementOutput.add(NarratedElementType.USAGE,
-                        TextUtils.translate("narration.cycle_button.usage.focused", component));
+                arg.add(NarratedElementType.USAGE, (Component)Component.translatable("narration.cycle_button.usage.focused", component));
             } else {
-                pNarrationElementOutput.add(NarratedElementType.USAGE,
-                    TextUtils.translate("narration.cycle_button.usage.hovered", component));
+                arg.add(NarratedElementType.USAGE, (Component)Component.translatable("narration.cycle_button.usage.hovered", component));
             }
         }
-
     }
 
     public MutableComponent createDefaultNarrationMessage() {
         return wrapDefaultNarrationMessage(
                 (Component) (this.displayOnlyValue ? this.createFullName(this.value) : this.getMessage()));
-    }
-
-    public List<FormattedCharSequence> getTooltip() {
-        return this.tooltipSupplier.apply(this.value);
     }
 
     public static <T> DLCycleButton.Builder<T> builder(Function<T, Component> pValueStringifier) {
@@ -163,9 +152,6 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
         @Nullable
         private T initialValue;
         private final Function<T, Component> valueStringifier;
-        private DLCycleButton.TooltipSupplier<T> tooltipSupplier = (p_168964_) -> {
-            return ImmutableList.of();
-        };
         private Function<DLCycleButton<T>, MutableComponent> narrationProvider = DLCycleButton::createDefaultNarrationMessage;
         private DLCycleButton.ValueListSupplier<T> values = DLCycleButton.ValueListSupplier
                 .create(ImmutableList.of());
@@ -194,11 +180,6 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
         public DLCycleButton.Builder<T> withValues(BooleanSupplier pAltListSelector, List<T> pDefaultList,
                 List<T> pSelectedList) {
             this.values = DLCycleButton.ValueListSupplier.create(pAltListSelector, pDefaultList, pSelectedList);
-            return this;
-        }
-
-        public DLCycleButton.Builder<T> withTooltip(DLCycleButton.TooltipSupplier<T> pTooltipSupplier) {
-            this.tooltipSupplier = pTooltipSupplier;
             return this;
         }
 
@@ -240,7 +221,7 @@ public class DLCycleButton<T> extends DLButton implements TooltipAccessor {
                         : CommonComponents.optionNameValue(pName, component));
                 return new DLCycleButton<>(pX, pY, pWidth, pHeight, component1, pName, this.initialIndex, t,
                         this.values, this.valueStringifier, this.narrationProvider, pOnValueChange,
-                        this.tooltipSupplier, this.displayOnlyValue);
+                        this.displayOnlyValue);
             }
         }
     }

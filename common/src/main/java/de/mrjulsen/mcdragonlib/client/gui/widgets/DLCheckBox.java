@@ -27,7 +27,7 @@ public class DLCheckBox extends DLButton {
 
     public DLCheckBox(int pX, int pY, int pWidth, String pMessage, boolean checked, Consumer<DLCheckBox> onCheckedChanged) {
         super(pX, pY, pWidth, DEFAULT_CHECKBOX_HEIGHT + 4, TextUtils.text(pMessage), (b) -> ((DLCheckBox)b).toggleChecked());
-        boxArea = new GuiAreaDefinition(x, y + (DEFAULT_CHECKBOX_HEIGHT + 4) / 2 - DEFAULT_CHECKBOX_HEIGHT / 2, DEFAULT_CHECKBOX_HEIGHT, DEFAULT_CHECKBOX_HEIGHT);
+        boxArea = new GuiAreaDefinition(getX(), getY() + (DEFAULT_CHECKBOX_HEIGHT + 4) / 2 - DEFAULT_CHECKBOX_HEIGHT / 2, DEFAULT_CHECKBOX_HEIGHT, DEFAULT_CHECKBOX_HEIGHT);
         setChecked(checked);
         this.onCheckedChanged = onCheckedChanged;
     }
@@ -56,12 +56,13 @@ public class DLCheckBox extends DLButton {
         }
         if (isChecked()) {
             GuiUtils.setTint(active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
-            GuiIcons.X.render(graphics, x + DEFAULT_CHECKBOX_HEIGHT / 2 - GuiIcons.ICON_SIZE / 2, y + getHeight() / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.X.render(graphics, getX() + DEFAULT_CHECKBOX_HEIGHT / 2 - GuiIcons.ICON_SIZE / 2, getY() + getHeight() / 2 - GuiIcons.ICON_SIZE / 2);
         }
+        GuiUtils.setTint(1.0F, 1.0F, 1.0F, this.alpha);
 
         final boolean tooWide = font.width(getMessage()) > maxLineWidth;
 
-        GuiUtils.drawString(graphics, font, x + DEFAULT_CHECKBOX_HEIGHT + 4, y + getHeight() / 2 - font.lineHeight / 2, tooWide ? TextUtils.text(font.substrByWidth(getMessage(), maxLineWidth).getString() + "...") : getMessage(), active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, true);
+        GuiUtils.drawString(graphics, font, getX() + DEFAULT_CHECKBOX_HEIGHT + 4, getY() + getHeight() / 2 - font.lineHeight / 2, tooWide ? TextUtils.text(font.substrByWidth(getMessage(), maxLineWidth).getString() + "...") : getMessage(), active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, true);
     }
 
     @SuppressWarnings("resource")
@@ -69,7 +70,7 @@ public class DLCheckBox extends DLButton {
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         final boolean tooWide = font.width(getMessage()) > maxLineWidth;
         if (tooWide && (isMouseSelected())) {
-            GuiUtils.renderTooltipAt(Minecraft.getInstance().screen, GuiAreaDefinition.of(this), List.of(getMessage()), 255, graphics, x + DEFAULT_CHECKBOX_HEIGHT, y + getHeight() / 2 - font.lineHeight / 2 - 4, mouseX, mouseY, 0, 0);
+            GuiUtils.renderTooltipAt(Minecraft.getInstance().screen, GuiAreaDefinition.of(this), List.of(getMessage()), 255, graphics, getX() + DEFAULT_CHECKBOX_HEIGHT, getY() + getHeight() / 2 - font.lineHeight / 2 - 4, mouseX, mouseY, 0, 0);
         }
 
         super.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);

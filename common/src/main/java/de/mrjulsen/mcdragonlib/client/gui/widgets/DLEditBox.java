@@ -2,8 +2,6 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.function.BiConsumer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
@@ -15,6 +13,7 @@ import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
@@ -64,17 +63,13 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
         return this;
     }
 
-    @Override
-    protected void setFocused(boolean pFocused) {
-        super.setFocused(pFocused);
-        if (onFocusChanged != null) {
-            onFocusChanged.accept(this, pFocused);
-        }
+    public void setOnFocusChanged(BiConsumer<DLEditBox, Boolean> onFocusChanged) {
+        this.onFocusChanged = onFocusChanged;
     }
 
     @Override
-    public void onFocusedChanged(boolean pFocused) {
-        super.onFocusedChanged(pFocused);
+    public void setFocused(boolean pFocused) {
+        super.setFocused(pFocused);
         if (onFocusChanged != null) {
             onFocusChanged.accept(this, pFocused);
         }
@@ -86,9 +81,9 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
 	}
 
 	@Override
-	public void renderButton(PoseStack ms, int mouseX, int mouseY, float partialTicks) {
-        super.renderButton(ms, mouseX, mouseY, partialTicks);
-        renderMainLayer(new Graphics(ms), mouseX, mouseY, partialTicks);
+	public void renderWidget(GuiGraphics ms, int mouseX, int mouseY, float partialTicks) {
+        super.renderWidget(ms, mouseX, mouseY, partialTicks);
+        renderMainLayer(new Graphics(ms, ms.pose()), mouseX, mouseY, partialTicks);
 	}
 
     @Override
@@ -99,7 +94,7 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
 		if (!getValue().isEmpty())
 			return;
 
-        GuiUtils.drawString(graphics, font, x + 5, this.y + (this.height - 8) / 2, hint, DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, false);        
+        GuiUtils.drawString(graphics, font, getX() + 5, this.getY() + (this.height - 8) / 2, hint, DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, false);        
     }
 
 	@Override
@@ -134,7 +129,7 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
 
     @Override
     public void onFocusChangeEvent(boolean focus) {
-        setFocus(focus);        
+        setFocused(focus);        
     }
 
     @Override

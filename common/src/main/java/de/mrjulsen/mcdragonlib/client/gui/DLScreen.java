@@ -11,8 +11,6 @@ import java.util.function.Predicate;
 
 import org.lwjgl.glfw.GLFW;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenu;
@@ -29,8 +27,9 @@ import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import de.mrjulsen.mcdragonlib.mixin.AbstractWidgetAccessor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
@@ -67,9 +66,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        Iterator<Widget> w = this.renderables.iterator();
+        Iterator<Renderable> w = this.renderables.iterator();
         while (w.hasNext()) {
-            Widget widget = (Widget)w.next();
+            Renderable widget = (Renderable)w.next();
             if (widget instanceof IDragonLibWidget layeredWidget) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTick);
             }
@@ -78,9 +77,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        Iterator<Widget> w = this.renderables.iterator();
+        Iterator<Renderable> w = this.renderables.iterator();
         while (w.hasNext()) {
-            Widget widget = (Widget)w.next();
+            Renderable widget = (Renderable)w.next();
             if (widget instanceof IDragonLibWidget layeredWidget) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
             }
@@ -98,14 +97,14 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+        super.render(graphics.graphics(), mouseX, mouseY, partialTicks);
     }
     
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         mouseSelectEvent(mouseX, mouseY);
 
-        Graphics graphics = new Graphics(poseStack);
+        Graphics graphics = new Graphics(guiGraphics, guiGraphics.pose());
 
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(0, 0, -100);
@@ -121,17 +120,12 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
-    public void renderBackground(PoseStack poseStack) {
-        super.renderBackground(poseStack);
-    }
-
-    @Override
-    public void renderBackground(PoseStack poseStack, int i) {
-        super.renderBackground(poseStack, i);
+    public void renderBackground(GuiGraphics graphics) {
+        super.renderBackground(graphics);
     }
 
     public void renderScreenBackground(Graphics graphics) {
-        renderBackground(graphics.poseStack());
+        renderBackground(graphics.graphics());
     }
 
     @Override
@@ -210,8 +204,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
             addTooltip(tooltip.assignedTo(widget));
         }
 
-        widget.x = x;
-        widget.y = y;
+        widget.setX(x);
+        widget.setY(y);
         widget.setWidth(width);
         ((AbstractWidgetAccessor)widget).setHeight(height);
         

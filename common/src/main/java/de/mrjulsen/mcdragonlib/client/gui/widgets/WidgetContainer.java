@@ -8,19 +8,19 @@ import java.util.Optional;
 
 import org.lwjgl.glfw.GLFW;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
+
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
-public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
+public abstract class WidgetContainer extends AbstractContainerEventHandler implements Renderable, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
 
     protected int x;
     protected int y;
@@ -34,7 +34,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     private boolean mouseSelected;
 
     protected final List<GuiEventListener> children = new ArrayList<>();
-    protected final List<Widget> renderables = new ArrayList<>();
+    protected final List<Renderable> renderables = new ArrayList<>();
 
     protected final Font font;
 
@@ -114,8 +114,8 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     }
 
     @Override
-    public final void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        renderMainLayer(new Graphics(poseStack), mouseX, mouseY, partialTicks);
+    public final void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        renderMainLayer(new Graphics(graphics, graphics.pose()), mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -130,15 +130,15 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         }
         setHovered(mouseX, mouseY);
         
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Renderable> w = renderables.iterator();
         while (w.hasNext()) {
-            w.next().render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+            w.next().render(graphics.graphics(), mouseX, mouseY, partialTicks);
         }
     }
 
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Renderable> w = renderables.iterator();
         while (w.hasNext()) {
             if (w.next() instanceof IDragonLibWidget layeredWidget) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTicks);
@@ -148,7 +148,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Renderable> w = renderables.iterator();
         while (w.hasNext()) {
             if (w.next() instanceof IDragonLibWidget layeredWidget) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
@@ -173,12 +173,12 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         return children;
     }
 
-    protected <T extends GuiEventListener & Widget> T addRenderableWidget(T guiEventListener) {
-        this.addRenderableOnly((Widget)guiEventListener);
+    protected <T extends GuiEventListener & Renderable> T addRenderableWidget(T guiEventListener) {
+        this.addRenderableOnly((Renderable)guiEventListener);
         return this.addWidget(guiEventListener);
     }
 
-    protected <T extends Widget> T addRenderableOnly(T widget) {
+    protected <T extends Renderable> T addRenderableOnly(T widget) {
         this.renderables.add(widget);
         return widget;
     }
@@ -189,8 +189,8 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     }
 
     protected void removeWidget(GuiEventListener guiEventListener) {
-        if (guiEventListener instanceof Widget) {
-            this.renderables.remove((Widget)guiEventListener);
+        if (guiEventListener instanceof Renderable) {
+            this.renderables.remove((Renderable)guiEventListener);
         }
 
         this.children.remove(guiEventListener);

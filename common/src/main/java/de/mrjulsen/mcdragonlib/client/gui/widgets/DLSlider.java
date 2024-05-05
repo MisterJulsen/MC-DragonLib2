@@ -148,7 +148,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     }
 
     private void setValueFromMouse(double mouseX) {
-        this.setSliderValue((mouseX - (this.x + 4)) / (this.width - 8));
+        this.setSliderValue((mouseX - (this.getX() + 4)) / (this.width - 8));
     }
 
     /**
@@ -206,7 +206,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (menu != null) {
-            this.menu.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+            this.menu.render(graphics.graphics(), mouseX, mouseY, partialTicks);
         }
     }
 

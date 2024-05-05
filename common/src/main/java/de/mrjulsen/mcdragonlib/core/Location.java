@@ -63,7 +63,7 @@ public final class Location {
     }
 
     private void generateBlockPos() {
-        this.blockPos = new BlockPos(this.x, this.y, this.z);
+        this.blockPos = new BlockPos((int)this.x, (int)this.y, (int)this.z);
     }
 
     public static Location fromNbt(CompoundTag tag) {

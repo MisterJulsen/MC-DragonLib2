@@ -63,7 +63,7 @@ public class GuiAreaDefinition {
     }
 
     public static GuiAreaDefinition of(AbstractWidget widget) {
-        return new GuiAreaDefinition(widget.x, widget.y, widget.getWidth(), widget.getHeight());
+        return new GuiAreaDefinition(widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight());
     }
 
     @Override

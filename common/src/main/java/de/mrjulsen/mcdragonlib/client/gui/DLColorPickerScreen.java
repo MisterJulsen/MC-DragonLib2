@@ -261,7 +261,7 @@ public class DLColorPickerScreen extends DLScreen {
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
 
-        renderBackground(graphics.poseStack(), 0);
+        renderScreenBackground(graphics);
 
         GuiUtils.drawTexture(gui, graphics, guiLeft, guiTop, 0, 0, WIDTH, HEIGHT);
 

@@ -44,8 +44,8 @@ public class DLContextMenuItem extends DLButton {
             
             getContextMenu().open(mouseX, mouseY, (menu) -> {
                 Screen s = Minecraft.getInstance().screen;
-                int pX = x + width - 3 + menu.getWidth() > s.width ? x - menu.getWidth() : x + width - 3;
-                int pY = Math.min(y - 3, s.height - menu.getHeight());
+                int pX = getX() + width - 3 + menu.getWidth() > s.width ? getX() - menu.getWidth() : getX() + width - 3;
+                int pY = Math.min(getY() - 3, s.height - menu.getHeight());
                 return new Vec2(pX, pY);
             });
         } else if (getContextMenu() != null && !getContextMenu().isHovered()) {
@@ -71,17 +71,18 @@ public class DLContextMenuItem extends DLButton {
         int color = active ? (isHoveredOrFocused() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : 0xFFFFFFFF) : 0xFF404040;
 
         if ((this.isHoveredOrFocused() || (getContextMenu() != null && getContextMenu().isOpen())) && active) {
-            GuiUtils.fill(graphics, x, y, width, height, 0x30FFFFFF);
+            GuiUtils.fill(graphics, getX(), getY(), width, height, 0x30FFFFFF);
         }
 
         int iconW = Math.max(MIN_ICON_SIZE, icon.getWidth());
 
         GuiUtils.setTint(color);
-        icon.render(graphics, x + DEFAULT_PADDING, y + height / 2 - icon.getHeight() / 2);
-        GuiUtils.drawString(graphics, font, x + DEFAULT_PADDING * 3 + iconW, y + height / 2 - font.lineHeight / 2, getMessage(), color, EAlignment.LEFT, false);
+        icon.render(graphics, getX() + DEFAULT_PADDING, getY() + height / 2 - icon.getHeight() / 2);        
+        GuiUtils.setTint(1.0F, 1.0F, 1.0F, this.alpha);
+        GuiUtils.drawString(graphics, font, getX() + DEFAULT_PADDING * 3 + iconW, getY() + height / 2 - font.lineHeight / 2, getMessage(), color, EAlignment.LEFT, false);
 
         if (getContextMenu() != null) {
-            GuiUtils.drawString(graphics, font, x + width - DEFAULT_PADDING, y + height / 2 - font.lineHeight / 2, ARROW_TEXT, color, EAlignment.RIGHT, false);
+            GuiUtils.drawString(graphics, font, getX() + width - DEFAULT_PADDING, getY() + height / 2 - font.lineHeight / 2, ARROW_TEXT, color, EAlignment.RIGHT, false);
         }
     }
 

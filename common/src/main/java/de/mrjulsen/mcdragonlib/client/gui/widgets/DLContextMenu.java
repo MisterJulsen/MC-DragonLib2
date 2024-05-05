@@ -9,7 +9,7 @@ import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.world.phys.Vec2;
@@ -50,10 +50,10 @@ public class DLContextMenu extends WidgetContainer {
         GuiUtils.fill(graphics, x + 1, y + height, width, 1, 0xF8202020);
         GuiUtils.fill(graphics, x + width, y + 1, 1, height, 0xF8202020);
 
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Renderable> w = renderables.iterator();
         while (w.hasNext()) {
             if (w.next() instanceof DLContextMenuItem item) {
-                item.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+                item.render(graphics.graphics(), mouseX, mouseY, partialTicks);
                 item.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }

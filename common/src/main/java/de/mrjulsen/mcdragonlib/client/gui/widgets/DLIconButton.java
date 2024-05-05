@@ -45,23 +45,23 @@ public class DLIconButton extends DLAbstractImageButton<DLIconButton> {
         switch (getAlignment()) {            
             case LEFT:
                 if (this.getMessage() != null) {
-                    GuiUtils.drawString(graphics, font, x + 2 + 4 + sprite.getWidth(), y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
+                    GuiUtils.drawString(graphics, font, getX() + 2 + 4 + sprite.getWidth(), getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + 2, y + height / 2 - sprite.getHeight() / 2);
+                sprite.render(graphics, getX() + 2, getY() + height / 2 - sprite.getHeight() / 2);
                 break;
             case RIGHT:
                 if (this.getMessage() != null) {;
-                    GuiUtils.drawString(graphics, font, x + width - 2 + 4 - 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
+                    GuiUtils.drawString(graphics, font, getX() + width - 2 + 4 - 4, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + width - 2 - 4 - sprite.getWidth(), y + height / 2 - sprite.getHeight() / 2);
+                sprite.render(graphics, getX() + width - 2 - 4 - sprite.getWidth(), getY() + height / 2 - sprite.getHeight() / 2);
                 break;
             case CENTER:
             default:
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
-                    GuiUtils.drawString(graphics, font, x + width / 2 + sprite.getWidth() / 2 - labelWidth / 2 + 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
+                    GuiUtils.drawString(graphics, font, getX() + width / 2 + sprite.getWidth() / 2 - labelWidth / 2 + 4, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, y + height / 2 - sprite.getHeight() / 2);
+                sprite.render(graphics, getX() + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, getY() + height / 2 - sprite.getHeight() / 2);
                 break;
         }
     }

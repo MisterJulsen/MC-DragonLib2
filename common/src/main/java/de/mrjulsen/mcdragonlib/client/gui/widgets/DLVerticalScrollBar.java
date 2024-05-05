@@ -138,7 +138,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
     }
 
     private void scrollTo(double mousePos) {
-        int i = y + 1;
+        int i = getY() + 1;
         int j = i + height - 2;
 
         this.scrollPercentage = (mousePos - (double)i - ((double)scrollerHeight / 2.0D)) / (double)(j - i - scrollerHeight);
@@ -163,14 +163,14 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         // Render background
-        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, AreaStyle.GRAY, ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, AreaStyle.GRAY, ButtonState.DOWN);
 
         // Render scrollbar
         int startU = canScroll() ? 20 : 25;
         int startV = 5;
 
-        int x1 = x + 1;
-        int y1 = y + 1 + (int)(scrollPercentage * (height - scrollerHeight - 2));
+        int x1 = getX() + 1;
+        int y1 = getY() + 1 + (int)(scrollPercentage * (height - scrollerHeight - 2));
         int w = width - 2;
         int h = scrollerHeight;
 

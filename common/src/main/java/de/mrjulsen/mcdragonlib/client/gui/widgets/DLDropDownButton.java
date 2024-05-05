@@ -24,17 +24,17 @@ public class DLDropDownButton extends DLSplitButton {
     @Override
     public void onClick(double mouseX, double mouseY) {
         super.onClick(mouseX, mouseY);
-        getContextMenu().open((int)mouseX, (int)mouseY, x, y + height);
+        getContextMenu().open((int)mouseX, (int)mouseY, getX(), getY() + height);
     }
     
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, AreaStyle.NATIVE, isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON);
-        GuiUtils.drawString(graphics, font, x + (width - DROP_DOWN_BUTTON_WIDTH) / 2, y + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, AreaStyle.NATIVE, isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON);
+        GuiUtils.drawString(graphics, font, getX() + (width - DROP_DOWN_BUTTON_WIDTH) / 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
         if (getContextMenu().isOpen()) {
-            GuiIcons.ARROW_UP.render(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_UP.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
         } else {
-            GuiIcons.ARROW_DOWN.render(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_DOWN.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
         }
     }
 }

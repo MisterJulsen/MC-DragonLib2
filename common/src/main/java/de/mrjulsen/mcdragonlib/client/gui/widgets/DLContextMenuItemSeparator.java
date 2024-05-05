@@ -21,6 +21,6 @@ public class DLContextMenuItemSeparator extends DLContextMenuItem {
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        GuiUtils.fill(graphics, x + 12, y + 1, width - 16, 1, 0xFF404040);
+        GuiUtils.fill(graphics, getX() + 12, getY() + 1, width - 16, 1, 0xFF404040);
     }
 }

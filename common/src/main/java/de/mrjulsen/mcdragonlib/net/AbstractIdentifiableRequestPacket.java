@@ -31,7 +31,7 @@ public abstract class AbstractIdentifiableRequestPacket<T extends AbstractIdenti
     @SuppressWarnings("unchecked")
     @Override
     public final void handle(AbstractIdentifiableRequestPacket<T> packet, Supplier<PacketContext> contextSupplier) {
-        final long gameTime = contextSupplier.get().getPlayer().getLevel().getDayTime();
+        final long gameTime = contextSupplier.get().getPlayer().level().getDayTime();
         IdentifiableResponseData result = handleImpl((T)packet, contextSupplier);
         result.channel().sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), new IdentifiableResponsePacketBase(packet.id, result.nbt(), gameTime));
     }

@@ -28,8 +28,8 @@ public class DLSplitButton extends DLButton {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if (mouseX > x + width - DROP_DOWN_BUTTON_WIDTH) {
-            getContextMenu().open((int)mouseX, (int)mouseY, x, y + height);
+        if (mouseX > getX() + width - DROP_DOWN_BUTTON_WIDTH) {
+            getContextMenu().open((int)mouseX, (int)mouseY, getX(), getY() + height);
         } else {
             super.onClick(mouseX, mouseY);
         }
@@ -37,14 +37,14 @@ public class DLSplitButton extends DLButton {
     
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, x, y, width - DROP_DOWN_BUTTON_WIDTH + 1, height, AreaStyle.NATIVE, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
-        DynamicGuiRenderer.renderArea(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y, DROP_DOWN_BUTTON_WIDTH, height, AreaStyle.NATIVE, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width - DROP_DOWN_BUTTON_WIDTH + 1, height, AreaStyle.NATIVE, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY(), DROP_DOWN_BUTTON_WIDTH, height, AreaStyle.NATIVE, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
 
-        GuiUtils.drawString(graphics, font, x + (width - DROP_DOWN_BUTTON_WIDTH) / 2, y + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
+        GuiUtils.drawString(graphics, font, getX() + (width - DROP_DOWN_BUTTON_WIDTH) / 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
         if (getContextMenu().isOpen()) {
-            GuiIcons.ARROW_UP.render(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_UP.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
         } else {
-            GuiIcons.ARROW_DOWN.render(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_DOWN.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
         }
     }
 }

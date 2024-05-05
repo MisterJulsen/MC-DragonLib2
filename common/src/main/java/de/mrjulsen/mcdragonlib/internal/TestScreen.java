@@ -93,7 +93,7 @@ public class TestScreen extends DLScreen {
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackLayer(graphics, mouseX, mouseY, partialTick);
-        renderBackground(graphics.poseStack());
+        renderScreenBackground(graphics);
     }
 
     @Override

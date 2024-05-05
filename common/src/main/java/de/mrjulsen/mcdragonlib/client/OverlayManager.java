@@ -5,11 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 
 public class OverlayManager {
 
@@ -54,8 +53,8 @@ public class OverlayManager {
         instances.values().forEach(x -> x.tick());
     }
 
-    public static void renderAll(PoseStack poseStack, float partialTicks) {
-        instances.values().forEach(x -> x.render(new Graphics(poseStack), partialTicks, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
+    public static void renderAll(GuiGraphics graphics, float partialTicks) {
+        instances.values().forEach(x -> x.render(new Graphics(graphics, graphics.pose()), partialTicks, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
     }
 
     public static Collection<DLOverlayScreen> getAllOverlays() {

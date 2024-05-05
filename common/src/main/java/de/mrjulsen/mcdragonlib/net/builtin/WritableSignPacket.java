@@ -50,7 +50,7 @@ public class WritableSignPacket implements IPacketBase<WritableSignPacket> {
     @Override
     public void handle(WritableSignPacket packet, Supplier<PacketContext> contextSupplier) {
         ServerPlayer sender = (ServerPlayer)contextSupplier.get().getPlayer();
-        if (sender.getLevel().getBlockEntity(packet.pos) instanceof WritableSignBlockEntity blockEntity) {
+        if (sender.level().getBlockEntity(packet.pos) instanceof WritableSignBlockEntity blockEntity) {
             blockEntity.setTexts(packet.messages);
         }
     }

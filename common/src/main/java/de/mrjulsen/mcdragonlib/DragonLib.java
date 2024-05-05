@@ -19,11 +19,11 @@ import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
-import dev.architectury.registry.registries.Registries;
+import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.fabricmc.api.EnvType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -33,7 +33,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
@@ -94,15 +93,15 @@ public class DragonLib {
     public static final Component TEXT_REFRESH = TextUtils.translate("text." + MODID + ".refresh");
     public static final Component TEXT_RELOAD = TextUtils.translate("text." + MODID + ".reload");
 
-    private static final Supplier<Registries> REGISTRIES = Suppliers.memoize(() -> Registries.get(MODID));    
-    private static final Registrar<Item> ITEMS = REGISTRIES.get().get(Registry.ITEM_REGISTRY);        
-    private static final Registrar<Block> BLOCKS = REGISTRIES.get().get(Registry.BLOCK_REGISTRY);
-    private static final Registrar<SoundEvent> SOUNDS = REGISTRIES.get().get(Registry.SOUND_EVENT_REGISTRY);
+public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() -> RegistrarManager.get(MODID)); 
+    private static final Registrar<Item> ITEMS = MANAGER.get().get(Registries.ITEM);        
+    private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
+    private static final Registrar<SoundEvent> SOUNDS = MANAGER.get().get(Registries.SOUND_EVENT);
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
-    public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of(Material.STONE).strength(1.5f)));
-    public static final RegistrySupplier<SoundEvent> DRAGON_ROAR = SOUNDS.register(new ResourceLocation(MODID, "dragon_roar"), () -> new SoundEvent(new ResourceLocation(MODID, "dragon_roar")));
-    public static final RegistrySupplier<SoundEvent> DRAGON_GROWL = SOUNDS.register(new ResourceLocation(MODID, "dragon_growl"), () -> new SoundEvent(new ResourceLocation(MODID, "dragon_growl")));
+    public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
+    public static final RegistrySupplier<SoundEvent> DRAGON_ROAR = SOUNDS.register(new ResourceLocation(MODID, "dragon_roar"), () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(MODID, "dragon_roar")));
+    public static final RegistrySupplier<SoundEvent> DRAGON_GROWL = SOUNDS.register(new ResourceLocation(MODID, "dragon_growl"), () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(MODID, "dragon_growl")));
         
     private static NetworkManagerBase dragonLibNet;
 

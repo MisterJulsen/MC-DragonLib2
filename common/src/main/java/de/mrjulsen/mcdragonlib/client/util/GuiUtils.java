@@ -7,9 +7,14 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
@@ -25,7 +30,7 @@ import de.mrjulsen.mcdragonlib.util.ColorUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -59,9 +64,10 @@ public class GuiUtils {
         return text instanceof Component ? ((Component) text).getVisualOrderText() : Language.getInstance().getVisualOrder(text);
     }
 
+    @SuppressWarnings("resource")
     public static <T extends FormattedText> boolean renderTooltipAt(Screen screen, GuiAreaDefinition area, List<T> lines, int maxWidth, Graphics graphics, int xPos, int yPos, int mouseX, int mouseY, int xOffset, int yOffset) {
         if (area.isInBounds((double) (mouseX + xOffset), (double) (mouseY + yOffset))) {
-            screen.renderTooltip(graphics.poseStack(), GuiUtils.getTooltipData(screen, lines, maxWidth), xPos - 8, yPos + 16);
+            graphics.graphics().renderTooltip(Minecraft.getInstance().font, GuiUtils.getTooltipData(screen, lines, maxWidth), xPos - 8, yPos + 16);
             return true;
         } else {
             return false;
@@ -76,17 +82,19 @@ public class GuiUtils {
         return renderTooltipWithOffset(screen, area, lines, maxWidth, graphics, mouseX, mouseY, 0, 0);
     }
 
+    @SuppressWarnings("resource")
     public static <W extends AbstractWidget, T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, W widget, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
         if (widget.isMouseOver(mouseX + xOffset, mouseY + yOffset)) {
-            screen.renderTooltip(graphics.poseStack(), getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
+            graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
             return true;
         }
         return false;
     }
 
+    @SuppressWarnings("resource")
     public static <T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, GuiAreaDefinition area, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
         if (area.isInBounds(mouseX + xOffset, mouseY + yOffset)) {
-            screen.renderTooltip(graphics.poseStack(), getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
+            graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
             return true;
         }
         return false;
@@ -189,47 +197,67 @@ public class GuiUtils {
     }
 
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {
-        setTexture(texture);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+        graphics.graphics().blit(texture, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
     }
 
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int textureWidth, int textureHeight) {
-        setTexture(texture);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, w, h, textureWidth, textureHeight);
+        graphics.graphics().blit(texture, x, y, w, h, u, v, w, h, textureWidth, textureHeight);
     }
 
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int u, int v, int w, int h) {
-        setTexture(texture);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, w, h, 256, 256);
+        graphics.graphics().blit(texture, x, y, w, h, u, v, w, h, 256, 256);
     }
 
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h) {
-        setTexture(texture);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, 0, 0, w, h, w, h);
+        graphics.graphics().blit(texture, x, y, w, h, 0, 0, w, h, w, h);
     }
 
+
+
+    /* COPY OF: GuiGraphics */
+    private static void innerBlit(PoseStack pose, int textureId, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, float pMinU, float pMaxU, float pMinV, float pMaxV) {
+        RenderSystem.setShaderTexture(0, textureId);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        Matrix4f matrix4f = pose.last().pose();
+        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY1, (float)pBlitOffset).uv(pMinU, pMinV).endVertex();
+        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY2, (float)pBlitOffset).uv(pMinU, pMaxV).endVertex();
+        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY2, (float)pBlitOffset).uv(pMaxU, pMaxV).endVertex();
+        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY1, (float)pBlitOffset).uv(pMaxU, pMinV).endVertex();
+        BufferUploader.drawWithShader(bufferbuilder.end());
+    }
+    
+    private static void blit(GuiGraphics graphics, int textureId, int pX, int pY, int pWidth, int pHeight, float pUOffset, float pVOffset, int pUWidth, int pVHeight, int pTextureWidth, int pTextureHeight) {
+        blit(graphics, textureId, pX, pX + pWidth, pY, pY + pHeight, 0, pUWidth, pVHeight, pUOffset, pVOffset, pTextureWidth, pTextureHeight);
+    }
+
+    private static void blit(GuiGraphics graphics, int textureId, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, int pUWidth, int pVHeight, float pUOffset, float pVOffset, int pTextureWidth, int pTextureHeight) {
+        innerBlit(graphics.pose(), textureId, pX1, pX2, pY1, pY2, pBlitOffset, (pUOffset + 0.0F) / (float)pTextureWidth, (pUOffset + (float)pUWidth) / (float)pTextureWidth, (pVOffset + 0.0F) / (float)pTextureHeight, (pVOffset + (float)pVHeight) / (float)pTextureHeight);
+    }
+    /* END */
+
     public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {
-        setTexture(textureId);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+        blit(graphics.graphics(), textureId, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
     }
 
     public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int textureWidth, int textureHeight) {
-        setTexture(textureId);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, w, h, textureWidth, textureHeight);
+        blit(graphics.graphics(), textureId, x, y, w, h, u, v, w, h, textureWidth, textureHeight);
     }
 
     public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int textureWidth, int textureHeight) {
-        setTexture(textureId);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, 0, 0, w, h, textureWidth, textureHeight);
+        blit(graphics.graphics(), textureId, x, y, w, h, 0, 0, w, h, textureWidth, textureHeight);
     }
 
     public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h) {
-        setTexture(textureId);
-        GuiComponent.blit(graphics.poseStack(), x, y, w, h, 0, 0, w, h, w, h);
+        blit(graphics.graphics(), textureId, x, y, w, h, 0, 0, w, h, w, h);
     }
 
+
+
+
     public static void fill(Graphics graphics, int x, int y, int w, int h, int color) {
-        GuiComponent.fill(graphics.poseStack(), x, y, x + w, y + h, color);
+        graphics.graphics().fill(x, y, x + w, y + h, color);
     }
 
     public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) {
@@ -243,7 +271,6 @@ public class GuiUtils {
         float endBlue = (float) (colorB & 255) / 255.0F;
 
         RenderSystem.enableDepthTest();
-        RenderSystem.disableTexture();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -258,7 +285,6 @@ public class GuiUtils {
         tessellator.end();
 
         RenderSystem.disableBlend();
-        RenderSystem.enableTexture();
     }
 
     public static void drawBox(Graphics graphics, GuiAreaDefinition area, int fillColor, int borderColor) {
@@ -289,11 +315,7 @@ public class GuiUtils {
                 break;
         }
 
-        if (shadow) {
-            GuiComponent.drawString(graphics.poseStack(), font, toFormattedCharSequence(text), x + offset, y, color);
-        } else {
-            font.draw(graphics.poseStack(), toFormattedCharSequence(text), x + offset, y, color);
-        }
+        graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color, shadow);
     }
 
     public static DLButton createButton(int x, int y, int width, int height, Component text, Consumer<DLButton> onClick) {

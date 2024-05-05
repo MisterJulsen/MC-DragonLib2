@@ -4,16 +4,11 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import org.joml.Vector3f;
+
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
@@ -23,11 +18,11 @@ import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.font.TextFieldHelper;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.CommonComponents;
@@ -131,29 +126,29 @@ public class WritableSignScreen extends DLScreen {
         }
     }
 
-    protected void renderSignBackground(PoseStack poseStack) {
+    protected void renderSignBackground(GuiGraphics graphics) {
         MultiBufferSource.BufferSource bufferSource = this.minecraft.renderBuffers().bufferSource();
-        poseStack.translate((float)this.width / 2.0F + config.scale / 2 + config.xCenterOffset * config.scale, config.y + config.scale / 2, -100);
+        PoseStack poseStack = graphics.pose();
+        graphics.pose().translate((float)this.width / 2.0F + config.scale / 2 + config.xCenterOffset * config.scale, config.y + config.scale / 2, 100);
         poseStack.scale(-config.scale, -config.scale, -1);
-        poseStack.mulPose(Vector3f.YP.rotationDegrees(config.yRot()));
+        poseStack.mulPose(Axis.YP.rotationDegrees(config.yRot()));
 
         BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
-        blockRenderer.renderSingleBlock(blockState, poseStack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
-        bufferSource.endBatch();
+        blockRenderer.renderSingleBlock(blockState, graphics.pose(), bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
     }
 
-    private void renderSignText(PoseStack poseStack) {
+    private void renderSignText(GuiGraphics pGuiGraphics) {
         boolean flag = this.blinkFrame / 6 % 2 == 0;
         int cursorPos = this.signTextField.getCursorPos();
         int selectionPos = this.signTextField.getSelectionPos();
 
         for (int line = 0; line < this.messages.length; ++line) {
-            poseStack.pushPose();
+            pGuiGraphics.pose().pushPose();
             ConfiguredLine configuredLine = this.messages[line];
             
             Vector3f vector3f = config.screenTextScale(font, config.scale(), configuredLine);
-            poseStack.translate((float)this.width / 2.0F + configuredLine.data.xOffset() * config.scale(), config.y + configuredLine.data.yOffset() * config.scale - (int)(WritableSignScreen.DEFAULT_LINE_HEIGHT / 2 * config.lineData()[0].lineHeightScale()) + config.getLineHeightsUntil(line) + config.getLineOffset(line, vector3f.y()), 105);
-            poseStack.scale(vector3f.x(), vector3f.y(), vector3f.z());
+            pGuiGraphics.pose().translate((float)this.width / 2.0F + configuredLine.data.xOffset() * config.scale(), config.y + configuredLine.data.yOffset() * config.scale - (int)(WritableSignScreen.DEFAULT_LINE_HEIGHT / 2 * config.lineData()[0].lineHeightScale()) + config.getLineHeightsUntil(line) + config.getLineOffset(line, vector3f.y), 105);
+            pGuiGraphics.pose().scale(vector3f.x(), vector3f.y(), vector3f.z());
 
             if (configuredLine != null) {
                 if (this.font.isBidirectional()) {
@@ -161,24 +156,24 @@ public class WritableSignScreen extends DLScreen {
                 }
 
                 int xCenter = -this.font.width(configuredLine.text) / 2;
-                font.draw(poseStack, configuredLine.text, xCenter, 0, configuredLine.data.color());
+                pGuiGraphics.drawString(this.font, configuredLine.text, xCenter, 0, configuredLine.data.color(), false);
                 if (line == this.selectedLine && cursorPos >= 0 && flag) {
                     int l1 = this.font.width(configuredLine.text.substring(0, Math.max(Math.min(cursorPos, configuredLine.text.length()), 0)));
                     int i2 = l1 - this.font.width(configuredLine.text) / 2;
                     if (cursorPos >= configuredLine.text.length()) {
-                        font.draw(poseStack, "_", i2, 0, configuredLine.data.color());
+                        pGuiGraphics.drawString(this.font, "_", i2, 0, configuredLine.data.color(), false);
                     }
                 }
             }
-            poseStack.popPose();
+            pGuiGraphics.pose().popPose();
         }
 
         for (int lineHighlight = 0; lineHighlight < this.messages.length; ++lineHighlight) {
             ConfiguredLine configuredLineH = this.messages[lineHighlight];
-            poseStack.pushPose();
+            pGuiGraphics.pose().pushPose();
             Vector3f vector3f = config.screenTextScale(font, config.scale(), configuredLineH);
-            poseStack.translate((float)this.width / 2.0F + configuredLineH.data.xOffset() * config.scale(), config.y + configuredLineH.data.yOffset() * config.scale - (int)(WritableSignScreen.DEFAULT_LINE_HEIGHT / 2 * config.lineData()[0].lineHeightScale()) + config.getLineHeightsUntil(lineHighlight + 1) - config.halfLineHeight(lineHighlight) + config.getHalfLineHeightScales(lineHighlight, vector3f.y()), 105);
-            poseStack.scale(vector3f.x(), vector3f.y(), vector3f.z());
+            pGuiGraphics.pose().translate((float)this.width / 2.0F + configuredLineH.data.xOffset() * config.scale(), config.y + configuredLineH.data.yOffset() * config.scale - (int)(WritableSignScreen.DEFAULT_LINE_HEIGHT / 2 * config.lineData()[0].lineHeightScale()) + config.getLineHeightsUntil(lineHighlight + 1) - config.halfLineHeight(lineHighlight) + config.getHalfLineHeightScales(lineHighlight, vector3f.y), 105);
+            pGuiGraphics.pose().scale(vector3f.x(), vector3f.y(), vector3f.z());
 
             float lineScale = config.lineData()[lineHighlight].lineHeightScale();
 
@@ -186,7 +181,7 @@ public class WritableSignScreen extends DLScreen {
                 int l3 = this.font.width(configuredLineH.text.substring(0, Math.max(Math.min(cursorPos, configuredLineH.text.length()), 0)));
                 int i4 = l3 - this.font.width(configuredLineH.text) / 2;
                 if (flag && cursorPos < configuredLineH.text.length()) {
-                    GuiComponent.fill(poseStack, i4, -(int)(DEFAULT_LINE_HEIGHT * (lineScale + 1) * 0.5F), i4 + 1, -(int)(DEFAULT_LINE_HEIGHT * (lineScale - 1) * 0.5F), -16777216 | configuredLineH.data.color());
+                    pGuiGraphics.fill(i4, -(int)(DEFAULT_LINE_HEIGHT * (lineScale + 1) * 0.5F), i4 + 1, -(int)(DEFAULT_LINE_HEIGHT * (lineScale - 1) * 0.5F), -16777216 | configuredLineH.data.color());
                 }
 
                 if (selectionPos != cursorPos) {
@@ -194,45 +189,33 @@ public class WritableSignScreen extends DLScreen {
                     int j2 = Math.max(cursorPos, selectionPos);
                     int k2 = this.font.width(configuredLineH.text.substring(0, j4)) - this.font.width(configuredLineH.text) / 2;
                     int l2 = this.font.width(configuredLineH.text.substring(0, j2)) - this.font.width(configuredLineH.text) / 2;
-                    Tesselator tesselator = Tesselator.getInstance();
-                    BufferBuilder bufferbuilder = tesselator.getBuilder();
-                    RenderSystem.setShader(GameRenderer::getPositionColorShader);
-                    RenderSystem.enableColorLogicOp();
-                    RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
-                    bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-                    float b = -(int)(DEFAULT_LINE_HEIGHT * (lineScale + 1) * 0.5F);
-                    float a = -(int)(DEFAULT_LINE_HEIGHT * (lineScale - 1) * 0.5F);
-                    bufferbuilder.vertex(poseStack.last().pose(), (float)k2, (float)a, 0.0F).color(0, 0, 255, 255).endVertex();
-                    bufferbuilder.vertex(poseStack.last().pose(), (float)l2, (float)a, 0.0F).color(0, 0, 255, 255).endVertex();
-                    bufferbuilder.vertex(poseStack.last().pose(), (float)l2, (float)b, 0.0F).color(0, 0, 255, 255).endVertex();
-                    bufferbuilder.vertex(poseStack.last().pose(), (float)k2, (float)b, 0.0F).color(0, 0, 255, 255).endVertex();
-                    BufferUploader.drawWithShader(bufferbuilder.end());
-                    RenderSystem.disableColorLogicOp();
+                    int i3 = Math.min(k2, l2);
+                    int j3 = Math.max(k2, l2);
+                    pGuiGraphics.fill(RenderType.guiTextHighlight(), i3, -(int)(DEFAULT_LINE_HEIGHT * (lineScale + 1) * 0.5F), j3, -(int)(DEFAULT_LINE_HEIGHT * (lineScale - 1) * 0.5F), -16776961);
                 }
             }
-            poseStack.popPose();
+            pGuiGraphics.pose().popPose();
         }
 
     }
-
-    public void renderSign(PoseStack poseStack) {
-        poseStack.setIdentity();
-        poseStack.pushPose();
-        poseStack.pushPose();
-        this.renderSignBackground(poseStack);
-        poseStack.popPose();
-        this.renderSignText(poseStack);
-        poseStack.popPose();
+    public void renderSign(GuiGraphics graphics) {
+        graphics.pose().setIdentity();
+        graphics.pose().pushPose();
+        graphics.pose().pushPose();
+        this.renderSignBackground(graphics);
+        graphics.pose().popPose();
+        this.renderSignText(graphics);
+        graphics.pose().popPose();
     }
 
     @Override
-    public void render(PoseStack poseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         Lighting.setupForFlatItems();
-        this.renderBackground(poseStack);
-        GuiComponent.drawCenteredString(poseStack, this.font, this.title, this.width / 2, 40, 16777215);
-        this.renderSign(poseStack);
+        this.renderBackground(graphics);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, 40, 16777215);
+        this.renderSign(graphics);
         Lighting.setupFor3DItems();
-        super.render(poseStack, pMouseX, pMouseY, pPartialTick);
+        super.render(graphics, pMouseX, pMouseY, pPartialTick);
     }
 
     public static record WritableSignConfig(ConfiguredLineData[] lineData, boolean renderBack, float xCenterOffset, float y, float scale, float yRot, float berX, float berY, float berZ, Function<BlockState, Float> blockEntityRendererRotation, int berColor) {
