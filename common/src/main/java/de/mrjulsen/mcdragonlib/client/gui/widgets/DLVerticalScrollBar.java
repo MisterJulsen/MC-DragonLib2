@@ -14,6 +14,9 @@ import de.mrjulsen.mcdragonlib.util.MathUtils;
 public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget { 
 
     public static final int DEFAULT_STEP_SIZE = 1;
+    public static final int DEFAULT_SCROLLBAR_WIDTH = 14;
+    public static final int MIN_SCROLLBAR_WIDTH = 7;
+    public static final int MIN_SCROLLER_HEIGHT = 5;
 
     private final GuiAreaDefinition scrollArea;
 
@@ -32,12 +35,12 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
     public Consumer<DLVerticalScrollBar> onValueChanged;
 
     public DLVerticalScrollBar(int x, int y, int w, int h, GuiAreaDefinition scrollArea) {
-        super(x, y, Math.max(7, w), Math.max(7, h), null);
+        super(x, y, Math.max(MIN_SCROLLBAR_WIDTH, w), Math.max(MIN_SCROLLBAR_WIDTH, h), null);
         this.scrollArea = scrollArea;
     }
 
     public DLVerticalScrollBar(int x, int y, int h, GuiAreaDefinition scrollArea) {
-        this(x, y, 14, h, scrollArea);
+        this(x, y, DEFAULT_SCROLLBAR_WIDTH, h, scrollArea);
     }
 
     public DLVerticalScrollBar(int x, int y, int w, int h) {
@@ -53,7 +56,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
         return this;
     }
 
-    public DLVerticalScrollBar setMaxRowsOnPage(int c) {
+    public DLVerticalScrollBar setPageSize(int c) {
         maxRowsOnPage = Math.max(1, c);
         return this;
     }
@@ -64,7 +67,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
     }
 
     public DLVerticalScrollBar setScrollerHeight(int h) {
-        scrollerHeight = Math.max(5, h);
+        scrollerHeight = Math.max(MIN_SCROLLER_HEIGHT, h);
         return this;
     }
 
@@ -93,7 +96,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
         return maxScroll;
     }
 
-    public int getMaxRowsOnPage() {
+    public int getPageSize() {
         return maxRowsOnPage;
     }
 
@@ -103,14 +106,14 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
     public void onClick(double pMouseX, double pMouseY) {
         if (isMouseOver(pMouseX, pMouseY) && canScroll()) {
             isScrolling = true;
-            scrollTo(pMouseY);
+            scrollToMouse(pMouseY);
         }
     }
 
     @Override
     protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
         if (this.isScrolling) {
-            scrollTo(pMouseY);
+            scrollToMouse(pMouseY);
         }
     }
 
@@ -137,7 +140,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
         this.isScrolling = false;
     }
 
-    private void scrollTo(double mousePos) {
+    private void scrollToMouse(double mousePos) {
         int i = getY() + 1;
         int j = i + height - 2;
 
@@ -149,7 +152,7 @@ public class DLVerticalScrollBar extends DLButton implements IExtendedAreaWidget
             onValueChanged.accept(this);
     }
 
-    public void scrollToRow(int pos) {
+    public void scrollTo(int pos) {
         scroll = MathUtils.clamp(pos, 0, getMaxScroll());
         
         if (onValueChanged != null)

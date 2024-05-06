@@ -201,10 +201,14 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         this.children.clear();
     }
 
+    public boolean isInBounds(double mouseX, double mouseY) {
+        return getX() < mouseX && getX() + getWidth() > mouseX && getY() < mouseY && getY() + getHeight() > mouseY;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
 
-        if (!isActive() || !isVisible()) {
+        if (!isActive() || !isVisible() || !isInBounds(mouseX, mouseY)) {
             return false;
         }
         
@@ -264,5 +268,5 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
-    }    
+    }
 }
