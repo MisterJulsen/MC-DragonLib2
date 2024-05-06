@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.ListIterator;
 import java.util.Optional;
 
+import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -120,43 +121,56 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      * @param button
      * @return {@code true}, when a context menu could be opened.
      */
-    default boolean contextMenuMouseClickEvent(int mouseX, int mouseY, int button) {
+    @SuppressWarnings("unchecked")
+    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
+
         Collection<GuiEventListener> listeners = new ArrayList<>(get().children());
         if (this instanceof GuiEventListener l) {
             listeners.add(l);
         }
 
-        for (GuiEventListener l : listeners) {
+        for (GuiEventListener listener : listeners) {
+            if (listener instanceof IDragonLibContainer container && listener != this) {
+                System.out.println(" - " + container.toString());
+                if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, button)) {
+                    return true;
+                }
+            }
             
-            if (l instanceof IDragonLibContainer container) {
-                if (container != this && container.contextMenuMouseClickEvent(mouseX, mouseY, button)) {
-                    closeAllContextMenus(listeners, get(), container);                    
+            if (listener instanceof IDragonLibWidget widget) {
+                if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button)) {
+                    System.out.println(" - " + parent.toString() + ", " + widget.toString());
+                    closeAllContextMenus(screen, widget);
                     return true;
-                }
-            }            
-
-            if (l instanceof IDragonLibWidget widget) {
-                DLContextMenu menu = widget.getContextMenu();
-                if (menu == null) {
-                    continue;
-                }
-
-                if (menu.contextMenuMouseClickEvent(mouseX, mouseY, button)) {
-                    closeAllContextMenus(listeners, get(), widget);
-                    return true;
-                }
-                
-                if (widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button)) {
-                    closeAllContextMenus(listeners, get(), widget);
-                    return true;
-                }
-                
-                if (!menu.isHovered()) {
-                    menu.close();
                 }
             }
         }
-
+        
+        if (parent == screen) {
+            closeAllContextMenus(screen, null);
+        }
         return false;
+    }
+
+    default void closeAllContextMenus(ContainerEventHandler container, IDragonLibWidget excluded) {
+        container.children().forEach(x -> {
+            if (x == excluded) {
+                return;
+            }
+
+            if (x instanceof IDragonLibContainer dlContainer && dlContainer instanceof ContainerEventHandler childContainer) {
+                closeAllContextMenus(childContainer, excluded);
+            }
+
+            if (x instanceof IDragonLibWidget widget) {
+                if (widget.getContextMenu() != null) {
+                    widget.getContextMenu().close();
+                }
+            }
+        });
+
+        if (container != excluded && container instanceof IDragonLibContainer cont && cont.getContextMenu() != null) {
+            cont.getContextMenu().close();
+        }
     }
 }

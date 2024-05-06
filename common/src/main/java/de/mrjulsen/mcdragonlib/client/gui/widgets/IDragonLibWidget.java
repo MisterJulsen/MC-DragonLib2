@@ -71,6 +71,9 @@ public interface IDragonLibWidget {
 
     void setMouseSelected(boolean selected);
 
+    int getX();
+    int getY();
+
     /**
      * The button that must be used to open the context menu. Use {@code NO_CONTEXT_MENU_BUTTON} to prevent the context menu from opening by user inputs.
      * @return
@@ -88,7 +91,7 @@ public interface IDragonLibWidget {
 
         if (b) {
             if (getContextMenu().getParent() != null) {
-                getContextMenu().getParent().close();
+                //getContextMenu().getParent().close();
             }
             return true;
         }
@@ -100,7 +103,9 @@ public interface IDragonLibWidget {
         return false;
     }
 
-    default <T extends ContainerEventHandler, S extends IDragonLibWidget> void closeAllContextMenus(Collection<GuiEventListener> listeners, T self, S selected) {
-        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> ((IDragonLibWidget)x).getContextMenu().close());        
+    default <T extends ContainerEventHandler, S extends IDragonLibWidget> void closeAllContextMenussssss(Collection<GuiEventListener> listeners, T self, S selected) {
+        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> {
+            ((IDragonLibWidget)x).getContextMenu().close();
+        });        
     }
 }
