@@ -48,7 +48,6 @@ public class DLContextMenuItem extends DLButton {
                 int pY = Math.min(y - 3, s.height - menu.getHeight());
                 return new Vec2(pX, pY);
             });
-            System.out.println("HOVER CHANGED: " + getMessage().getString() + " " + isHovering);
         } else if (getContextMenu() != null && !getContextMenu().isHovered()) {
             getContextMenu().close();
         }

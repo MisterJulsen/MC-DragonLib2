@@ -137,7 +137,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
 
-        if (contextMenuMouseClickEvent((int)mouseX, (int)mouseY, button)) {
+        if (contextMenuMouseClickEvent(this, this, (int)mouseX, (int)mouseY, button)) {
             return true;
         }
         

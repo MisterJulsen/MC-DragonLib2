@@ -135,8 +135,9 @@ public class DLContextMenu extends WidgetContainer {
                 DLContextMenu menu = widget.getContextMenu();            
                 if (menu != null) {
                     if (!b && widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button)) {
-                        children().stream().filter(x -> x instanceof IDragonLibWidget && x != widget).forEach(x -> {
-                            ((IDragonLibWidget)x).getContextMenu().close();
+                        children().stream().filter(x -> x instanceof IDragonLibWidget w && x != widget && w.getContextMenu() != null).forEach(x -> {
+                            DLContextMenu men = ((IDragonLibWidget)x).getContextMenu();
+                            men.close();
                         });
 
                         if (parent != null) {
@@ -146,7 +147,8 @@ public class DLContextMenu extends WidgetContainer {
                     }
 
                     if (!menu.isHovered()) {
-                        menu.close();                        
+                        menu.close(); 
+                                              
                     }
                 }
             }
@@ -154,6 +156,9 @@ public class DLContextMenu extends WidgetContainer {
         
         if (b) {
             close();
+            if (getParent() != null) {
+                getParent().close();
+            } 
         }
         return b;
     }

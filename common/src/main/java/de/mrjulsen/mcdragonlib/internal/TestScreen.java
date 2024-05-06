@@ -8,22 +8,17 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCheckBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenu;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLDropDownButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLIconButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLItemButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLNumberSelector;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSplitButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLVerticalScrollBar;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLAbstractImageButton.ButtonType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
 import de.mrjulsen.mcdragonlib.client.render.Sprite;
-import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 
 public class TestScreen extends DLScreen {
 
@@ -44,12 +39,8 @@ public class TestScreen extends DLScreen {
         addRenderableWidget(new DLCheckBox(150, 100, 100, "CheckBox Widget Text", true, (cb) -> {
             System.out.println("Checkbox state is: " + cb.isChecked());
         })).active = false;
-        
-        addRenderableWidget(new DLIconButton(ButtonType.DEFAULT, AreaStyle.BROWN, sprite, 170, 50, 100, 20, title, (b) -> {}));
-        addRenderableWidget(new DLItemButton(ButtonType.DEFAULT, AreaStyle.BROWN, new ItemStack(DragonLib.DRAGON_BLOCK.get()), 170, 75, 100, 20, null, (b) -> {}));
 
         addRenderableWidget(new DLNumberSelector(150, 150, 100, 20, 0, true, (box, itm) -> {}));
-        addRenderableWidget(new DLNumberSelector(150, 175, 100, 20, 0, true, (box, itm) -> {})).setActive(false);
 
         DLContextMenu menu = new DLContextMenu(() -> {
             return GuiAreaDefinition.of(this);
@@ -93,7 +84,7 @@ public class TestScreen extends DLScreen {
         DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
         scrollBar.setPageSize(90);
         scrollBar.updateMaxScroll(20 * 20);
-        scrollBar.setStepSize(1);
+        scrollBar.setStepSize(8);
         scrollBar.setAutoScrollerHeight(true);
         scrollBar.setOnValueChangedEvent((bar) -> {
             container.setYScrollOffset(bar.getScrollValue());
