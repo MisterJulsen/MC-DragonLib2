@@ -104,7 +104,7 @@ public class DLContextMenu extends WidgetContainer {
     @SuppressWarnings("resource")
     public boolean open(int mouseX, int mouseY, Function<DLContextMenu, Vec2> pos) {
         
-        if (!area.get().isInBounds(mouseX, mouseY) || Minecraft.getInstance().screen == null) {
+        if ((area.get() != null && !area.get().isInBounds(mouseX, mouseY)) || Minecraft.getInstance().screen == null) {
             return false;
         }
 

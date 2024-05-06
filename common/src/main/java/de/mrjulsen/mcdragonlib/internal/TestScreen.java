@@ -12,6 +12,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLIconButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLItemButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLNumberSelector;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSplitButton;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLVerticalScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLAbstractImageButton.ButtonType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
 import de.mrjulsen.mcdragonlib.client.render.Sprite;
@@ -40,15 +41,15 @@ public class TestScreen extends DLScreen {
         addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {})), null);
         Sprite sprite = new Sprite(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256, 0, 16, 16, 16, 12, 12);
 
-        addRenderableWidget(new DLCheckBox(170, 100, 100, "CheckBox Widget Text", true, (cb) -> {
+        addRenderableWidget(new DLCheckBox(150, 100, 100, "CheckBox Widget Text", true, (cb) -> {
             System.out.println("Checkbox state is: " + cb.isChecked());
         })).active = false;
         
         addRenderableWidget(new DLIconButton(ButtonType.DEFAULT, AreaStyle.BROWN, sprite, 170, 50, 100, 20, title, (b) -> {}));
         addRenderableWidget(new DLItemButton(ButtonType.DEFAULT, AreaStyle.BROWN, new ItemStack(DragonLib.DRAGON_BLOCK.get()), 170, 75, 100, 20, null, (b) -> {}));
 
-        addRenderableWidget(new DLNumberSelector(170, 150, 100, 20, 0, true, (box, itm) -> {}));
-        addRenderableWidget(new DLNumberSelector(170, 175, 100, 20, 0, true, (box, itm) -> {})).setActive(false);
+        addRenderableWidget(new DLNumberSelector(150, 150, 100, 20, 0, true, (box, itm) -> {}));
+        addRenderableWidget(new DLNumberSelector(150, 175, 100, 20, 0, true, (box, itm) -> {})).setActive(false);
 
         DLContextMenu menu = new DLContextMenu(() -> {
             return GuiAreaDefinition.of(this);
@@ -87,6 +88,16 @@ public class TestScreen extends DLScreen {
             return builder2;
         })));
         addEditBox(50, 110, 100, 20, "", TextUtils.text("öl"), true, (v) -> {}, (e, b) -> {}, null);
+
+        TestContainer container = addRenderableWidget(new TestContainer(250, 50, 100, 90));
+        DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
+        scrollBar.setPageSize(90);
+        scrollBar.updateMaxScroll(20 * 20);
+        scrollBar.setStepSize(1);
+        scrollBar.setAutoScrollerHeight(true);
+        scrollBar.setOnValueChangedEvent((bar) -> {
+            container.setYScrollOffset(bar.getScrollValue());
+        });
 
     }
 

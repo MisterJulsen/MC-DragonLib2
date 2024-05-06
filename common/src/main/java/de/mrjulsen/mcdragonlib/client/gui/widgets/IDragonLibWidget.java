@@ -101,6 +101,8 @@ public interface IDragonLibWidget {
     }
 
     default <T extends ContainerEventHandler, S extends IDragonLibWidget> void closeAllContextMenus(Collection<GuiEventListener> listeners, T self, S selected) {
-        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> ((IDragonLibWidget)x).getContextMenu().close());        
+        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> {
+            ((IDragonLibWidget)x).getContextMenu().close();
+        });        
     }
 }

@@ -55,7 +55,14 @@ public class DLNumberSelector extends WidgetContainer {
         }, null));
         builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.menu.increment"), Sprite.empty(), true, (b) -> {
             increment();
-        }, null));
+        }, 
+            (parentItem) -> new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
+                DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
+                builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 1"), Sprite.empty(), true, (b) -> {}, null));
+                builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 2"), Sprite.empty(), true, (b) -> {}, null));
+                return builder2;
+            })
+        ));
         return builder;
     });
 

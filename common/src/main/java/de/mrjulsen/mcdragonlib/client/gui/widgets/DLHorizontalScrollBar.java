@@ -14,11 +14,14 @@ import de.mrjulsen.mcdragonlib.util.MathUtils;
 public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidget { 
 
     public static final int DEFAULT_STEP_SIZE = 1;
+    public static final int DEFAULT_SCROLLBAR_HEIGHT = 14;
+    public static final int MIN_SCROLLBAR_HEIGHT = 7;
+    public static final int MIN_SCROLLER_WIDTH = 5;
 
     private final GuiAreaDefinition scrollArea;
 
     private double scrollPercentage;
-    private int scroll;
+    private double scroll;
     private int maxScroll = 2;
     private boolean isScrolling = false;
 
@@ -32,12 +35,12 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
     public Consumer<DLHorizontalScrollBar> onValueChanged;
 
     public DLHorizontalScrollBar(int x, int y, int w, int h, GuiAreaDefinition scrollArea) {
-        super(x, y, Math.max(7, w), Math.max(7, h), null);
+        super(x, y, Math.max(MIN_SCROLLBAR_HEIGHT, w), Math.max(MIN_SCROLLBAR_HEIGHT, h), null);
         this.scrollArea = scrollArea;
     }
 
     public DLHorizontalScrollBar(int x, int y, int w, GuiAreaDefinition scrollArea) {
-        this(x, y, w, 14, scrollArea);
+        this(x, y, w, DEFAULT_SCROLLBAR_HEIGHT, scrollArea);
     }
 
     public DLHorizontalScrollBar(int x, int y, int w, int h) {
@@ -53,7 +56,7 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
         return this;
     }
 
-    public DLHorizontalScrollBar setMaxColumnsOnPage(int c) {
+    public DLHorizontalScrollBar setScreenSize(int c) {
         maxColumnsOnPage = Math.max(1, c);
         return this;
     }
@@ -64,7 +67,7 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
     }
 
     public DLHorizontalScrollBar setScrollerWidth(int w) {
-        scrollerWidth = Math.max(5, w);
+        scrollerWidth = Math.max(MIN_SCROLLER_WIDTH, w);
         return this;
     }
 
@@ -85,7 +88,7 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
         return this.autoScrollerWidth;
     }
 
-    public int getScrollValue() {
+    public double getScrollValue() {
         return scroll;
     }
 
@@ -93,7 +96,7 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
         return maxScroll;
     }
 
-    public int getMaxColumnsOnPage() {
+    public int getScreenSize() {
         return maxColumnsOnPage;
     }
 
@@ -103,21 +106,21 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
     public void onClick(double pMouseX, double pMouseY) {
         if (isMouseOver(pMouseX, pMouseY) && canScroll()) {
             isScrolling = true;
-            scrollTo(pMouseX);
+            scrollToMouse(pMouseX);
         }
     }
 
     @Override
     protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
         if (this.isScrolling) {
-            scrollTo(pMouseX);
+            scrollToMouse(pMouseX);
         }
     }
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         if (canScroll()) {
-            scroll = MathUtils.clamp((int)(scroll - pDelta * stepSize), 0, maxScroll);
+            scroll = MathUtils.clamp((scroll - pDelta * stepSize), 0, maxScroll);
 
             int i = maxScroll;
             this.scrollPercentage = (double)this.scrollPercentage - pDelta * stepSize / (double)i;
@@ -137,19 +140,19 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
         this.isScrolling = false;
     }
 
-    private void scrollTo(double mousePos) {
+    private void scrollToMouse(double mousePos) {
         int i = x + 1;
         int j = i + width - 2;
 
         this.scrollPercentage = (mousePos - (double)i - ((double)scrollerWidth / 2.0D)) / (double)(j - i - scrollerWidth);
         this.scrollPercentage = MathUtils.clamp(this.scrollPercentage, 0.0F, 1.0F);
-        scroll = Math.max(0, (int)Math.round(scrollPercentage * maxScroll));
+        scroll = Math.max(0, Math.round(scrollPercentage * maxScroll));
         
         if (onValueChanged != null)
             onValueChanged.accept(this);
     }
 
-    public void scrollToColumn(int pos) {
+    public void scrollTo(int pos) {
         scroll = MathUtils.clamp(pos, 0, getMaxScroll());
         
         if (onValueChanged != null)
