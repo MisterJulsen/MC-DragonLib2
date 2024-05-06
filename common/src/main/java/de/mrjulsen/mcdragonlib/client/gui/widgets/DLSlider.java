@@ -234,4 +234,14 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
     }
+
+    @Override
+    public int getX() {
+        return x;
+    }
+
+    @Override
+    public int getY() {
+        return y;
+    }
 }

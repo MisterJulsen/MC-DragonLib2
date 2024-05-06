@@ -71,6 +71,9 @@ public interface IDragonLibWidget {
 
     void setMouseSelected(boolean selected);
 
+    int getX();
+    int getY();
+
     /**
      * The button that must be used to open the context menu. Use {@code NO_CONTEXT_MENU_BUTTON} to prevent the context menu from opening by user inputs.
      * @return

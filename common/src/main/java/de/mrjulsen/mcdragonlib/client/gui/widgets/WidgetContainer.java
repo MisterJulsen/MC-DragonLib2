@@ -268,5 +268,5 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
-    }    
+    }
 }
