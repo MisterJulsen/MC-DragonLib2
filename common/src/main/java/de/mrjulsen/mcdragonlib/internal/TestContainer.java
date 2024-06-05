@@ -36,9 +36,7 @@ public class TestContainer extends ScrollableWidgetContainer {
             });
 
             btn.setMenu(menu);
-        }
-
-        
+        }        
     }
 
     @Override

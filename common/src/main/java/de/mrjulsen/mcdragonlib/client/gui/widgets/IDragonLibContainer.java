@@ -131,7 +131,6 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this) {
-                System.out.println(" - " + container.toString());
                 if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, button)) {
                     return true;
                 }
@@ -139,7 +138,6 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             
             if (listener instanceof IDragonLibWidget widget) {
                 if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button)) {
-                    System.out.println(" - " + parent.toString() + ", " + widget.toString());
                     closeAllContextMenus(screen, widget);
                     return true;
                 }

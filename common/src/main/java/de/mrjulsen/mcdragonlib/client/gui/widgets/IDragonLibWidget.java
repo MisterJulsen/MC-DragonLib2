@@ -90,9 +90,6 @@ public interface IDragonLibWidget {
         boolean b = getContextMenu().mouseClicked(mouseX, mouseY, button);
 
         if (b) {
-            if (getContextMenu().getParent() != null) {
-                //getContextMenu().getParent().close();
-            }
             return true;
         }
 
