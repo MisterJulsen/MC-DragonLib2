@@ -41,6 +41,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     protected DLContextMenu menu;
     private boolean mouseSelected;
 
+    private int allowedLayerIndex = DEFAULT_LAYER_INDEX;
+    private int layerIndex = DEFAULT_LAYER_INDEX;
+
     public final Consumer<DLButton> NO_BUTTON_CLICK_ACTION = (a) -> {};
     public final BiConsumer<DLCycleButton<?>, ?> NO_CYCLE_BUTTON_VALUE_CHANGE_ACTION = (a, b) -> {};
     public final BiConsumer<DLEditBox, Boolean> NO_EDIT_BOX_FOCUS_CHANGE_ACTION = (a, b) -> {};
@@ -146,7 +149,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         }
         
         // vanilla code, but inverted
-        ListIterator<? extends GuiEventListener> iterator = this.children().listIterator(this.children().size());
+        ListIterator<? extends GuiEventListener> iterator = childrenLayered().listIterator(childrenLayered().size());
         while (iterator.hasPrevious()) {
             GuiEventListener guiEventListener = iterator.previous();
 
@@ -251,6 +254,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
+    public boolean changeFocus(boolean focus) {
+        return changeFocusImpl(focus);
+    }
+
+    @Override
     public DLContextMenu getContextMenu() {
         return menu;
     }
@@ -258,7 +266,28 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void setMenu(DLContextMenu menu) {
         this.menu = menu;
+    }    
+    
+    @Override
+    public int getAllowedLayer() {
+        return allowedLayerIndex;
     }
+
+    @Override
+    public void setAllowedLayer(int index) {
+        this.allowedLayerIndex = index;
+    }
+
+    @Override
+    public void setWidgetLayerIndex(int layerIndex) {
+        this.layerIndex = layerIndex;
+    }
+
+    @Override
+    public int getWidgetLayerIndex() {
+        return layerIndex;
+    }
+
 
     @Override
     public boolean isMouseSelected() {

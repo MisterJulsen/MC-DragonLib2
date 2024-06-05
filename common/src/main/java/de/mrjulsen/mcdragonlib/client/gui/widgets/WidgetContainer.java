@@ -33,6 +33,9 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     protected float alpha = 1.0F;
     private boolean mouseSelected;
 
+    private int allowedLayerIndex = DEFAULT_LAYER_INDEX;
+    private int layerIndex = DEFAULT_LAYER_INDEX;
+
     protected final List<GuiEventListener> children = new ArrayList<>();
     protected final List<Widget> renderables = new ArrayList<>();
 
@@ -213,11 +216,12 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         }
         
         // vanilla code, but inverted
-        ListIterator<? extends GuiEventListener> iterator = this.children().listIterator(this.children().size());
+        ListIterator<? extends GuiEventListener> iterator = childrenLayered().listIterator(childrenLayered().size());
         while (iterator.hasPrevious()) {
             GuiEventListener guiEventListener = iterator.previous();
 
             if (!guiEventListener.mouseClicked(mouseX, mouseY, button)) continue;
+            
             this.setFocused(guiEventListener);
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
                 this.setDragging(true);
@@ -250,6 +254,11 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         if (getFocused() != null && !sameWidget &&  getFocused() instanceof IDragonLibWidget w) {
             w.onFocusChangeEvent(true);
         }
+    }    
+
+    @Override
+    public boolean changeFocus(boolean focus) {
+        return changeFocusImpl(focus);
     }
 
     @Override
@@ -269,4 +278,25 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
     }
+    
+    @Override
+    public int getAllowedLayer() {
+        return allowedLayerIndex;
+    }
+
+    @Override
+    public void setAllowedLayer(int index) {
+        this.allowedLayerIndex = index;
+    }
+
+    @Override
+    public void setWidgetLayerIndex(int layerIndex) {
+        this.layerIndex = layerIndex;
+    }
+
+    @Override
+    public int getWidgetLayerIndex() {
+        return layerIndex;
+    }
+
 }

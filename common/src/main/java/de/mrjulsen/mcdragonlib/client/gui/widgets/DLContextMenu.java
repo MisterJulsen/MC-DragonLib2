@@ -176,4 +176,20 @@ public class DLContextMenu extends WidgetContainer {
     @Override
     public void updateNarration(NarrationElementOutput narrationElementOutput) {
     }
+    
+    @Override
+    public int getAllowedLayer() {
+        return 0;
+    }
+
+    @Override
+    public void setAllowedLayer(int index) {}
+
+    @Override
+    public void setWidgetLayerIndex(int layerIndex) {}
+
+    @Override
+    public int getWidgetLayerIndex() {
+        return 0;
+    }
 }
