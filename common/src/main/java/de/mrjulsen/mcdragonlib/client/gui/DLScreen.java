@@ -23,7 +23,6 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.IExtendedAreaWidget;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
@@ -49,6 +48,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     protected DLScreen(Component title) {
         super(title);
+    }
+
+    @Override
+    public final boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
     }
 
     @Override
@@ -163,11 +167,6 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     protected <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
-        /*
-        if (!(guiEventListener instanceof IDragonLibWidget)) {
-            throw new IllegalArgumentException("Only DragonLib Widgets are allowed in this type of Screen.");
-        }
-        */
         return super.addWidget(guiEventListener);
     }
 
@@ -228,19 +227,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double pDelta) {
-        if (super.mouseScrolled(mouseX, mouseY, pDelta)) {
-            return true;
-        }
-        boolean[] b = new boolean[] { false };
-        this.renderables.stream().filter(x -> x instanceof IExtendedAreaWidget && x instanceof GuiEventListener).forEach(x -> {
-            if (((x instanceof IExtendedAreaWidget exw && exw.isInArea(mouseX, mouseY))) && !b[0]) {
-                b[0] = ((GuiEventListener)x).mouseScrolled(mouseX, mouseY, pDelta);
-                if (b[0]) {
-                    return;
-                }
-            }
-        });
-        return b[0];
+        return containerMouseScrolled(mouseX, mouseY, pDelta);
     }
 
     @Override

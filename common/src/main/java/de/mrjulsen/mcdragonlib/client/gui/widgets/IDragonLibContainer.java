@@ -35,6 +35,12 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     }
 
     /**
+     * Whether scrolling should be consumed by this widgte or not. If not, widgets behind this widget can be scrolled.
+     * @return
+     */
+    boolean consumeScrolling(double mouseX, double mouseY);
+
+    /**
      * Deselects all widgets and subwidgets. Called by {@code mouseSelectEvent}.
      */
     private void unselectAll() {
@@ -105,6 +111,15 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
         return Optional.empty();
     }
 
+    default List<GuiEventListener> getWidgetsReversed() {
+        List<GuiEventListener> listeners = new LinkedList<>(get().children());
+        Collections.reverse(listeners);
+        if (this instanceof GuiEventListener l) {
+            listeners.add(l);
+        }
+        return listeners;
+    }
+
     /**
      * This method must be called in the {@code mouseClicked} Event to add all the new functionality. Must be called before all other widgets.
      * @implNote
@@ -125,11 +140,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     @SuppressWarnings("unchecked")
     default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
         
-        List<GuiEventListener> listeners = new LinkedList<>(get().children());
-        Collections.reverse(listeners);
-        if (this instanceof GuiEventListener l) {
-            listeners.add(l);
-        }
+        List<GuiEventListener> listeners = getWidgetsReversed();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this) {
@@ -172,5 +183,22 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
         if (container != excluded && container instanceof IDragonLibContainer cont && cont.getContextMenu() != null) {
             cont.getContextMenu().close();
         }
+    }
+
+    default boolean containerMouseScrolled(double mouseX, double mouseY, double delta) {
+
+        List<GuiEventListener> listeners = getWidgetsReversed();
+
+        for (GuiEventListener listener : listeners) {
+            if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+            
+            if (listener instanceof IDragonLibWidget widget && ((listener instanceof IExtendedAreaWidget ext && ext.isInArea(mouseX, mouseY)) || widget.isMouseSelected()) && listener.mouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+        }
+
+        return consumeScrolling(mouseX, mouseY);
     }
 }
