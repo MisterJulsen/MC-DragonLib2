@@ -1,7 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
 
@@ -123,8 +124,9 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      */
     @SuppressWarnings("unchecked")
     default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
-
-        Collection<GuiEventListener> listeners = new ArrayList<>(get().children());
+        
+        List<GuiEventListener> listeners = new LinkedList<>(get().children());
+        Collections.reverse(listeners);
         if (this instanceof GuiEventListener l) {
             listeners.add(l);
         }
