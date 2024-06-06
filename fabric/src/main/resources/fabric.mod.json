@@ -13,7 +13,7 @@
     "issues": "https://github.com/MisterJulsen/MC-DragonLib2/issues"
   },
   "license": "GNU General Public License v3.0",
-  "icon": "mod_icon.png",
+  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -21,8 +21,7 @@
     ]
   },
   "mixins": [
-    "dragonlib.mixins.json",
-    "dragonlib-common.mixins.json"
+    "dragonlib.mixins.json"
   ],
   "depends": {
     "fabric": "*",
