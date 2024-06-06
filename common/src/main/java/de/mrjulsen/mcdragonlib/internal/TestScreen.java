@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.DLColorPickerScreen;
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
@@ -13,6 +15,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSplitButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLVerticalScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
 import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -61,7 +64,7 @@ public class TestScreen extends DLScreen {
         
         setMenu(menu);
 
-        addRenderableWidget(new DLSplitButton(50, 140, 100, 20, TextUtils.text("Button 3"), (b) -> Minecraft.getInstance().setScreen(null),
+        DLSplitButton split = addRenderableWidget(new DLSplitButton(50, 140, 100, 20, TextUtils.text("Button 3"), (b) -> Minecraft.getInstance().setScreen(null),
         new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
             DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
             builder2.add(new ContextMenuItemData(TextUtils.text("Test A"), Sprite.empty(), true, (b) -> {}, null));
@@ -69,6 +72,7 @@ public class TestScreen extends DLScreen {
             builder2.add(new ContextMenuItemData(TextUtils.text("Test B"), Sprite.empty(), true, (b) -> {}, null));
             return builder2;
         })));
+        split.setRenderStyle(AreaStyle.DRAGONLIB);
 
         addRenderableWidget(new DLDropDownButton(50, 170, 100, 20, TextUtils.text("Button 4"),
         new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
@@ -79,16 +83,19 @@ public class TestScreen extends DLScreen {
             return builder2;
         })));
         addEditBox(50, 110, 100, 20, "", TextUtils.text("öl"), true, (v) -> {}, (e, b) -> {}, null);
-
-        TestContainer container = addRenderableWidget(new TestContainer(250, 50, 100, 90));
+        AtomicReference<TestContainer> container = new AtomicReference<>();
         DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
         scrollBar.setPageSize(90);
         scrollBar.updateMaxScroll(20 * 20);
         scrollBar.setStepSize(8);
         scrollBar.setAutoScrollerHeight(true);
         scrollBar.setOnValueChangedEvent((bar) -> {
-            container.setYScrollOffset(bar.getScrollValue());
+            container.get().setYScrollOffset(bar.getScrollValue());
         });
+        container.set(addRenderableWidget(new TestContainer(225, 70, 100, 90)));
+        container.get().setWidgetLayerIndex(1);
+
+        setAllowedLayer(0);
 
     }
 

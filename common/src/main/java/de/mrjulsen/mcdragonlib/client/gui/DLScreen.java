@@ -23,7 +23,6 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.IExtendedAreaWidget;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
@@ -42,6 +41,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     protected DLContextMenu menu;
     private boolean mouseSelected;
 
+    private int allowedLayerIndex = DEFAULT_LAYER_INDEX;
+    private int layerIndex = DEFAULT_LAYER_INDEX;
+
     public final Consumer<DLButton> NO_BUTTON_CLICK_ACTION = (a) -> {};
     public final BiConsumer<DLCycleButton<?>, ?> NO_CYCLE_BUTTON_VALUE_CHANGE_ACTION = (a, b) -> {};
     public final BiConsumer<DLEditBox, Boolean> NO_EDIT_BOX_FOCUS_CHANGE_ACTION = (a, b) -> {};
@@ -49,6 +51,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     protected DLScreen(Component title) {
         super(title);
+    }
+
+    @Override
+    public final boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
     }
 
     @Override
@@ -142,7 +149,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         }
         
         // vanilla code, but inverted
-        ListIterator<? extends GuiEventListener> iterator = this.children().listIterator(this.children().size());
+        ListIterator<? extends GuiEventListener> iterator = childrenLayered().listIterator(childrenLayered().size());
         while (iterator.hasPrevious()) {
             GuiEventListener guiEventListener = iterator.previous();
 
@@ -163,11 +170,6 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     protected <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
-        /*
-        if (!(guiEventListener instanceof IDragonLibWidget)) {
-            throw new IllegalArgumentException("Only DragonLib Widgets are allowed in this type of Screen.");
-        }
-        */
         return super.addWidget(guiEventListener);
     }
 
@@ -228,19 +230,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double pDelta) {
-        if (super.mouseScrolled(mouseX, mouseY, pDelta)) {
-            return true;
-        }
-        boolean[] b = new boolean[] { false };
-        this.renderables.stream().filter(x -> x instanceof IExtendedAreaWidget && x instanceof GuiEventListener).forEach(x -> {
-            if (((x instanceof IExtendedAreaWidget exw && exw.isInArea(mouseX, mouseY))) && !b[0]) {
-                b[0] = ((GuiEventListener)x).mouseScrolled(mouseX, mouseY, pDelta);
-                if (b[0]) {
-                    return;
-                }
-            }
-        });
-        return b[0];
+        return containerMouseScrolled(mouseX, mouseY, pDelta);
     }
 
     @Override
@@ -264,6 +254,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
+    public boolean changeFocus(boolean focus) {
+        return changeFocusImpl(focus);
+    }
+
+    @Override
     public DLContextMenu getContextMenu() {
         return menu;
     }
@@ -271,7 +266,28 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void setMenu(DLContextMenu menu) {
         this.menu = menu;
+    }    
+    
+    @Override
+    public int getAllowedLayer() {
+        return allowedLayerIndex;
     }
+
+    @Override
+    public void setAllowedLayer(int index) {
+        this.allowedLayerIndex = index;
+    }
+
+    @Override
+    public void setWidgetLayerIndex(int layerIndex) {
+        this.layerIndex = layerIndex;
+    }
+
+    @Override
+    public int getWidgetLayerIndex() {
+        return layerIndex;
+    }
+
 
     @Override
     public boolean isMouseSelected() {

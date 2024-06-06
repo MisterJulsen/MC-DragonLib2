@@ -183,6 +183,10 @@ public class GuiUtils {
         RenderSystem.setShaderColor(r, g, b, a);
     }
 
+    public static void resetTint() {
+        setTint(0xFFFFFFFF);
+    }
+
     public static void setTint(int color) {
         short[] argb = ColorUtils.decodeARGB(color);
         setTint(ColorObject.colorIntToFloat(argb[1]), ColorObject.colorIntToFloat(argb[2]), ColorObject.colorIntToFloat(argb[3]), ColorObject.colorIntToFloat(argb[0]));

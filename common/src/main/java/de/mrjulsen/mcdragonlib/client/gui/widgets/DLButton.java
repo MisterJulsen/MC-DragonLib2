@@ -2,7 +2,6 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
@@ -15,7 +14,6 @@ import de.mrjulsen.mcdragonlib.core.EAlignment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
@@ -52,23 +50,10 @@ public class DLButton extends Button implements IDragonLibWidget {
         renderMainLayer(new Graphics(poseStack), mouseX, mouseY, partialTicks);
     }
 
-    public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        GuiUtils.setTexture(DragonLib.NATIVE_WIDGETS);
-        GuiUtils.setTint(1.0F, 1.0F, 1.0F, this.alpha);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableTexture();
-        
-        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.RAISED);
-
-        this.renderBg(graphics.poseStack(), minecraft, mouseX, mouseY);
+    public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {        
+        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         int j = active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
         GuiUtils.drawString(graphics, font, this.x + this.width / 2, this.y + (this.height - 8) / 2, this.getMessage(), j | Mth.ceil(this.alpha * 255.0F) << 24, EAlignment.CENTER, true);
-
     }
 
     @Override

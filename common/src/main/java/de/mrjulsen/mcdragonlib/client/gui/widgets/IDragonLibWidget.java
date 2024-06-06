@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
  */
 public interface IDragonLibWidget {
 
+
     /**
      * Use this value if you don't want the context menu to open by right-clicking.
      */
@@ -22,7 +23,7 @@ public interface IDragonLibWidget {
      * Called when the focus of this widget changes.
      * @param focus The new focus.
      */
-    void onFocusChangeEvent(boolean focus);  
+    void onFocusChangeEvent(boolean focus);      
     
     /**
      * The lowest render layer that is rendered before all other layers.
@@ -90,9 +91,6 @@ public interface IDragonLibWidget {
         boolean b = getContextMenu().mouseClicked(mouseX, mouseY, button);
 
         if (b) {
-            if (getContextMenu().getParent() != null) {
-                //getContextMenu().getParent().close();
-            }
             return true;
         }
 

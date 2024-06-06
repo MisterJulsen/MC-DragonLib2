@@ -1,9 +1,12 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
@@ -14,10 +17,17 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
  */
 public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLibContainer<T>> extends IDragonLibWidget {
 
+    public static final int DEFAULT_LAYER_INDEX = 0;
+
     @SuppressWarnings("unchecked")
     private T get() {
         return (T)this;
     }
+    
+    void setAllowedLayer(int index);
+    int getAllowedLayer();
+    void setWidgetLayerIndex(int index);
+    int getWidgetLayerIndex();
 
     /**
      * DON'T CALL THIS METHOD BY YOURSELF, unless you are implementing a new type of {@code DLScreen}. This method is only called by {@code DLScreen} as this method iterates through all child widgets and containers by itself.
@@ -34,10 +44,16 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     }
 
     /**
+     * Whether scrolling should be consumed by this widgte or not. If not, widgets behind this widget can be scrolled.
+     * @return
+     */
+    boolean consumeScrolling(double mouseX, double mouseY);
+
+    /**
      * Deselects all widgets and subwidgets. Called by {@code mouseSelectEvent}.
      */
     private void unselectAll() {
-        get().children().forEach(x -> {                
+        childrenLayered().forEach(x -> {                
             if (x instanceof IDragonLibWidget widget) {
                 if (widget instanceof IDragonLibContainer container) {                    
                     container.unselectAll();
@@ -65,7 +81,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             return menu;
         }
 
-        ListIterator<? extends GuiEventListener> iterator = get().children().listIterator(get().children().size());
+        ListIterator<? extends GuiEventListener> iterator = childrenLayered().listIterator(childrenLayered().size());
         while (iterator.hasPrevious()) {
             GuiEventListener guiEventListener = iterator.previous();
             if (!guiEventListener.isMouseOver(mouseX, mouseY)) continue;
@@ -87,7 +103,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             return Optional.of(getContextMenu());
         }
 
-        ListIterator<? extends GuiEventListener> iterator = get().children().listIterator(get().children().size());
+        ListIterator<? extends GuiEventListener> iterator = childrenLayered().listIterator(childrenLayered().size());
         while (iterator.hasPrevious()) {
             GuiEventListener guiEventListener = iterator.previous();
             if (guiEventListener instanceof IDragonLibContainer<?> widget) {
@@ -102,6 +118,19 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             }
         }
         return Optional.empty();
+    }
+
+    default List<GuiEventListener> getWidgetsReversed() {
+        List<GuiEventListener> listeners = new LinkedList<>(childrenLayered());
+        Collections.reverse(listeners);
+        if (this instanceof GuiEventListener l) {
+            listeners.add(l);
+        }
+        return listeners;
+    }
+
+    default List<? extends GuiEventListener> childrenLayered() {
+        return get().children().stream().filter(x -> (x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0).toList();
     }
 
     /**
@@ -123,15 +152,11 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      */
     @SuppressWarnings("unchecked")
     default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
-
-        Collection<GuiEventListener> listeners = new ArrayList<>(get().children());
-        if (this instanceof GuiEventListener l) {
-            listeners.add(l);
-        }
+        
+        List<GuiEventListener> listeners = getWidgetsReversed();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this) {
-                System.out.println(" - " + container.toString());
                 if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, button)) {
                     return true;
                 }
@@ -139,7 +164,6 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             
             if (listener instanceof IDragonLibWidget widget) {
                 if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button)) {
-                    System.out.println(" - " + parent.toString() + ", " + widget.toString());
                     closeAllContextMenus(screen, widget);
                     return true;
                 }
@@ -171,6 +195,57 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
         if (container != excluded && container instanceof IDragonLibContainer cont && cont.getContextMenu() != null) {
             cont.getContextMenu().close();
+        }
+    }
+
+    default boolean containerMouseScrolled(double mouseX, double mouseY, double delta) {
+
+        List<GuiEventListener> listeners = getWidgetsReversed();
+
+        for (GuiEventListener listener : listeners) {
+            if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+            
+            if (listener instanceof IDragonLibWidget widget && ((listener instanceof IExtendedAreaWidget ext && ext.isInArea(mouseX, mouseY)) || widget.isMouseSelected()) && listener.mouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+        }
+
+        return consumeScrolling(mouseX, mouseY);
+    }
+
+    default boolean changeFocusImpl(boolean focus) {
+        GuiEventListener guieventlistener = get().getFocused();
+        boolean flag = guieventlistener != null;
+        if (flag && guieventlistener.changeFocus(focus)) {
+            return true;
+        } else {
+            List<? extends GuiEventListener> list = childrenLayered();
+            int j = list.indexOf(guieventlistener);
+            int i;
+            if (flag && j >= 0) {
+                i = j + (focus ? 1 : 0);
+            } else if (focus) {
+                i = 0;
+            } else {
+                i = list.size();
+            }
+
+            ListIterator<? extends GuiEventListener> listiterator = list.listIterator(i);
+            BooleanSupplier booleansupplier = focus ? listiterator::hasNext : listiterator::hasPrevious;
+            Supplier<? extends GuiEventListener> supplier = focus ? listiterator::next : listiterator::previous;
+
+            while (booleansupplier.getAsBoolean()) {
+                GuiEventListener guieventlistener1 = supplier.get();
+                if (guieventlistener1.changeFocus(focus)) {
+                    get().setFocused(guieventlistener1);
+                    return true;
+                }
+            }
+
+            get().setFocused((GuiEventListener) null);
+            return false;
         }
     }
 }

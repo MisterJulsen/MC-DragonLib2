@@ -14,7 +14,6 @@ loom {
         convertAccessWideners = true
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
 
-        mixinConfig "dragonlib-common.mixins.json"
         mixinConfig "dragonlib.mixins.json"
     }
 }
