@@ -189,6 +189,10 @@ public class GuiUtils {
         setTint(ColorObject.colorIntToFloat(argb[1]), ColorObject.colorIntToFloat(argb[2]), ColorObject.colorIntToFloat(argb[3]), ColorObject.colorIntToFloat(argb[0]));
     }
 
+    public static void resetTint() {
+        setTint(0xFFFFFFFF);
+    }
+
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {
         setTexture(texture);
         GuiComponent.blit(graphics.poseStack(), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
