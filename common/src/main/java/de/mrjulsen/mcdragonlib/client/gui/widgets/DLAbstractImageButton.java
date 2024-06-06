@@ -119,7 +119,7 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, this.style, active ? (isSelected() ? ButtonState.DOWN : (isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.RAISED);
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, this.style, active ? (isSelected() ? ButtonState.DOWN : (isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.DISABLED);
         renderImage(graphics, pMouseX, pMouseY, pPartialTick);
     }
 
@@ -131,4 +131,3 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
         TOGGLE_BUTTON;
     }    
 }
-

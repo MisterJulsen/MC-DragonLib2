@@ -162,6 +162,11 @@ public class DLContextMenu extends WidgetContainer {
         }
         return b;
     }
+    
+    @Override
+    public boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
+    }
 
     @Override
     public NarrationPriority narrationPriority() {

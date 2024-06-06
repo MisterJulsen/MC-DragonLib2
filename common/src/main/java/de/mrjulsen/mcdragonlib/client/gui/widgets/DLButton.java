@@ -2,8 +2,6 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
@@ -15,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
@@ -56,16 +53,7 @@ public class DLButton extends Button implements IDragonLibWidget {
     }
 
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        GuiUtils.setTexture(DragonLib.NATIVE_WIDGETS);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.RAISED);
-
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         int j = active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
         GuiUtils.drawString(graphics, font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j | Mth.ceil(this.alpha * 255.0F) << 24, EAlignment.CENTER, true);
     }

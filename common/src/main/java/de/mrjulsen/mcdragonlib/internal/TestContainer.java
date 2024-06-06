@@ -4,8 +4,10 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenu;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLVerticalScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.ScrollableWidgetContainer;
 import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
@@ -18,8 +20,8 @@ public class TestContainer extends ScrollableWidgetContainer {
         super(x, y, width, height);
 
         for (int k = 0; k < 20; k++) {
-            DLButton btn = addRenderableWidget(new DLButton(x, y + (k * 20), width, 20, TextUtils.text("Button " + k)));
-            
+            DLButton btn = addRenderableWidget(new DLButton(x, y + (k * 20), width - 8, 20, TextUtils.text("Button " + k)));
+            btn.setRenderStyle(AreaStyle.DRAGONLIB);
             DLContextMenu menu = new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
                 DLContextMenuItem.Builder builder = new DLContextMenuItem.Builder();
                 for (int i = 0; i < 5; i++) {
@@ -37,8 +39,13 @@ public class TestContainer extends ScrollableWidgetContainer {
 
             btn.setMenu(menu);
         }
-
         
+        addRenderableWidget(new DLVerticalScrollBar(x + width - 10, y, 10, height, new GuiAreaDefinition(x, y, width, height)))
+            .setAutoScrollerHeight(true)
+            .setPageSize(height)
+            .setStepSize(15)
+            .updateMaxScroll(20 * 20)
+        ;
     }
 
     @Override
@@ -54,6 +61,11 @@ public class TestContainer extends ScrollableWidgetContainer {
 
     @Override
     public void updateNarration(NarrationElementOutput narrationElementOutput) {
+    }    
+    
+    @Override
+    public boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
     }
     
 }

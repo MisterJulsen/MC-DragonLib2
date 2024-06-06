@@ -1,9 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -38,13 +36,6 @@ public class DragonLibBlock extends Block {
 
         @Override
         public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand interactionHand) {
-            if (player.isShiftKeyDown()) {
-                level.playSound(null, player.blockPosition(), DragonLib.DRAGON_GROWL.get(), SoundSource.PLAYERS, 2.0F, DragonLib.RANDOM.nextFloat(0.9f, 1.2f));
-                player.getCooldowns().addCooldown(player.getItemInHand(interactionHand).getItem(), 20 * 4);
-            } else {
-                level.playSound(null, player.blockPosition(), DragonLib.DRAGON_ROAR.get(), SoundSource.PLAYERS, 2.0F, DragonLib.RANDOM.nextFloat(0.9f, 1.2f));
-                player.getCooldowns().addCooldown(player.getItemInHand(interactionHand).getItem(), 20 * 8);
-            }
             return InteractionResultHolder.success(player.getItemInHand(interactionHand));
         }
     }

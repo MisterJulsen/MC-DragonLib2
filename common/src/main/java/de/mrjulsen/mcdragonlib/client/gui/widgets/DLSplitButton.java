@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
-import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
@@ -37,8 +36,8 @@ public class DLSplitButton extends DLButton {
     
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width - DROP_DOWN_BUTTON_WIDTH + 1, height, AreaStyle.NATIVE, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
-        DynamicGuiRenderer.renderArea(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY(), DROP_DOWN_BUTTON_WIDTH, height, AreaStyle.NATIVE, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width - DROP_DOWN_BUTTON_WIDTH + 1, height, style, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY(), DROP_DOWN_BUTTON_WIDTH, height, style, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
 
         GuiUtils.drawString(graphics, font, getX() + (width - DROP_DOWN_BUTTON_WIDTH) / 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
         if (getContextMenu().isOpen()) {
