@@ -235,6 +235,6 @@ public class DragonLib {
             LOGGER.info(" Bug Reports: https://github.com/MisterJulsen/MC-DragonLib2/issues");
             LOGGER.info("------------------------------------------------------------------");
             LOGGER.info("                           +++ 🐉 +++                             ");
-        }, dragonTypes[RANDOM.nextInt(dragonTypes.length)]).run();
+        }, dragonTypes[RANDOM.nextInt(dragonTypes.length)]).start();
     }
 }
