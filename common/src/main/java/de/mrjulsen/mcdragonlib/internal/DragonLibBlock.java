@@ -1,9 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;

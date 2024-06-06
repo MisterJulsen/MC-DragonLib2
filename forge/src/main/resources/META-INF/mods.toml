@@ -10,7 +10,7 @@ displayName = "DragonLib"
 authors = "MrJulsen"
 credits = "This mod includes Architectury API"
 displayURL = "https://github.com/MisterJulsen/MC-DragonLib2"
-logoFile = "mod_logo.png"
+logoFile = "icon.png"
 description = '''
 DragonLib is a small and simple Multiloader Minecraft Library Mod based which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. New functionality may be added at any time when needed by my mods. If you are developer feel free to use this library in your projects.
 '''
