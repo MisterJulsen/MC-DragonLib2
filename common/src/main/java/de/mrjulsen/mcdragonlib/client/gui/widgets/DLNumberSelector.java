@@ -183,4 +183,9 @@ public class DLNumberSelector extends WidgetContainer {
         return menu;
     }
 
+    @Override
+    public boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
+    }
+
 }
