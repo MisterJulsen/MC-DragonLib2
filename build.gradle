@@ -49,6 +49,13 @@ subprojects {
 
 
     publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = rootProject.archives_name + "-" + project.name             
+                from components.java
+            }
+        }
+
         repositories {
             maven {
                 name "GitHub"
