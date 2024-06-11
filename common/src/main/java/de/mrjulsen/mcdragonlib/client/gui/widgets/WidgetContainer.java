@@ -91,19 +91,23 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         return hovered;
     }
 
+    @Override
     public boolean isActive() {
         return active;
     }
 
+    @Override
     public void setActive(boolean active) {
         this.active = active;
         children().stream().filter(x -> x instanceof AbstractWidget).forEach(x -> ((AbstractWidget)x).active = active);
     }
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
@@ -135,7 +139,11 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         
         Iterator<Widget> w = renderables.iterator();
         while (w.hasNext()) {
-            w.next().render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+            Widget widget = w.next();
+            if ((widget instanceof IDragonLibWidget d && !d.isVisible()) || (widget instanceof AbstractWidget abs && !abs.visible)) {
+                continue;
+            }
+            widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
         }
     }
 
@@ -143,7 +151,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         Iterator<Widget> w = renderables.iterator();
         while (w.hasNext()) {
-            if (w.next() instanceof IDragonLibWidget layeredWidget) {
+            if (w.next() instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }
@@ -153,7 +161,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         Iterator<Widget> w = renderables.iterator();
         while (w.hasNext()) {
-            if (w.next() instanceof IDragonLibWidget layeredWidget) {
+            if (w.next() instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }

@@ -77,7 +77,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -88,7 +88,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -105,7 +105,12 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+        for (Widget widget : this.renderables) {
+            if ((widget instanceof IDragonLibWidget d && !d.isVisible()) || (widget instanceof AbstractWidget abs && !abs.visible)) {
+                continue;
+            }
+            widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+        }
     }
     
     @Override
@@ -140,6 +145,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     public void renderScreenBackground(Graphics graphics) {
         renderBackground(graphics.poseStack());
     }
+
+    
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -307,5 +314,21 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public final int getY() {
         return 0;
+    }    
+
+    @Override
+    public final void setVisible(boolean b) {}
+
+    @Override
+    public final boolean isVisible() {
+        return true;
+    }
+
+    @Override
+    public final void setActive(boolean b) {}
+
+    @Override
+    public boolean isActive() {
+        return true;
     }
 }
