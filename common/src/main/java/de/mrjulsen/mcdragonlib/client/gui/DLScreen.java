@@ -24,6 +24,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import de.mrjulsen.mcdragonlib.mixin.AbstractWidgetAccessor;
@@ -151,7 +152,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
 
-        if (contextMenuMouseClickEvent(this, this, (int)mouseX, (int)mouseY, button)) {
+        if (contextMenuMouseClickEvent(this, this, (int)mouseX, (int)mouseY, 0, 0, button, GuiAreaDefinition.of(this))) {
             return true;
         }
         

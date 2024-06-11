@@ -2,7 +2,9 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.Optional;
 
+import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -82,6 +84,11 @@ public abstract class ScrollableWidgetContainer extends WidgetContainer {
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
         super.mouseMoved(mouseX + xScrollOffset, mouseY + yScrollOffset);
+    }
+
+    @Override
+    public boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
+        return super.contextMenuMouseClickEvent(screen, parent, mouseX, mouseY, (int)xScrollOffset, (int)yScrollOffset, button, GuiAreaDefinition.of(this));
     }
 
     @Override

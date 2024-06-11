@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -86,7 +87,7 @@ public interface IDragonLibWidget {
         return GLFW.GLFW_MOUSE_BUTTON_RIGHT;
     }
     
-    default boolean contextMenuMouseClickHandler(int mouseX, int mouseY, int button) {
+    default boolean contextMenuMouseClickHandler(int mouseX, int mouseY, int button, int xOffset, int yOffset, GuiAreaDefinition openingBounds) {
         if (getContextMenu() == null) {
             return false;
         }
@@ -97,8 +98,8 @@ public interface IDragonLibWidget {
             return true;
         }
 
-        if (getContextMenuOpenButton() != NO_CONTEXT_MENU_BUTTON && button == getContextMenuOpenButton()) {
-            return getContextMenu().open((int)mouseX, (int)mouseY);
+        if (getContextMenuOpenButton() != NO_CONTEXT_MENU_BUTTON && button == getContextMenuOpenButton() && (openingBounds == null || openingBounds.isInBounds(mouseX, mouseY))) {
+            return getContextMenu().open((int)mouseX, (int)mouseY + yOffset, (int)mouseX, (int)mouseY);
         }
 
         return false;

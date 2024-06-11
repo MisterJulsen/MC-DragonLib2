@@ -37,7 +37,7 @@ public class TestScreen extends DLScreen {
         btn.active = false;
         btn.setRenderStyle(AreaStyle.DRAGONLIB);
 
-        addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {})), null).setRenderStyle(AreaStyle.DRAGONLIB);
+        addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {}, true)), null).setRenderStyle(AreaStyle.DRAGONLIB);
         Sprite sprite = new Sprite(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256, 0, 16, 16, 16, 12, 12);
 
         addRenderableWidget(new DLCheckBox(150, 100, 100, "CheckBox Widget Text", true, (cb) -> {
@@ -74,8 +74,7 @@ public class TestScreen extends DLScreen {
             return builder2;
         })));
         split.setRenderStyle(AreaStyle.DRAGONLIB);
-        split.setBackColor(0xFF2190ff);
-        split.setFontColor(0xFFFFFF00);
+        split.setBackColor(DragonLib.ERROR_BUTTON_COLOR);
 
         addRenderableWidget(new DLDropDownButton(50, 170, 100, 20, TextUtils.text("Button 4"),
         new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
