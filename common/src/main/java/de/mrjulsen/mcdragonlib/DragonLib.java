@@ -97,12 +97,9 @@ public class DragonLib {
     private static final Supplier<Registries> REGISTRIES = Suppliers.memoize(() -> Registries.get(MODID));    
     private static final Registrar<Item> ITEMS = REGISTRIES.get().get(Registry.ITEM_REGISTRY);        
     private static final Registrar<Block> BLOCKS = REGISTRIES.get().get(Registry.BLOCK_REGISTRY);
-    private static final Registrar<SoundEvent> SOUNDS = REGISTRIES.get().get(Registry.SOUND_EVENT_REGISTRY);
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of(Material.STONE).strength(1.5f)));
-    public static final RegistrySupplier<SoundEvent> DRAGON_ROAR = SOUNDS.register(new ResourceLocation(MODID, "dragon_roar"), () -> new SoundEvent(new ResourceLocation(MODID, "dragon_roar")));
-    public static final RegistrySupplier<SoundEvent> DRAGON_GROWL = SOUNDS.register(new ResourceLocation(MODID, "dragon_growl"), () -> new SoundEvent(new ResourceLocation(MODID, "dragon_growl")));
         
     private static NetworkManagerBase dragonLibNet;
 
