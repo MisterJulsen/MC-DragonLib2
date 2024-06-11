@@ -4,8 +4,10 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLNumberSelector;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ColorObject;
@@ -92,13 +94,16 @@ public class DLColorPickerScreen extends DLScreen {
         guiLeft = this.width / 2 - WIDTH / 2;
         guiTop = this.height / 2 - (HEIGHT + 24) / 2;
 
-        addButton(this.width / 2 - 2 - 115, guiTop + HEIGHT - 28, 115, 20, CommonComponents.GUI_DONE, (p) -> {
+        DLButton btn1 = addButton(guiLeft + WIDTH - 8 - 160 - 4, guiTop + HEIGHT - 28, 80, 20, CommonComponents.GUI_DONE, (p) -> {
             this.onDone();
         }, null);
+        btn1.setRenderStyle(AreaStyle.DRAGONLIB);
+        btn1.setBackColor(DragonLib.PRIMARY_BUTTON_COLOR);
 
-        addButton(this.width / 2 + 3, guiTop + HEIGHT - 28, 115, 20, CommonComponents.GUI_CANCEL, (p) -> {
+        DLButton btn2 = addButton(guiLeft + WIDTH - 8 - 80, guiTop + HEIGHT - 28, 80, 20, CommonComponents.GUI_CANCEL, (p) -> {
             this.onClose();
         }, null);
+        btn2.setRenderStyle(AreaStyle.DRAGONLIB);
 
 
         this.hBox = addRenderableWidget(new DLNumberSelector(guiLeft + 196, guiTop + 40, 46, 18, h * 360, false,
