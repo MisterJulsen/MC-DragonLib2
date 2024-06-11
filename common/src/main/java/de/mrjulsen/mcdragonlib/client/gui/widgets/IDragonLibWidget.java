@@ -13,7 +13,10 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
  */
 public interface IDragonLibWidget {
 
-
+    void setVisible(boolean b);
+    boolean isVisible();
+    void setActive(boolean b);
+    boolean isActive();
     /**
      * Use this value if you don't want the context menu to open by right-clicking.
      */
