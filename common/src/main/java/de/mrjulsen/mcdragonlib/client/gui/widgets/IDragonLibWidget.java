@@ -99,7 +99,7 @@ public interface IDragonLibWidget {
         }
 
         if (getContextMenuOpenButton() != NO_CONTEXT_MENU_BUTTON && button == getContextMenuOpenButton() && (openingBounds == null || openingBounds.isInBounds(mouseX, mouseY))) {
-            return getContextMenu().open((int)mouseX, (int)mouseY + yOffset, (int)mouseX, (int)mouseY);
+            return getContextMenu().open((int)mouseX + xOffset, (int)mouseY + yOffset, (int)mouseX, (int)mouseY);
         }
 
         return false;
