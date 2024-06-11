@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
@@ -183,5 +185,17 @@ public final class DLUtils {
             return true;
         } else
             return false;
+    }
+
+    public static <T> void doIfNotNull(T obj, Consumer<T> action) {
+        if (obj != null) {
+            action.accept(obj);
+        }
+    }
+
+    public static <T> void doIfNotNull(Optional<T> obj, Consumer<T> action) {
+        if (obj != null && obj.isPresent()) {
+            action.accept(obj.get());
+        }
     }
 }
