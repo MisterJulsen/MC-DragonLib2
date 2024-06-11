@@ -21,6 +21,9 @@ public class DLContextMenu extends WidgetContainer {
 
     private DLContextMenu parent;
     
+    //protected int fontColor = 0xFFFFFFFF;
+    //protected int backColor = 0xFFFFFFFF;
+    
     public DLContextMenu(Supplier<GuiAreaDefinition> area, Supplier<DLContextMenuItem.Builder> openAction) {
         super(0, 0, 100, 100);
         this.area = area;

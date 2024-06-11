@@ -145,7 +145,7 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
-    }
+    }  
 
     @Override
     public int getX() {
@@ -155,5 +155,20 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
     @Override
     public int getY() {
         return y;
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        this.visible = b;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setActive(boolean b) {
+        this.active = b;
     }
 }

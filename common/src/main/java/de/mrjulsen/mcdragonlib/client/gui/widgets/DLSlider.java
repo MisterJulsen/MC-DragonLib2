@@ -5,8 +5,18 @@ import java.util.function.Consumer;
 
 import org.lwjgl.glfw.GLFW;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
+import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -24,6 +34,10 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     /** Allows input of discontinuous values with a certain step */
     protected double stepSize;
     protected boolean drawString;
+
+    protected AreaStyle style = AreaStyle.NATIVE;
+    protected int fontColor = 0xFFFFFFFF;
+    protected int backColor = 0xFFFFFFFF;
 
     private final DecimalFormat format;
     private final Consumer<DLSlider> onUpdateMessage;
@@ -76,6 +90,18 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
         }
 
         this.updateMessage();
+    }
+    
+
+    public void setRenderStyle(AreaStyle style) {
+        this.style = style;
+        if (style == AreaStyle.DRAGONLIB) {
+            setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
+        }
+    }
+
+    public AreaStyle getStyle() {
+        return style;
     }
 
     /**
@@ -146,6 +172,25 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
         return false;
     }
+
+    @Override
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        renderMainLayer(new Graphics(poseStack), mouseX, mouseY, partialTicks);
+    }
+
+    @SuppressWarnings("resource")
+    public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
+        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, getBackColor(), style, ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.getX() + (int)(this.value * (double)(this.getWidth() - 8)), this.getY(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        
+        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.x + this.width / 2, this.y + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        GuiUtils.resetTint();
+
+    }
+
+    @Override
+    protected final void renderBg(PoseStack poseStack, Minecraft minecraft, int mouseX, int mouseY) {}
 
     private void setValueFromMouse(double mouseX) {
         this.setSliderValue((mouseX - (this.x + 4)) / (this.width - 8));
@@ -234,6 +279,22 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
     }
+
+    public int getBackColor() {
+        return backColor;
+    }
+
+    public int getFontColor() {
+        return fontColor;
+    }
+
+    public void setBackColor(int color) {
+        this.backColor = color;
+    }
+
+    public void setFontColor(int color) {
+        this.fontColor = color;        
+    }
     
     @Override
     public int getX() {
@@ -243,5 +304,20 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     @Override
     public int getY() {
         return y;
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        this.visible = b;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setActive(boolean b) {
+        this.active = b;
     }
 }
