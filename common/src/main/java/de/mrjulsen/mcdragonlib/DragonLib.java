@@ -27,7 +27,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -69,6 +68,11 @@ public class DragonLib {
     public static final int NATIVE_BUTTON_FONT_COLOR_ACTIVE = 0xFFFFFFFF;
     public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFF9E9E9E;
     public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
+    public static final int DEFAULT_BUTTON_COLOR = 0xFF404040;
+    public static final int PRIMARY_BUTTON_COLOR = 0xFF2190ff;
+    public static final int ACCEPT_BUTTON_COLOR = 0xFF2190ff;
+    public static final int ERROR_BUTTON_COLOR = 0xFF2190ff;
+    public static final int WARN_BUTTON_COLOR = 0xFF2190ff;
     
     /** 🐉 */ public static final Component TEXT_DRAGON = TextUtils.translate("text." + MODID + ".dragon");
     public static final Component TEXT_NEXT = TextUtils.translate("text." + MODID + ".next");
