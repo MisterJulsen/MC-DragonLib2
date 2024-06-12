@@ -95,7 +95,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
     public void setRenderStyle(AreaStyle style) {
         this.style = style;
-        if (style == AreaStyle.DRAGONLIB) {
+        if (style.isCustom()) {
             setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
         }
     }

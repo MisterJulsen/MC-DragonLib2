@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
+import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -132,6 +133,18 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
     default List<? extends GuiEventListener> childrenLayered() {
         return get().children().stream().filter(x -> (x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0).toList();
+    }
+
+    /**
+     * Checks if the widgets are inside the bounds of the container before rendering.
+     * @return {@code true} if the check should be enabled.
+     */
+    default boolean checkWidgetBounds() {
+        return false;
+    }
+
+    default Pair<Double, Double> checkWidgetBoundsOffset() {
+        return Pair.of(0D, 0D);
     }
 
     /**

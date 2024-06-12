@@ -38,7 +38,7 @@ public class DLButton extends Button implements IDragonLibWidget {
 
     public void setRenderStyle(AreaStyle style) {
         this.style = style;
-        if (style == AreaStyle.DRAGONLIB) {
+        if (style.isCustom()) {
             setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
         }
     }

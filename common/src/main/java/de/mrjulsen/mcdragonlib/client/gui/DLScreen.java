@@ -28,6 +28,7 @@ import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import de.mrjulsen.mcdragonlib.mixin.AbstractWidgetAccessor;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Widget;
@@ -78,7 +79,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -89,7 +90,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible()) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -107,7 +108,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         for (Widget widget : this.renderables) {
-            if ((widget instanceof IDragonLibWidget d && !d.isVisible()) || (widget instanceof AbstractWidget abs && !abs.visible)) {
+            if ((widget instanceof IDragonLibWidget d && (!d.isVisible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.getX(), d.getY(), d.getWidth(), d.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight())))) ||
+                (widget instanceof AbstractWidget abs && (!abs.visible || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(abs.x, abs.y, abs.getWidth(), abs.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))))) {
                 continue;
             }
             widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
@@ -315,7 +317,22 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public final int getY() {
         return 0;
-    }    
+    }
+    
+    @Override
+    public final int getWidth() {
+        return width;
+    }
+
+    @Override
+    public final int getHeight() {
+        return height;
+    }
+
+    @Override
+    public boolean checkWidgetBounds() {
+        return true;
+    }
 
     @Override
     public final void setVisible(boolean b) {}

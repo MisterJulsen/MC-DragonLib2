@@ -48,7 +48,7 @@ public class DLVerticalScrollBar extends DLAbstractScrollBar<DLVerticalScrollBar
         int w = width - 2;
         int h = scrollerSize;
 
-        if (getStyle() == AreaStyle.DRAGONLIB) {
+        if (getStyle().isCustom()) {
             DynamicGuiRenderer.renderArea(graphics, x1, y1, w, h, getFontColor(), style, isActive() ? (isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         } else {
             GuiUtils.setTint(getFontColor());

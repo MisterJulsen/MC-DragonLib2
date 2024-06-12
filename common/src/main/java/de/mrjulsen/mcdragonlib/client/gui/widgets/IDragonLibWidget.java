@@ -78,6 +78,8 @@ public interface IDragonLibWidget {
 
     int getX();
     int getY();
+    int getWidth();
+    int getHeight();
 
     /**
      * The button that must be used to open the context menu. Use {@code NO_CONTEXT_MENU_BUTTON} to prevent the context menu from opening by user inputs.

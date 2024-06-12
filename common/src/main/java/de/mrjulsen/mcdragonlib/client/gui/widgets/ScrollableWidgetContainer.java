@@ -6,6 +6,7 @@ import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
 public abstract class ScrollableWidgetContainer extends WidgetContainer {
@@ -31,6 +32,16 @@ public abstract class ScrollableWidgetContainer extends WidgetContainer {
 
     public void setYScrollOffset(double v) {
         this.yScrollOffset = v;
+    }
+
+    @Override
+    public boolean checkWidgetBounds() {
+        return true;
+    }
+
+    @Override
+    public Pair<Double, Double> checkWidgetBoundsOffset() {
+        return Pair.of(xScrollOffset, yScrollOffset);
     }
     
     @Override

@@ -46,7 +46,25 @@ public class DynamicGuiRenderer {
                     break;
             }
             return;
+        } else if (style == AreaStyle.FLAT) {
+            GuiUtils.resetTint();
+            GuiUtils.fill(graphics, x, y, w, h, tint);
+            switch (state) {
+                case DOWN:
+                    GuiUtils.fill(graphics, x, y, w, h, 0x80000000);
+                    break;
+                case SELECTED:
+                    GuiUtils.fill(graphics, x, y, w, h, 0x44FFFFFF);
+                    break;
+                case DISABLED:;
+                    GuiUtils.fill(graphics, x, y, w, h, 0xA0000000);
+                    break;
+                default:
+                    break;
+            }
+            return;
         }
+
         GuiUtils.setTint(tint);
         if (style == AreaStyle.NATIVE) {
             int i = 0;
@@ -100,7 +118,6 @@ public class DynamicGuiRenderer {
 
     public static void renderContainerBackground(Graphics graphics, int x, int y, int w, int h, int tint) {
         int startU = 20, startV = 0;
-        GuiUtils.setTint(tint);
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y, 2, 2, startU, startV, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // top left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y + h - 2, 2, 2, startU, startV + 3, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // bottom left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 2, y, 2, 2, startU + 3, startV, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // top right
@@ -111,6 +128,7 @@ public class DynamicGuiRenderer {
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y + 2, 2, h - 4, startU, startV + 2, 2, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT); // left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 2, y + 2, 2, h - 4, startU + 3, startV + 2, 2, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT); // right
         
+        GuiUtils.setTint(tint);
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + 1, y + 1, w - 2, h - 2, startU + 2, startV + 2, 1, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         GuiUtils.resetTint();
     }
@@ -184,20 +202,27 @@ public class DynamicGuiRenderer {
     }
 
     public static enum AreaStyle {
-        NATIVE(-1),
-        BROWN(0),
-        GRAY(1),
-        RED(2),
-        DRAGONLIB(100);
+        NATIVE(-1, false),
+        BROWN(0, false),
+        GRAY(1, false),
+        RED(2, false),
+        DRAGONLIB(100, true),
+        FLAT(101, true);
 
         private int index;
+        private boolean custom;
 
-        private AreaStyle(int index) {
+        private AreaStyle(int index, boolean custom) {
             this.index = index;
+            this.custom = custom;
         }
 
         public int getIndex() {
             return index;
+        }
+
+        public boolean isCustom() {
+            return custom;
         }
     }
 }
