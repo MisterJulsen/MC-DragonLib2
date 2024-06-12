@@ -29,8 +29,8 @@ public class TestContainer extends ScrollableWidgetContainer {
         }
         
         addRenderableWidget(new DLVerticalScrollBar(x + width - 10, y, 10, height, new GuiAreaDefinition(x, y, width, height)))
-            .setAutoScrollerHeight(true)
-            .setPageSize(height)
+            .setAutoScrollerSize(true)
+            .setScreenSize(height)
             .setStepSize(15)
             .updateMaxScroll(20 * 20)
         ;

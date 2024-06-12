@@ -37,12 +37,12 @@ public class TestScreen extends DLScreen {
         btn.active = false;
         btn.setRenderStyle(AreaStyle.DRAGONLIB);
 
-        addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {}, true)), null).setRenderStyle(AreaStyle.DRAGONLIB);
+        addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {}, false)), null).setRenderStyle(AreaStyle.DRAGONLIB);
         Sprite sprite = new Sprite(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256, 0, 16, 16, 16, 12, 12);
 
         addRenderableWidget(new DLCheckBox(150, 100, 100, "CheckBox Widget Text", true, (cb) -> {
             System.out.println("Checkbox state is: " + cb.isChecked());
-        })).active = false;
+        })).setRenderStyle(AreaStyle.DRAGONLIB);
 
         addRenderableWidget(new DLNumberSelector(150, 150, 100, 20, 0, true, (box, itm) -> {}));
 
@@ -87,13 +87,16 @@ public class TestScreen extends DLScreen {
         addEditBox(50, 110, 100, 20, "", TextUtils.text("öl"), true, (v) -> {}, (e, b) -> {}, null);
         AtomicReference<TestContainer> container = new AtomicReference<>();
         DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
-        scrollBar.setPageSize(90);
+        scrollBar.setScreenSize(90);
         scrollBar.updateMaxScroll(20 * 20);
         scrollBar.setStepSize(8);
-        scrollBar.setAutoScrollerHeight(true);
-        scrollBar.setOnValueChangedEvent((bar) -> {
+        scrollBar.setAutoScrollerSize(true);
+        scrollBar.withOnValueChanged((bar) -> {
             container.get().setYScrollOffset(bar.getScrollValue());
         });
+        scrollBar.setRenderStyle(AreaStyle.DRAGONLIB);
+        scrollBar.setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
+        scrollBar.setFontColor(DragonLib.LIGHT_BUTTON_COLOR);
         container.set(addRenderableWidget(new TestContainer(225, 70, 100, 90)));
         container.get().setWidgetLayerIndex(1);
 
