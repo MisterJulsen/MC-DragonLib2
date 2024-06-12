@@ -70,6 +70,7 @@ public class DragonLib {
     public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
     public static final int DARK_WINDOW_COLOR = 0xFF303030;
     public static final int DEFAULT_BUTTON_COLOR = 0xFF484848;
+    public static final int LIGHT_BUTTON_COLOR = 0xFF888888;
     public static final int PRIMARY_BUTTON_COLOR = 0xFF1572E6;//0xFF2190ff;
     public static final int ACCEPT_BUTTON_COLOR = 0xFF0DB24D;
     public static final int ERROR_BUTTON_COLOR = 0xFFE83E4D;
