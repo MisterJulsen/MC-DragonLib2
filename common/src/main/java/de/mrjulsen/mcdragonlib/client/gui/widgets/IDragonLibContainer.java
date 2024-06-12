@@ -9,6 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -151,19 +152,19 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      * @return {@code true}, when a context menu could be opened.
      */
     @SuppressWarnings("unchecked")
-    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
+    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
         
         List<GuiEventListener> listeners = getWidgetsReversed();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this) {
-                if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, button)) {
+                if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, xOffset, yOffset, button, openingBounds)) {
                     return true;
                 }
             }
             
             if (listener instanceof IDragonLibWidget widget) {
-                if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button)) {
+                if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button, xOffset, yOffset, openingBounds)) {
                     closeAllContextMenus(screen, widget);
                     return true;
                 }

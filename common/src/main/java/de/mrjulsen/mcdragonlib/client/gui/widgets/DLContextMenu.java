@@ -137,7 +137,7 @@ public class DLContextMenu extends WidgetContainer {
             if (l instanceof IDragonLibWidget widget) {
                 DLContextMenu menu = widget.getContextMenu();            
                 if (menu != null) {
-                    if (!b && widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button)) {
+                    if (!b && widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button, 0, 0, null)) {
                         children().stream().filter(x -> x instanceof IDragonLibWidget w && x != widget && w.getContextMenu() != null).forEach(x -> {
                             DLContextMenu men = ((IDragonLibWidget)x).getContextMenu();
                             men.close();

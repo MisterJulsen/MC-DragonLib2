@@ -68,11 +68,13 @@ public class DragonLib {
     public static final int NATIVE_BUTTON_FONT_COLOR_ACTIVE = 0xFFFFFFFF;
     public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFF9E9E9E;
     public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
-    public static final int DEFAULT_BUTTON_COLOR = 0xFF404040;
-    public static final int PRIMARY_BUTTON_COLOR = 0xFF2190ff;
-    public static final int ACCEPT_BUTTON_COLOR = 0xFF2190ff;
-    public static final int ERROR_BUTTON_COLOR = 0xFF2190ff;
-    public static final int WARN_BUTTON_COLOR = 0xFF2190ff;
+    public static final int DARK_WINDOW_COLOR = 0xFF303030;
+    public static final int DEFAULT_BUTTON_COLOR = 0xFF484848;
+    public static final int LIGHT_BUTTON_COLOR = 0xFF888888;
+    public static final int PRIMARY_BUTTON_COLOR = 0xFF1572E6;//0xFF2190ff;
+    public static final int ACCEPT_BUTTON_COLOR = 0xFF0DB24D;
+    public static final int ERROR_BUTTON_COLOR = 0xFFE83E4D;
+    public static final int WARN_BUTTON_COLOR = 0xFFE8BD3E;
     
     /** 🐉 */ public static final Component TEXT_DRAGON = TextUtils.translate("text." + MODID + ".dragon");
     public static final Component TEXT_NEXT = TextUtils.translate("text." + MODID + ".next");

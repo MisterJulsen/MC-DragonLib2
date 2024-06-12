@@ -43,6 +43,10 @@ public class DLButton extends Button implements IDragonLibWidget {
         }
     }
 
+    public AreaStyle getStyle() {
+        return style;
+    }
+
     @Override
     public void setMenu(DLContextMenu menu) {
         this.menu = menu;
