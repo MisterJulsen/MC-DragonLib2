@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.data.Pair;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -132,7 +133,10 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     }
 
     default List<? extends GuiEventListener> childrenLayered() {
-        return get().children().stream().filter(x -> (x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0).toList();
+        return get().children().stream().filter(x -> 
+            ((x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0) &&
+            ((x instanceof IDragonLibWidget wdgt && wdgt.isVisible()) || (x instanceof AbstractWidget absw && absw.visible))
+        ).toList();
     }
 
     /**
