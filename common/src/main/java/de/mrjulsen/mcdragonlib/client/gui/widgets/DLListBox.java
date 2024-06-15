@@ -300,8 +300,9 @@ public class DLListBox<T> extends WidgetContainer implements Collection<DLListBo
                 DynamicGuiRenderer.renderArea(graphics, x, y, width, height, getBackColor(), style, isActive() ? (isSelected() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.DISABLED);
             }
 
-            getIcon().render(graphics, getX() + 2 + 6 - getIcon().getWidth() / 2, getY() + 2 + 6 - getIcon().getHeight() / 2);
-            GuiUtils.drawString(graphics, font, getX() + 10 + getIcon().getWidth() / 2, getY() + getHeight() / 2 - font.lineHeight / 2, getMessage(), isSelected() || isMouseSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+            int xCoord = getX() + getHeight() / 2 - getIcon().getWidth() / 2;
+            getIcon().render(graphics, xCoord, getY() + getHeight() / 2 -  getIcon().getHeight() / 2);
+            GuiUtils.drawString(graphics, font, xCoord + getIcon().getWidth() + 5, getY() + getHeight() / 2 - font.lineHeight / 2, getMessage(), isSelected() || isMouseSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
         }
     }
 
