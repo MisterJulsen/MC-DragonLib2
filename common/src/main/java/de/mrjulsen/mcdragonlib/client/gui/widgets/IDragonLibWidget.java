@@ -1,13 +1,9 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
-import java.util.Collection;
-
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
-import net.minecraft.client.gui.components.events.ContainerEventHandler;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 
 /**
  * Provides additional features which must be implemented by all DragonLib Components that should be used in a DragonLib Screen.
@@ -105,11 +101,5 @@ public interface IDragonLibWidget {
         }
 
         return false;
-    }
-
-    default <T extends ContainerEventHandler, S extends IDragonLibWidget> void closeAllContextMenussssss(Collection<GuiEventListener> listeners, T self, S selected) {
-        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> {
-            ((IDragonLibWidget)x).getContextMenu().close();
-        });        
     }
 }
