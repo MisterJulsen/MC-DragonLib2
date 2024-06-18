@@ -69,7 +69,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void tick() {
         super.tick();
-        this.children().stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
+        this.renderables.stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
     }
 
     protected void onDone() {}
@@ -328,6 +328,18 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     public final int getHeight() {
         return height;
     }
+
+    @Override
+    public void setX(int x) { }
+
+    @Override
+    public void setY(int y) { }
+
+    @Override
+    public void setWidth(int w) { }
+
+    @Override
+    public void setHeight(int h) { }
 
     @Override
     public boolean checkWidgetBounds() {
