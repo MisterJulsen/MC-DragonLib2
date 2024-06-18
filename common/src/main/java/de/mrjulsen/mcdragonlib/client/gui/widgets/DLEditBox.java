@@ -141,4 +141,29 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
     }
+
+    @Override
+    public void setWidth(int w) {
+        this.width = w;
+    }
+
+    @Override
+    public void setHeight(int h) {
+        this.height = h;
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        this.visible = b;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setActive(boolean b) {
+        this.active = b;
+    }
 }

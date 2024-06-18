@@ -15,10 +15,10 @@ public class Sprite {
     private final int v;
     private final int spriteWidth;
     private final int spriteHeight;    
-    private final int renderWidth;
-    private final int renderHeight;
-    private final int renderOffsetX;
-    private final int renderOffsetY;
+    private int renderWidth;
+    private int renderHeight;
+    private int renderOffsetX;
+    private int renderOffsetY;
 
     public Sprite(ResourceLocation texture, int textureWidth, int textureHeight, int u, int v, int spriteWidth, int spriteHeight) {
         this(texture, textureWidth, textureHeight, u, v, spriteWidth, spriteHeight, spriteWidth, spriteHeight);
@@ -93,5 +93,21 @@ public class Sprite {
 
     public int getTextureId() {
         return textureId;
+    }
+
+    public void setRenderWidth(int renderWidth) {
+        this.renderWidth = renderWidth;
+    }
+
+    public void setRenderHeight(int renderHeight) {
+        this.renderHeight = renderHeight;
+    }
+
+    public void setRenderOffsetX(int renderOffsetX) {
+        this.renderOffsetX = renderOffsetX;
+    }
+
+    public void setRenderOffsetY(int renderOffsetY) {
+        this.renderOffsetY = renderOffsetY;
     }
 }

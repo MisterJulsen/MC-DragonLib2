@@ -14,10 +14,17 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 
 public class DLButton extends Button implements IDragonLibWidget {
     
+    private DLContextMenu menu;
+    private boolean mouseSelected;
+    protected final Font font;
+    protected AreaStyle style = AreaStyle.NATIVE;
+    
+    protected int fontColor = 0xFFFFFFFF;
+    protected int backColor = 0xFFFFFFFF;
+
     @SuppressWarnings({ "unchecked", "resource" })
     public <T extends DLButton> DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage, Consumer<T> pOnPress) {
         super(pX, pY, pWidth, pHeight, pMessage, (btn) -> pOnPress.accept((T)btn), DEFAULT_NARRATION);
@@ -26,17 +33,17 @@ public class DLButton extends Button implements IDragonLibWidget {
 
     public DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
         this(pX, pY, pWidth, pHeight, pMessage, (btn) -> {});
-    }
-
-    private DLContextMenu menu;
-    private boolean mouseSelected;
-    protected final Font font;
-    protected AreaStyle style = AreaStyle.NATIVE;
-
-    
+    }    
 
     public void setRenderStyle(AreaStyle style) {
         this.style = style;
+        if (style.isCustom()) {
+            setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
+        }
+    }
+
+    public AreaStyle getStyle() {
+        return style;
     }
 
     @Override
@@ -53,9 +60,9 @@ public class DLButton extends Button implements IDragonLibWidget {
     }
 
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
-        int j = active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j | Mth.ceil(this.alpha * 255.0F) << 24, EAlignment.CENTER, true);
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
     }
 
     @Override
@@ -91,5 +98,46 @@ public class DLButton extends Button implements IDragonLibWidget {
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
+    }
+
+    public int getBackColor() {
+        return backColor;
+    }
+
+    public int getFontColor() {
+        return fontColor;
+    }
+
+    public void setBackColor(int color) {
+        this.backColor = color;
+    }
+
+    public void setFontColor(int color) {
+        this.fontColor = color;        
+    }
+
+    @Override
+    public void setWidth(int w) {
+        this.width = w;
+    }
+
+    @Override
+    public void setHeight(int h) {
+        this.height = h;
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        this.visible = b;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return visible;
+    }
+
+    @Override
+    public void setActive(boolean b) {
+        this.active = b;
     }
 }

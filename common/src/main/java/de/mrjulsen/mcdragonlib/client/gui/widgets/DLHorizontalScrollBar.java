@@ -1,7 +1,5 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
-import java.util.function.Consumer;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
@@ -9,158 +7,23 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 
-public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidget { 
-
-    public static final int DEFAULT_STEP_SIZE = 1;
-    public static final int DEFAULT_SCROLLBAR_HEIGHT = 14;
-    public static final int MIN_SCROLLBAR_HEIGHT = 7;
-    public static final int MIN_SCROLLER_WIDTH = 5;
-
-    private final GuiAreaDefinition scrollArea;
-
-    private double scrollPercentage;
-    private double scroll;
-    private int maxScroll = 2;
-    private boolean isScrolling = false;
-
-    private int maxColumnsOnPage = 1;
-    private int scrollerWidth = 15;
-    private int stepSize = DEFAULT_STEP_SIZE;
-
-    private boolean autoScrollerWidth = false;
-
-    // Events
-    public Consumer<DLHorizontalScrollBar> onValueChanged;
+public class DLHorizontalScrollBar extends DLAbstractScrollBar<DLHorizontalScrollBar> { 
 
     public DLHorizontalScrollBar(int x, int y, int w, int h, GuiAreaDefinition scrollArea) {
-        super(x, y, Math.max(MIN_SCROLLBAR_HEIGHT, w), Math.max(MIN_SCROLLBAR_HEIGHT, h), null);
-        this.scrollArea = scrollArea;
+        super(x, y, Math.max(MIN_SCROLLBAR_THICKNESS, w), Math.max(MIN_SCROLLBAR_THICKNESS, h), null);
     }
 
     public DLHorizontalScrollBar(int x, int y, int w, GuiAreaDefinition scrollArea) {
-        this(x, y, w, DEFAULT_SCROLLBAR_HEIGHT, scrollArea);
+        this(x, y, w, DEFAULT_SCROLLBAR_THICKNESS, scrollArea);
     }
 
     public DLHorizontalScrollBar(int x, int y, int w, int h) {
-        this(x, y, w, h, null);
+        super(x, y, w, h, null);
     }
 
     public DLHorizontalScrollBar(int x, int y, int w) {
         this(x, y, w, null);
-    }
-
-    public DLHorizontalScrollBar setStepSize(int c) {
-        stepSize = Math.max(DEFAULT_STEP_SIZE, c);
-        return this;
-    }
-
-    public DLHorizontalScrollBar setScreenSize(int c) {
-        maxColumnsOnPage = Math.max(1, c);
-        return this;
-    }
-
-    public DLHorizontalScrollBar setAutoScrollerWidth(boolean b) {
-        autoScrollerWidth = b;
-        return this;
-    }
-
-    public DLHorizontalScrollBar setScrollerWidth(int w) {
-        scrollerWidth = Math.max(MIN_SCROLLER_WIDTH, w);
-        return this;
-    }
-
-    public DLHorizontalScrollBar updateMaxScroll(int columns) {
-        this.maxScroll = Math.max(columns - maxColumnsOnPage, 0);
-        if (autoScrollerWidth) {
-            this.scrollerWidth = Math.max((int)((width - 2) / Math.max(columns / (float)maxColumnsOnPage, 1.0f)), 5);
-        }
-        return this;
-    }
-
-    public DLHorizontalScrollBar withOnValueChanged(Consumer<DLHorizontalScrollBar> event) {
-        this.onValueChanged = event;
-        return this;
-    }
-
-    public boolean getAutoScrollerWidth() {
-        return this.autoScrollerWidth;
-    }
-
-    public double getScrollValue() {
-        return scroll;
-    }
-
-    public int getMaxScroll() {
-        return maxScroll;
-    }
-
-    public int getScreenSize() {
-        return maxColumnsOnPage;
-    }
-
-
-
-    @Override
-    public void onClick(double pMouseX, double pMouseY) {
-        if (isMouseOver(pMouseX, pMouseY) && canScroll()) {
-            isScrolling = true;
-            scrollToMouse(pMouseX);
-        }
-    }
-
-    @Override
-    protected void onDrag(double pMouseX, double pMouseY, double pDragX, double pDragY) {
-        if (this.isScrolling) {
-            scrollToMouse(pMouseX);
-        }
-    }
-
-    @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        if (canScroll()) {
-            scroll = MathUtils.clamp((scroll - pDelta * stepSize), 0, maxScroll);
-
-            int i = maxScroll;
-            this.scrollPercentage = (double)this.scrollPercentage - pDelta * stepSize / (double)i;
-            this.scrollPercentage = MathUtils.clamp(this.scrollPercentage, 0.0F, 1.0F);
-            
-            if (onValueChanged != null)
-                onValueChanged.accept(this);
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void onRelease(double pMouseX, double pMouseY) {
-        this.isScrolling = false;
-    }
-
-    private void scrollToMouse(double mousePos) {
-        int i = getX() + 1;
-        int j = i + width - 2;
-
-        this.scrollPercentage = (mousePos - (double)i - ((double)scrollerWidth / 2.0D)) / (double)(j - i - scrollerWidth);
-        this.scrollPercentage = MathUtils.clamp(this.scrollPercentage, 0.0F, 1.0F);
-        scroll = Math.max(0, Math.round(scrollPercentage * maxScroll));
-        
-        if (onValueChanged != null)
-            onValueChanged.accept(this);
-    }
-
-    public void scrollTo(int pos) {
-        scroll = MathUtils.clamp(pos, 0, getMaxScroll());
-        
-        if (onValueChanged != null)
-            onValueChanged.accept(this);
-    }
-
-    public boolean canScroll() {
-        return maxScroll > 0;
     }
 
     @Override
@@ -173,8 +36,8 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
         int startV = 5;
 
         int y1 = getY() + 1;
-        int x1 = getX() + 1 + (int)(scrollPercentage * (width - scrollerWidth - 2));
-        int w = scrollerWidth;
+        int x1 = getX() + 1 + (int)(scrollPercentage * (width - scrollerSize - 2));
+        int w = scrollerSize;
         int h = height - 2;
 
         GuiUtils.drawTexture(DragonLib.UI, graphics, x1, y1, 2, 2, startU, startV, 2, 2, DynamicGuiRenderer.TEXTURE_WIDTH, DynamicGuiRenderer.TEXTURE_HEIGHT); // top left
@@ -193,7 +56,17 @@ public class DLHorizontalScrollBar extends DLButton implements IExtendedAreaWidg
     }
 
     @Override
-    public boolean isInArea(double mouseX, double mouseY) {
-        return scrollArea == null || isMouseOver(mouseX, mouseY) || scrollArea.isInBounds(mouseX, mouseY);
-    }  
+    protected double getMouseScrollDirection(double pMouseX, double pMouseY) {
+        return pMouseX;
+    }
+
+    @Override
+    protected int getScrollbarLength() {
+        return width;
+    }
+
+    @Override
+    protected int getXorY() {
+        return getX();
+    }
 }

@@ -4,10 +4,8 @@ import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -32,11 +30,6 @@ public class DragonLibBlock extends Block {
     public static class DragonLibItem extends BlockItem {
         public DragonLibItem(Block pBlock, Properties pProperties) {
             super(pBlock, pProperties.rarity(Rarity.EPIC));            
-        }
-
-        @Override
-        public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand interactionHand) {
-            return InteractionResultHolder.success(player.getItemInHand(interactionHand));
         }
     }
     
