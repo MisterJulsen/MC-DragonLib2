@@ -183,14 +183,14 @@ public class GuiUtils {
     public static void setTint(float r, float g, float b, float a) {
         RenderSystem.setShaderColor(r, g, b, a);
     }
-
-    public static void resetTint() {
-        setTint(0xFFFFFFFF);
-    }
-
+    
     public static void setTint(int color) {
         short[] argb = ColorUtils.decodeARGB(color);
         setTint(ColorObject.colorIntToFloat(argb[1]), ColorObject.colorIntToFloat(argb[2]), ColorObject.colorIntToFloat(argb[3]), ColorObject.colorIntToFloat(argb[0]));
+    }
+
+    public static void resetTint() {
+        setTint(0xFFFFFFFF);
     }
 
     public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {

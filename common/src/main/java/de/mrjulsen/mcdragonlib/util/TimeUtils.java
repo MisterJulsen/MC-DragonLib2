@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.util;
 
+import java.time.Duration;
+
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import net.minecraft.util.StringRepresentable;
@@ -10,6 +12,17 @@ public final class TimeUtils {
     private static final byte TIME_SPLITTER_MINUTES_INDEX = 0;
     private static final byte TIME_SPLITTER_HOURS_INDEX = 1;
     private static final byte TIME_SPLITTER_DAYS_INDEX = 2;
+
+    public static final String formatDurationMs(long s) {
+        Duration duration = Duration.ofMillis(s);
+        long HH = duration.toHours();
+        long MM = duration.toMinutesPart();
+        long SS = duration.toSecondsPart();
+        if (HH <= 0) {            
+            return String.format("%02d:%02d", MM, SS);
+        }        
+        return String.format("%02d:%02d:%02d", HH, MM, SS);
+    }
 
     public static long shiftDayTimeToMinecraftTicks(long time) {
         time = (time - DragonLib.DAYTIME_SHIFT) % DragonLib.TICKS_PER_DAY;

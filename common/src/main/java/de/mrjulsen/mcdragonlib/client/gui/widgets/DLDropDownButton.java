@@ -28,8 +28,11 @@ public class DLDropDownButton extends DLSplitButton {
     
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, style, isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON);
-        GuiUtils.drawString(graphics, font, x + (width - DROP_DOWN_BUTTON_WIDTH) / 2, y + height / 2 - font.lineHeight / 2, getMessage(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.CENTER, true);
+        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        
+        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        
+        GuiUtils.drawString(graphics, font, x + (width - DROP_DOWN_BUTTON_WIDTH) / 2, y + height / 2 - font.lineHeight / 2, getMessage(), j, EAlignment.CENTER, true);
         if (getContextMenu().isOpen()) {
             GuiIcons.ARROW_UP.render(graphics, x + width - DROP_DOWN_BUTTON_WIDTH, y + height / 2 - GuiIcons.ICON_SIZE / 2);
         } else {

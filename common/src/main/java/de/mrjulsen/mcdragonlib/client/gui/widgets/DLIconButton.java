@@ -23,7 +23,9 @@ public class DLIconButton extends DLAbstractImageButton<DLIconButton> {
         this.sprite = sprite;        
 
         if (color == AreaStyle.NATIVE) {
-            withFontColor(DragonLib.NATIVE_UI_FONT_COLOR);
+            setFontColor(DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE);
+        } else {
+            setFontColor(DragonLib.NATIVE_UI_FONT_COLOR);
         }
     }
 
@@ -44,24 +46,24 @@ public class DLIconButton extends DLAbstractImageButton<DLIconButton> {
         int labelWidth = 0;
         switch (getAlignment()) {            
             case LEFT:
+                sprite.render(graphics, x + 2, y + height / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {
                     GuiUtils.drawString(graphics, font, x + 2 + 4 + sprite.getWidth(), y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + 2, y + height / 2 - sprite.getHeight() / 2);
                 break;
             case RIGHT:
+                sprite.render(graphics, x + width - 2 - 4 - sprite.getWidth(), y + height / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {;
                     GuiUtils.drawString(graphics, font, x + width - 2 + 4 - 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + width - 2 - 4 - sprite.getWidth(), y + height / 2 - sprite.getHeight() / 2);
                 break;
             case CENTER:
             default:
+            sprite.render(graphics, x + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, y + height / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
                     GuiUtils.drawString(graphics, font, x + width / 2 + sprite.getWidth() / 2 - labelWidth / 2 + 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
-                sprite.render(graphics, x + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, y + height / 2 - sprite.getHeight() / 2);
                 break;
         }
     }
