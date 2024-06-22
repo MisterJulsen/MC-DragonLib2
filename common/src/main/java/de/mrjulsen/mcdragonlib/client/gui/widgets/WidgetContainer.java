@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -91,19 +92,23 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         return hovered;
     }
 
+    @Override
     public boolean isActive() {
         return active;
     }
 
+    @Override
     public void setActive(boolean active) {
         this.active = active;
         children().stream().filter(x -> x instanceof AbstractWidget).forEach(x -> ((AbstractWidget)x).active = active);
     }
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
@@ -135,15 +140,21 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         
         Iterator<Widget> w = renderables.iterator();
         while (w.hasNext()) {
-            w.next().render(graphics.poseStack(), mouseX, mouseY, partialTicks);
+            Widget widget = w.next();
+            if ((widget instanceof IDragonLibWidget d && (!d.isVisible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.getX(), d.getY(), d.getWidth(), d.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight())))) ||
+                (widget instanceof AbstractWidget abs && (!abs.visible || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(abs.x, abs.y, abs.getWidth(), abs.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))))) {
+                continue;
+            }
+            widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
         }
     }
 
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
-            if (w.next() instanceof IDragonLibWidget layeredWidget) {
+            Widget widget = (Widget)w.next();
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }
@@ -151,9 +162,10 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
-        Iterator<Widget> w = renderables.iterator();
+        Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
-            if (w.next() instanceof IDragonLibWidget layeredWidget) {
+            Widget widget = (Widget)w.next();
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }

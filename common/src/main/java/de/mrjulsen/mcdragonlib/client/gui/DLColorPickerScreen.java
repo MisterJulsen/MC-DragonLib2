@@ -4,8 +4,12 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLNumberSelector;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
+import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ColorObject;
@@ -25,7 +29,7 @@ public class DLColorPickerScreen extends DLScreen {
     private static final int HEIGHT = 185;
     private static final int SELECTION_W = 9;
     private static final int SELECTION_H = 22;
-    private static final int SELECTION_Y = 234;
+    private static final int SELECTION_Y = 0;
 
     private static final int COLOR_PICKER_WIDTH = 180;
       
@@ -36,6 +40,7 @@ public class DLColorPickerScreen extends DLScreen {
     private final Screen lastScreen;
     private final Consumer<ColorObject> result;
     private final int currentColor;
+    private final boolean vanillaStyle;
 
     // color
     private double h = 0, s = 0, v = 0;
@@ -59,11 +64,12 @@ public class DLColorPickerScreen extends DLScreen {
 
     private static final ResourceLocation gui = new ResourceLocation(DragonLib.MODID, "textures/gui/color_picker.png");
 
-    public DLColorPickerScreen(Screen lastScreen, int currentColor, Consumer<ColorObject> result) {
+    public DLColorPickerScreen(Screen lastScreen, int currentColor, Consumer<ColorObject> result, boolean vanillaLookAndFeel) {
         super(title);
         this.lastScreen = lastScreen;
         this.currentColor = currentColor;
         this.result = result;
+        this.vanillaStyle = vanillaLookAndFeel;
 
         float[] hsv = ColorObject.fromInt(currentColor).toHSV();
         this.h = hsv[0];
@@ -92,13 +98,19 @@ public class DLColorPickerScreen extends DLScreen {
         guiLeft = this.width / 2 - WIDTH / 2;
         guiTop = this.height / 2 - (HEIGHT + 24) / 2;
 
-        addButton(this.width / 2 - 2 - 115, guiTop + HEIGHT - 28, 115, 20, CommonComponents.GUI_DONE, (p) -> {
+        DLButton btn1 = addButton(guiLeft + WIDTH - 8 - 160 - 4, guiTop + HEIGHT - 28, 80, 20, CommonComponents.GUI_DONE, (p) -> {
             this.onDone();
         }, null);
 
-        addButton(this.width / 2 + 3, guiTop + HEIGHT - 28, 115, 20, CommonComponents.GUI_CANCEL, (p) -> {
+        DLButton btn2 = addButton(guiLeft + WIDTH - 8 - 80, guiTop + HEIGHT - 28, 80, 20, CommonComponents.GUI_CANCEL, (p) -> {
             this.onClose();
         }, null);
+        
+        if (!vanillaStyle) {            
+            btn1.setRenderStyle(AreaStyle.DRAGONLIB);
+            btn1.setBackColor(DragonLib.PRIMARY_BUTTON_COLOR);
+            btn2.setRenderStyle(AreaStyle.DRAGONLIB);
+        }
 
 
         this.hBox = addRenderableWidget(new DLNumberSelector(guiLeft + 196, guiTop + 40, 46, 18, h * 360, false,
@@ -263,7 +275,13 @@ public class DLColorPickerScreen extends DLScreen {
 
         renderBackground(graphics.poseStack(), 0);
 
-        GuiUtils.drawTexture(gui, graphics, guiLeft, guiTop, 0, 0, WIDTH, HEIGHT);
+        //GuiUtils.drawTexture(gui, graphics, guiLeft, guiTop, 0, 0, WIDTH, HEIGHT);
+
+        DynamicGuiRenderer.renderWindow(graphics, guiLeft, guiTop, WIDTH, HEIGHT, vanillaStyle ? 0xFFFFFFFF : DragonLib.DARK_WINDOW_COLOR, vanillaStyle);
+        DynamicGuiRenderer.renderArea(graphics, guiLeft + 196, guiTop + 9, 46, 26, vanillaStyle ? 0xFFFFFFFF : DragonLib.DARK_WINDOW_COLOR, AreaStyle.GRAY, ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, guiLeft + 8, guiTop + 40, 182, 18, vanillaStyle ? 0xFFFFFFFF : DragonLib.DARK_WINDOW_COLOR, AreaStyle.GRAY, ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, guiLeft + 8, guiTop + 66, 182, 18, vanillaStyle ? 0xFFFFFFFF : DragonLib.DARK_WINDOW_COLOR, AreaStyle.GRAY, ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, guiLeft + 8, guiTop + 92, 182, 18, vanillaStyle ? 0xFFFFFFFF : DragonLib.DARK_WINDOW_COLOR, AreaStyle.GRAY, ButtonState.DOWN);
 
         for (int i = 0; i < COLOR_PICKER_WIDTH; i++) {
             ColorObject ch = getH(i, COLOR_PICKER_WIDTH);
@@ -280,15 +298,15 @@ public class DLColorPickerScreen extends DLScreen {
         GuiUtils.fill(graphics, guiLeft + 197 + 22, guiTop + 10, 22, 24, currentColor);
 
         String title = getTitle().getString();
-        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 28, textHSV, 4210752, EAlignment.LEFT, false);
-        GuiUtils.drawString(graphics, font, guiLeft + WIDTH / 2 - font.width(title) / 2, guiTop + 6, TextUtils.text(title), 4210752, EAlignment.LEFT, false);
-        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 119, textRGB, 4210752, EAlignment.LEFT, false);
-        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 139, textInteger, 4210752, EAlignment.LEFT, false);
+        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 28, textHSV, vanillaStyle ? DragonLib.NATIVE_UI_FONT_COLOR : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+        GuiUtils.drawString(graphics, font, guiLeft + WIDTH / 2 - font.width(title) / 2, guiTop + 6, TextUtils.text(title), vanillaStyle ? DragonLib.NATIVE_UI_FONT_COLOR : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 119, textRGB, vanillaStyle ? DragonLib.NATIVE_UI_FONT_COLOR : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+        GuiUtils.drawString(graphics, font, guiLeft + 9, guiTop + 139, textInteger, vanillaStyle ? DragonLib.NATIVE_UI_FONT_COLOR : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
 
         // Draw selections
-        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(h * COLOR_PICKER_WIDTH), guiTop + 38, inSliderH(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H);
-        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(s * COLOR_PICKER_WIDTH), guiTop + 64, inSliderS(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H);
-        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(v * COLOR_PICKER_WIDTH), guiTop + 90, inSliderV(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H);
+        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(h * COLOR_PICKER_WIDTH), guiTop + 38, SELECTION_W, SELECTION_H, inSliderH(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H, 32, 32);
+        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(s * COLOR_PICKER_WIDTH), guiTop + 64, SELECTION_W, SELECTION_H, inSliderS(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H, 32, 32);
+        GuiUtils.drawTexture(gui, graphics, guiLeft + 5 + (int)(v * COLOR_PICKER_WIDTH), guiTop + 90, SELECTION_W, SELECTION_H, inSliderV(mouseX, mouseY) ? SELECTION_W : 0, SELECTION_Y, SELECTION_W, SELECTION_H, 32, 32);
 
         super.renderBackLayer(graphics, mouseX, mouseY, partialTicks);
     }

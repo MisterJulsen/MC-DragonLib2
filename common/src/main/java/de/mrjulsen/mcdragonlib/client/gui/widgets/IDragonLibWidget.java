@@ -1,19 +1,19 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
-import java.util.Collection;
-
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
-import net.minecraft.client.gui.components.events.ContainerEventHandler;
-import net.minecraft.client.gui.components.events.GuiEventListener;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 
 /**
  * Provides additional features which must be implemented by all DragonLib Components that should be used in a DragonLib Screen.
  */
 public interface IDragonLibWidget {
 
-
+    void setVisible(boolean b);
+    boolean isVisible();
+    void setActive(boolean b);
+    boolean isActive();
     /**
      * Use this value if you don't want the context menu to open by right-clicking.
      */
@@ -74,6 +74,12 @@ public interface IDragonLibWidget {
 
     int getX();
     int getY();
+    int getWidth();
+    int getHeight();    
+    void setX(int x);
+    void setY(int y);
+    void setWidth(int w);
+    void setHeight(int h);
 
     /**
      * The button that must be used to open the context menu. Use {@code NO_CONTEXT_MENU_BUTTON} to prevent the context menu from opening by user inputs.
@@ -83,7 +89,7 @@ public interface IDragonLibWidget {
         return GLFW.GLFW_MOUSE_BUTTON_RIGHT;
     }
     
-    default boolean contextMenuMouseClickHandler(int mouseX, int mouseY, int button) {
+    default boolean contextMenuMouseClickHandler(int mouseX, int mouseY, int button, int xOffset, int yOffset, GuiAreaDefinition openingBounds) {
         if (getContextMenu() == null) {
             return false;
         }
@@ -94,16 +100,10 @@ public interface IDragonLibWidget {
             return true;
         }
 
-        if (getContextMenuOpenButton() != NO_CONTEXT_MENU_BUTTON && button == getContextMenuOpenButton()) {
-            return getContextMenu().open((int)mouseX, (int)mouseY);
+        if (getContextMenuOpenButton() != NO_CONTEXT_MENU_BUTTON && button == getContextMenuOpenButton() && (openingBounds == null || openingBounds.isInBounds(mouseX, mouseY))) {
+            return getContextMenu().open((int)mouseX + xOffset, (int)mouseY + yOffset, (int)mouseX, (int)mouseY);
         }
 
         return false;
-    }
-
-    default <T extends ContainerEventHandler, S extends IDragonLibWidget> void closeAllContextMenussssss(Collection<GuiEventListener> listeners, T self, S selected) {
-        listeners.stream().filter(x -> x instanceof IDragonLibWidget w && x != selected && w.getContextMenu() != null).forEach(x -> {
-            ((IDragonLibWidget)x).getContextMenu().close();
-        });        
     }
 }
