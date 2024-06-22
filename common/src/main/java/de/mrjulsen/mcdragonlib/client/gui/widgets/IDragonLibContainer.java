@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
+import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
+import de.mrjulsen.mcdragonlib.data.Pair;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 
@@ -127,7 +130,22 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     }
 
     default List<? extends GuiEventListener> childrenLayered() {
-        return get().children().stream().filter(x -> (x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0).toList();
+        return get().children().stream().filter(x -> 
+            ((x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0) &&
+            ((x instanceof IDragonLibWidget wdgt && wdgt.isVisible()) || (x instanceof AbstractWidget absw && absw.visible))
+        ).toList();
+    }
+
+    /**
+     * Checks if the widgets are inside the bounds of the container before rendering.
+     * @return {@code true} if the check should be enabled.
+     */
+    default boolean checkWidgetBounds() {
+        return false;
+    }
+
+    default Pair<Double, Double> checkWidgetBoundsOffset() {
+        return Pair.of(0D, 0D);
     }
 
     /**
@@ -148,19 +166,19 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      * @return {@code true}, when a context menu could be opened.
      */
     @SuppressWarnings("unchecked")
-    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int button) {
+    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
         
         List<GuiEventListener> listeners = getWidgetsReversed();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this) {
-                if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, button)) {
+                if (container.contextMenuMouseClickEvent(screen, container, mouseX, mouseY, xOffset, yOffset, button, openingBounds)) {
                     return true;
                 }
             }
             
             if (listener instanceof IDragonLibWidget widget) {
-                if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button)) {
+                if (widget.contextMenuMouseClickHandler(mouseX, mouseY, button, xOffset, yOffset, openingBounds)) {
                     closeAllContextMenus(screen, widget);
                     return true;
                 }
@@ -211,8 +229,4 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
         return consumeScrolling(mouseX, mouseY);
     }
-
-
-
-
 }
