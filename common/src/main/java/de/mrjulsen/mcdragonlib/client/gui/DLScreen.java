@@ -79,7 +79,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.visible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.x(), layeredWidget.y(), layeredWidget.width(), layeredWidget.height(), this.x() + checkWidgetBoundsOffset().getFirst(), this.y() + checkWidgetBoundsOffset().getSecond(), this.width(), this.height()))) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -90,7 +90,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.visible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.x(), layeredWidget.y(), layeredWidget.width(), layeredWidget.height(), this.x() + checkWidgetBoundsOffset().getFirst(), this.y() + checkWidgetBoundsOffset().getSecond(), this.width(), this.height()))) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
             }
         }
@@ -108,8 +108,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         for (Widget widget : this.renderables) {
-            if ((widget instanceof IDragonLibWidget d && (!d.isVisible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.getX(), d.getY(), d.getWidth(), d.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight())))) ||
-                (widget instanceof AbstractWidget abs && (!abs.visible || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(abs.x, abs.y, abs.getWidth(), abs.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))))) {
+            if ((widget instanceof IDragonLibWidget d && (!d.visible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.x(), d.y(), d.width(), d.height(), this.x() + checkWidgetBoundsOffset().getFirst(), this.y() + checkWidgetBoundsOffset().getSecond(), this.width(), this.height())))) ||
+                (widget instanceof AbstractWidget abs && (!abs.visible || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(abs.x, abs.y, abs.getWidth(), abs.getHeight(), this.x() + checkWidgetBoundsOffset().getFirst(), this.y() + checkWidgetBoundsOffset().getSecond(), this.width(), this.height()))))) {
                 continue;
             }
             widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
@@ -307,58 +307,52 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
+    }  
+    @Override
+    public int x() {
+        return 0;
+    }
+
+    @Override
+    public int y() {
+        return 0;
     }    
 
     @Override
-    public final int getX() {
-        return 0;
+    public void set_x(int x) {}
+
+    @Override
+    public void set_y(int y) {}
+
+    @Override
+    public void set_width(int w) {}
+
+    @Override
+    public void set_height(int h) {}
+
+    @Override
+    public void set_visible(boolean b) {}
+
+    @Override
+    public boolean visible() {
+        return true;
     }
 
     @Override
-    public final int getY() {
-        return 0;
-    }
-    
+    public void set_active(boolean b) {}
+
     @Override
-    public final int getWidth() {
+    public boolean active() {
+        return true;
+    }
+
+    @Override
+    public int width() {
         return width;
     }
 
     @Override
-    public final int getHeight() {
+    public int height() {
         return height;
-    }
-
-    @Override
-    public void setX(int x) { }
-
-    @Override
-    public void setY(int y) { }
-
-    @Override
-    public void setWidth(int w) { }
-
-    @Override
-    public void setHeight(int h) { }
-
-    @Override
-    public boolean checkWidgetBounds() {
-        return true;
-    }
-
-    @Override
-    public final void setVisible(boolean b) {}
-
-    @Override
-    public final boolean isVisible() {
-        return true;
-    }
-
-    @Override
-    public final void setActive(boolean b) {}
-
-    @Override
-    public boolean isActive() {
-        return true;
     }
 }

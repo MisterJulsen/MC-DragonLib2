@@ -116,48 +116,63 @@ public class DLButton extends Button implements IDragonLibWidget {
         this.fontColor = color;        
     }
 
-    public int getX() {
+    @Override
+    public int x() {
         return x;
     }
 
     @Override
-    public int getY() {
+    public int y() {
         return y;
-    }
-    
+    }    
 
     @Override
-    public void setX(int x) {
+    public void set_x(int x) {
         this.x = x;
     }
 
     @Override
-    public void setY(int y) {
+    public void set_y(int y) {
         this.y = y;
     }
 
     @Override
-    public void setWidth(int w) {
+    public void set_width(int w) {
         this.width = w;
     }
 
     @Override
-    public void setHeight(int h) {
+    public void set_height(int h) {
         this.height = h;
     }
 
     @Override
-    public void setVisible(boolean b) {
+    public void set_visible(boolean b) {
         this.visible = b;
     }
 
     @Override
-    public boolean isVisible() {
+    public boolean visible() {
         return visible;
     }
 
     @Override
-    public void setActive(boolean b) {
+    public void set_active(boolean b) {
         this.active = b;
+    }
+
+    @Override
+    public boolean active() {
+        return super.isActive();
+    }
+
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
     }
 }
