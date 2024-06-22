@@ -2,11 +2,11 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.function.Consumer;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.client.util.WidgetsCollection;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,6 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
     private ButtonType type;
     private AreaStyle style;
     private EAlignment alignment = EAlignment.CENTER;
-    private int color = DragonLib.NATIVE_UI_FONT_COLOR;
 
     public DLAbstractImageButton(ButtonType type, AreaStyle style, int pX, int pY, int w, int h, Component pMessage, Consumer<T> onClick) {
         this(type, style, null, pX, pY, w, h, pMessage, onClick);
@@ -47,10 +46,6 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
         return style;
     }
 
-    public int getFontColor() {
-        return color;
-    }
-
     @SuppressWarnings("unchecked")
     public T withAlignment(EAlignment alignment) {
         this.alignment = alignment;
@@ -69,11 +64,7 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
         return (T)this;
     }
 
-    @SuppressWarnings("unchecked")
-    public T withFontColor(int color) {
-        this.color = color;
-        return (T)this;
-    }
+    
 
     
 
@@ -119,8 +110,10 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, this.style, active ? (isSelected() ? ButtonState.DOWN : (isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), this.style, isActive() ? (isSelected() ? ButtonState.DOWN : (isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.DISABLED);
+        GuiUtils.resetTint();
         renderImage(graphics, pMouseX, pMouseY, pPartialTick);
+        GuiUtils.resetTint();
     }
 
     public abstract void renderImage(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick);

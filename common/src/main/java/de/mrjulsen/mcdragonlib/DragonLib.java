@@ -27,7 +27,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -68,6 +67,13 @@ public class DragonLib {
     public static final int NATIVE_BUTTON_FONT_COLOR_ACTIVE = 0xFFFFFFFF;
     public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFF9E9E9E;
     public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
+    public static final int DARK_WINDOW_COLOR = 0xFF303030;
+    public static final int DEFAULT_BUTTON_COLOR = 0xFF484848;
+    public static final int LIGHT_BUTTON_COLOR = 0xFF888888;
+    public static final int PRIMARY_BUTTON_COLOR = 0xFF1572E6;//0xFF2190ff;
+    public static final int ACCEPT_BUTTON_COLOR = 0xFF0DB24D;
+    public static final int ERROR_BUTTON_COLOR = 0xFFE83E4D;
+    public static final int WARN_BUTTON_COLOR = 0xFFE8BD3E;
     
     /** 🐉 */ public static final Component TEXT_DRAGON = TextUtils.translate("text." + MODID + ".dragon");
     public static final Component TEXT_NEXT = TextUtils.translate("text." + MODID + ".next");
@@ -96,12 +102,9 @@ public class DragonLib {
 public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() -> RegistrarManager.get(MODID)); 
     private static final Registrar<Item> ITEMS = MANAGER.get().get(Registries.ITEM);        
     private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
-    private static final Registrar<SoundEvent> SOUNDS = MANAGER.get().get(Registries.SOUND_EVENT);
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
-    public static final RegistrySupplier<SoundEvent> DRAGON_ROAR = SOUNDS.register(new ResourceLocation(MODID, "dragon_roar"), () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(MODID, "dragon_roar")));
-    public static final RegistrySupplier<SoundEvent> DRAGON_GROWL = SOUNDS.register(new ResourceLocation(MODID, "dragon_growl"), () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(MODID, "dragon_growl")));
         
     private static NetworkManagerBase dragonLibNet;
 

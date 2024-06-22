@@ -26,7 +26,9 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
         withItem(item);
 
         if (color == AreaStyle.NATIVE) {
-            withFontColor(DragonLib.NATIVE_UI_FONT_COLOR);
+            setFontColor(DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE); 
+        } else {            
+            setFontColor(DragonLib.NATIVE_UI_FONT_COLOR);
         }
     }
 
