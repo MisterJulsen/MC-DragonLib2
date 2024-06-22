@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer;
 import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
-import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
@@ -50,7 +49,8 @@ public class DLCheckBox extends DLButton {
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, boxArea, AreaStyle.NATIVE, ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, boxArea, getBackColor(), getStyle(), ButtonState.DOWN);
+        GuiUtils.resetTint();
         if (isMouseSelected()) {
             GuiUtils.drawBox(graphics, boxArea, 0, 0xFFFFFFFF);
         }
@@ -61,7 +61,8 @@ public class DLCheckBox extends DLButton {
 
         final boolean tooWide = font.width(getMessage()) > maxLineWidth;
 
-        GuiUtils.drawString(graphics, font, x + DEFAULT_CHECKBOX_HEIGHT + 4, y + getHeight() / 2 - font.lineHeight / 2, tooWide ? TextUtils.text(font.substrByWidth(getMessage(), maxLineWidth).getString() + "...") : getMessage(), active ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, true);
+        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, font, x + DEFAULT_CHECKBOX_HEIGHT + 4, y + getHeight() / 2 - font.lineHeight / 2, tooWide ? TextUtils.text(font.substrByWidth(getMessage(), maxLineWidth).getString() + "...") : getMessage(), j, EAlignment.LEFT, true);
     }
 
     @SuppressWarnings("resource")

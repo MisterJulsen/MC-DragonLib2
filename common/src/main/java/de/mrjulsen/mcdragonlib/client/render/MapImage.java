@@ -3,35 +3,78 @@ package de.mrjulsen.mcdragonlib.client.render;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.phys.Vec2;
 
 public class MapImage {
-
+    
     private final Level world;
     private final BlockPos pos;
     private final int yLevel;
 
     private final int areaWidth, areaHeight;
+    private final Vec2 centerPosOnMap;
+    private final boolean sameLayer;
+
+    private int scale;
 
     private DynamicTexture texture;
 
-    public MapImage(Level world, BlockPos pos, int yLevel, int width, int height) {
+    public MapImage(Level world, BlockPos pos, int yLevel, int width, int height, boolean sameLayer, int scale) {
         this.world = world;
         this.pos = pos;
         this.yLevel = yLevel;
         this.areaWidth = width;
         this.areaHeight = height;
+        this.sameLayer = sameLayer;
+        this.scale = scale;
+        this.centerPosOnMap = new Vec2(areaWidth / 2, areaHeight / 2);
     }
 
     public void bindTexture() {
         if (this.texture == null)
             this.texture = new DynamicTexture(this.createImage());
         RenderSystem.setShaderTexture(0, this.texture.getId());
+    }
+
+    public void render(Graphics graphics, int x, int y) {
+        bindTexture();
+        GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale);
+    }
+
+    public int getWidth() {
+        return areaWidth;
+    }
+
+    public int getHeight() {
+        return areaHeight;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
+    }
+
+    public int getScale() {
+        return scale;
+    }
+
+    public int getScaledWidth() {
+        return getWidth() * getScale();
+    }
+
+    public int getScaledHeight() {
+        return getHeight() * getScale();
+    }
+
+    public Vec2 getCenterPosOnMap() {
+        return centerPosOnMap;
     }
 
     public void dispose() {
@@ -112,6 +155,6 @@ public class MapImage {
     }
 
     private boolean shouldDrawAtSameLayer() {
-        return this.world.dimensionType().hasCeiling();
+        return sameLayer || this.world.dimensionType().hasCeiling();
     }
 }

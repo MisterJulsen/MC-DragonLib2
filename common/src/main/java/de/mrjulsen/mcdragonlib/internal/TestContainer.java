@@ -20,32 +20,39 @@ public class TestContainer extends ScrollableWidgetContainer {
         super(x, y, width, height);
 
         for (int k = 0; k < 20; k++) {
-            DLButton btn = addRenderableWidget(new DLButton(x, y + (k * 20), width - 8, 20, TextUtils.text("Button " + k)));
+            final int n = k;
+            DLButton btn = addRenderableWidget(new DLButton(x, y + (k * 20), width - 8, 20, TextUtils.text("Button " + n)));
             btn.setRenderStyle(AreaStyle.DRAGONLIB);
-            DLContextMenu menu = new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
-                DLContextMenuItem.Builder builder = new DLContextMenuItem.Builder();
-                for (int i = 0; i < 5; i++) {
-                    builder.add(new ContextMenuItemData(TextUtils.text("Test Item " + i), Sprite.empty(), i != 1, (b) -> {
-                        System.out.println("Success");
-                    }, i == 2 ? (parentItem) -> new DLContextMenu(() -> null, () -> {
-                        DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
-                        builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 1"), Sprite.empty(), true, (b) -> {}, null));
-                        builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 2"), Sprite.empty(), true, (b) -> {}, null));
-                        return builder2;
-                    }) : null));
-                }
-                return builder;
-            });
+            
 
-            btn.setMenu(menu);
+            btn.setMenu(createMenu(btn, n));
         }
         
         addRenderableWidget(new DLVerticalScrollBar(x + width - 10, y, 10, height, new GuiAreaDefinition(x, y, width, height)))
-            .setAutoScrollerHeight(true)
-            .setPageSize(height)
+            .setAutoScrollerSize(true)
+            .setScreenSize(height)
             .setStepSize(15)
             .updateMaxScroll(20 * 20)
         ;
+    }
+
+    private DLContextMenu createMenu(DLButton btn, int x) {
+        final int n = x;
+        DLContextMenu menu = new DLContextMenu(() -> GuiAreaDefinition.of(btn), () -> {
+            DLContextMenuItem.Builder builder = new DLContextMenuItem.Builder();
+            for (int i = 0; i < 5; i++) {
+                builder.add(new ContextMenuItemData(TextUtils.text("Test Item " + n + ": " + i), Sprite.empty(), i != 1, (b) -> {
+                    System.out.println("Success");
+                }, i == 2 ? (parentItem) -> new DLContextMenu(() -> null, () -> {
+                    DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
+                    builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 1"), Sprite.empty(), true, (b) -> {}, null));
+                    builder2.add(new ContextMenuItemData(TextUtils.text("Menu Item 2"), Sprite.empty(), true, (b) -> {}, null));
+                    return builder2;
+                }) : null));
+            }
+            return builder;
+        });
+        return menu;
     }
 
     @Override
@@ -66,6 +73,5 @@ public class TestContainer extends ScrollableWidgetContainer {
     @Override
     public boolean consumeScrolling(double mouseX, double mouseY) {
         return true;
-    }
-    
+    }    
 }

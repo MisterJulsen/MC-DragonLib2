@@ -21,6 +21,9 @@ public class DLContextMenu extends WidgetContainer {
 
     private DLContextMenu parent;
     
+    //protected int fontColor = 0xFFFFFFFF;
+    //protected int backColor = 0xFFFFFFFF;
+    
     public DLContextMenu(Supplier<GuiAreaDefinition> area, Supplier<DLContextMenuItem.Builder> openAction) {
         super(0, 0, 100, 100);
         this.area = area;
@@ -134,7 +137,7 @@ public class DLContextMenu extends WidgetContainer {
             if (l instanceof IDragonLibWidget widget) {
                 DLContextMenu menu = widget.getContextMenu();            
                 if (menu != null) {
-                    if (!b && widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button)) {
+                    if (!b && widget.contextMenuMouseClickHandler((int)mouseX, (int)mouseY, button, 0, 0, null)) {
                         children().stream().filter(x -> x instanceof IDragonLibWidget w && x != widget && w.getContextMenu() != null).forEach(x -> {
                             DLContextMenu men = ((IDragonLibWidget)x).getContextMenu();
                             men.close();
@@ -175,5 +178,21 @@ public class DLContextMenu extends WidgetContainer {
 
     @Override
     public void updateNarration(NarrationElementOutput narrationElementOutput) {
+    }
+    
+    @Override
+    public int getAllowedLayer() {
+        return 0;
+    }
+
+    @Override
+    public void setAllowedLayer(int index) {}
+
+    @Override
+    public void setWidgetLayerIndex(int layerIndex) {}
+
+    @Override
+    public int getWidgetLayerIndex() {
+        return 0;
     }
 }

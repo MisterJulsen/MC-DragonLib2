@@ -11,35 +11,61 @@ public class DynamicGuiRenderer {
     public static final int TEXTURE_HEIGHT = 32;
     protected static final int UI_SECTION_SIZE = 5;
 
-    public static final int DRAGONLIB_UI_COLOR = 0xFF404040;
-    public static final int DRAGONLIB_UI_COLOR_HIGHLIGHT = 0xFF707070;
-    public static final int DRAGONLIB_UI_COLOR_DISABLED = 0xFF202020;
+    public static final int CONTAINER_BACKGROUND_COLOR = 0xFF373737;
 
     public static void renderArea(Graphics graphics, GuiAreaDefinition area, AreaStyle style, ButtonState state) {
         renderArea(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), style, state);
     }
 
     public static void renderArea(Graphics graphics, int x, int y, int w, int h, AreaStyle style, ButtonState state) {
+        renderArea(graphics, x, y, w, h, 0xFFFFFFFF, style, state);
+    }
 
+    public static void renderArea(Graphics graphics, GuiAreaDefinition area, int tint, AreaStyle style, ButtonState state) {
+        renderArea(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), tint, style, state);
+    }
+
+    public static void renderArea(Graphics graphics, int x, int y, int w, int h, int tint, AreaStyle style, ButtonState state) {
         if (style == AreaStyle.DRAGONLIB) {
+            GuiUtils.resetTint();
             switch (state) {
                 case DOWN:
-                    renderColorableButton(graphics, x, y, w, h, DRAGONLIB_UI_COLOR, true);
+                    renderColorableButton(graphics, x, y, w, h, tint, true);
+                    GuiUtils.fill(graphics, x, y, w, h, 0x80000000);
                     break;
                 case SELECTED:
-                    renderColorableButton(graphics, x, y, w, h, DRAGONLIB_UI_COLOR_HIGHLIGHT, false);
-                    GuiUtils.drawBox(graphics, new GuiAreaDefinition(x, y, w, h), 0x00FFFFFF, 0xFFFFFFFF);
+                    renderColorableButton(graphics, x, y, w, h, tint, false);
+                    GuiUtils.drawBox(graphics, new GuiAreaDefinition(x, y, w, h), 0x44FFFFFF, 0xFFFFFFFF);
                     break;
-                case DISABLED:
-                    renderColorableButton(graphics, x, y, w, h, DRAGONLIB_UI_COLOR_DISABLED, true);
+                case DISABLED:;
+                    renderColorableButton(graphics, x, y, w, h, tint, true);
+                    GuiUtils.fill(graphics, x, y, w, h, 0xA0000000);
                     break;
                 default:
-                    renderColorableButton(graphics, x, y, w, h, DRAGONLIB_UI_COLOR, false);
+                    renderColorableButton(graphics, x, y, w, h, tint, false);
+                    break;
+            }
+            return;
+        } else if (style == AreaStyle.FLAT) {
+            GuiUtils.resetTint();
+            GuiUtils.fill(graphics, x, y, w, h, tint);
+            switch (state) {
+                case DOWN:
+                    GuiUtils.fill(graphics, x, y, w, h, 0x80000000);
+                    break;
+                case SELECTED:
+                    GuiUtils.fill(graphics, x, y, w, h, 0x44FFFFFF);
+                    break;
+                case DISABLED:;
+                    GuiUtils.fill(graphics, x, y, w, h, 0xA0000000);
+                    break;
+                default:
                     break;
             }
             return;
         }
 
+        GuiUtils.setTint(tint);
         if (style == AreaStyle.NATIVE) {
             int i = 0;
             switch (state) {
@@ -75,6 +101,7 @@ public class DynamicGuiRenderer {
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 2, y + 2, 2, h - 4, startU + 3, startV + 2, 2, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT); // right
         
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + 2, y + 2, w - 4, h - 4, startU + 2, startV + 2, 1, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        GuiUtils.resetTint();
     }
 
     public static void renderContainerBackground(Graphics graphics, GuiAreaDefinition area) {
@@ -82,6 +109,14 @@ public class DynamicGuiRenderer {
     }
 
     public static void renderContainerBackground(Graphics graphics, int x, int y, int w, int h) {
+        renderContainerBackground(graphics, x, y, w, h, CONTAINER_BACKGROUND_COLOR);
+    }
+
+    public static void renderContainerBackground(Graphics graphics, GuiAreaDefinition area, int tint) {
+        renderContainerBackground(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), tint);
+    }
+
+    public static void renderContainerBackground(Graphics graphics, int x, int y, int w, int h, int tint) {
         int startU = 20, startV = 0;
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y, 2, 2, startU, startV, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // top left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y + h - 2, 2, 2, startU, startV + 3, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // bottom left
@@ -93,7 +128,9 @@ public class DynamicGuiRenderer {
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y + 2, 2, h - 4, startU, startV + 2, 2, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT); // left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 2, y + 2, 2, h - 4, startU + 3, startV + 2, 2, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT); // right
         
-        GuiUtils.drawTexture(DragonLib.UI, graphics, x + 2, y + 2, w - 4, h - 4, startU + 2, startV + 2, 1, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        GuiUtils.setTint(tint);
+        GuiUtils.drawTexture(DragonLib.UI, graphics, x + 1, y + 1, w - 2, h - 2, startU + 2, startV + 2, 1, 1, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        GuiUtils.resetTint();
     }
 
     public static void renderColorableButton(Graphics graphics, GuiAreaDefinition area, int color, boolean sunken) {
@@ -121,17 +158,18 @@ public class DynamicGuiRenderer {
         renderWindow(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight());
     }
 
-    public static void renderWindow(Graphics graphics, GuiAreaDefinition area, boolean rounded) {
-        renderWindow(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), rounded);
+    public static void renderWindow(Graphics graphics, GuiAreaDefinition area, int tint, boolean rounded) {
+        renderWindow(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), tint, rounded);
     }
 
     public static void renderWindow(Graphics graphics, int x, int y, int w, int h) {
-        renderWindow(graphics, x, y, w, h, true);
+        renderWindow(graphics, x, y, w, h, 0xFFFFFFFF, true);
     }
 
-    public static void renderWindow(Graphics graphics, int x, int y, int w, int h, boolean rounded) {
+    public static void renderWindow(Graphics graphics, int x, int y, int w, int h, int tint, boolean rounded) {
         int startU = rounded ? 0 : 10, startV = 15;
 
+        GuiUtils.setTint(tint);
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y, 4, 4, startU, startV, 4, 4, TEXTURE_WIDTH, TEXTURE_HEIGHT); // top left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x, y + h - 4, 4, 4, startU, startV + 6, 4, 4, TEXTURE_WIDTH, TEXTURE_HEIGHT); // bottom left
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 4, y, 4, 4, startU + 6, startV, 4, 4, TEXTURE_WIDTH, TEXTURE_HEIGHT); // top right
@@ -143,6 +181,7 @@ public class DynamicGuiRenderer {
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + w - 4, y + 4, 4, h - 8, startU + 6, startV + 4, 4, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT); // right
         
         GuiUtils.drawTexture(DragonLib.UI, graphics, x + 4, y + 4, w - 8, h - 8, startU + 4, startV + 4, 2, 2, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        GuiUtils.resetTint();
     }
 
     public static enum ButtonState {
@@ -163,20 +202,27 @@ public class DynamicGuiRenderer {
     }
 
     public static enum AreaStyle {
-        NATIVE(-1),
-        BROWN(0),
-        GRAY(1),
-        RED(2),
-        DRAGONLIB(100);
+        NATIVE(-1, false),
+        BROWN(0, false),
+        GRAY(1, false),
+        RED(2, false),
+        DRAGONLIB(100, true),
+        FLAT(101, true);
 
         private int index;
+        private boolean custom;
 
-        private AreaStyle(int index) {
+        private AreaStyle(int index, boolean custom) {
             this.index = index;
+            this.custom = custom;
         }
 
         public int getIndex() {
             return index;
+        }
+
+        public boolean isCustom() {
+            return custom;
         }
     }
 }
