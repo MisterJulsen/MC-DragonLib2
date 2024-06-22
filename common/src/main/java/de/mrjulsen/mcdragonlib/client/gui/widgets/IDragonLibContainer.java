@@ -135,7 +135,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
     default List<? extends GuiEventListener> childrenLayered() {
         return get().children().stream().filter(x -> 
             ((x instanceof IDragonLibContainer container && container.getWidgetLayerIndex() >= this.getAllowedLayer()) || this.getAllowedLayer() == 0) &&
-            ((x instanceof IDragonLibWidget wdgt && wdgt.isVisible()) || (x instanceof AbstractWidget absw && absw.visible))
+            ((x instanceof IDragonLibWidget wdgt && wdgt.visible()) || (x instanceof AbstractWidget absw && absw.visible))
         ).toList();
     }
 

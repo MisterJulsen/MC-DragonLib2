@@ -101,7 +101,7 @@ public class DLContextMenu extends WidgetContainer {
     }
 
     public boolean isOpen() {
-        return isVisible();
+        return visible();
     }
 
     @SuppressWarnings("resource")
@@ -120,13 +120,13 @@ public class DLContextMenu extends WidgetContainer {
         clearWidgets();
         openAction.get().build(this).forEach(a -> addItem(a));
 
-        setVisible(true);
+        set_visible(true);
         return true;
     }
 
     public void close() {
         clearWidgets();
-        setVisible(false);
+        set_visible(false);
     }
 
     @Override
