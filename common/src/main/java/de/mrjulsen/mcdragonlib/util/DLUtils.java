@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
@@ -183,5 +185,21 @@ public final class DLUtils {
             return true;
         } else
             return false;
+    }
+
+    public static <T> void doIfNotNull(T obj, Consumer<T> action) {
+        if (obj != null) {
+            action.accept(obj);
+        }
+    }
+
+    public static <T> void doIfNotNull(Optional<T> obj, Consumer<T> action) {
+        if (obj != null && obj.isPresent()) {
+            action.accept(obj.get());
+        }
+    }
+
+    public static boolean rectanglesIntersecting(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2) {
+        return (x1 < x2 + w2 && y1 < y2 + h2) && (x1 + w1 > x2 && y1 + h1 > y2);
     }
 }

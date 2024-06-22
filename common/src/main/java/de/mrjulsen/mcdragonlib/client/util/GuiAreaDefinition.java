@@ -54,15 +54,15 @@ public class GuiAreaDefinition {
         return new GuiAreaDefinition(0, 0, 0, 0);
     }
 
-    public static GuiAreaDefinition of(Screen screen) {
+    public static <T extends Screen> GuiAreaDefinition of(T screen) {
         return new GuiAreaDefinition(0, 0, screen.width, screen.height);
     }
 
-    public static GuiAreaDefinition of(WidgetContainer container) {
+    public static <T extends WidgetContainer> GuiAreaDefinition of(T container) {
         return new GuiAreaDefinition(container.getX(), container.getY(), container.getWidth(), container.getHeight());
     }
 
-    public static GuiAreaDefinition of(AbstractWidget widget) {
+    public static <T extends AbstractWidget> GuiAreaDefinition of(T widget) {
         return new GuiAreaDefinition(widget.x, widget.y, widget.getWidth(), widget.getHeight());
     }
 
