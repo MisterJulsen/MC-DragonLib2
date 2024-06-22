@@ -137,6 +137,11 @@ public class GuiUtils {
     public static <T extends FormattedText> List<FormattedCharSequence> getTooltipData(Screen screen, Collection<T> components, int maxWidth) {
         return components.stream().flatMap(a -> ((FontAccessor) Minecraft.getInstance().font).getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).map(x -> toFormattedCharSequence(x)).toList();
     }
+    
+    @SuppressWarnings("resource")
+    public static <T extends FormattedText> List<FormattedText> getTooltipDataFormatted(Screen screen, Collection<T> components, int maxWidth) {
+        return components.stream().flatMap(a -> ((FontAccessor) Minecraft.getInstance().font).getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).toList();
+    }
 
     public static boolean editBoxNumberFilter(String input) {
         if (input.isEmpty())

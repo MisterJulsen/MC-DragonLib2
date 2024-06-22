@@ -180,7 +180,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     @SuppressWarnings("resource")
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
         DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, ButtonState.DISABLED);
-        DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.getX() + (int)(this.value * (double)(this.getWidth() - 8)), this.getY(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.x() + (int)(this.value * (double)(this.getWidth() - 8)), this.y(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         
         int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
         GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
@@ -293,27 +293,62 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     }
     
     @Override
-    public void setWidth(int w) {
+    public int x() {
+        return getX();
+    }
+
+    @Override
+    public int y() {
+        return getY();
+    }    
+
+    @Override
+    public void set_x(int x) {
+        this.setX(x);
+    }
+
+    @Override
+    public void set_y(int y) {
+        this.setY(y);
+    }
+
+    @Override
+    public void set_width(int w) {
         this.width = w;
     }
 
     @Override
-    public void setHeight(int h) {
+    public void set_height(int h) {
         this.height = h;
     }
 
     @Override
-    public void setVisible(boolean b) {
+    public void set_visible(boolean b) {
         this.visible = b;
     }
 
     @Override
-    public boolean isVisible() {
+    public boolean visible() {
         return visible;
     }
 
     @Override
-    public void setActive(boolean b) {
+    public void set_active(boolean b) {
         this.active = b;
+    }
+
+    @Override
+    public boolean active() {
+        return super.isActive();
+    }
+
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
     }
 }

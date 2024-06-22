@@ -10,10 +10,6 @@ import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
  */
 public interface IDragonLibWidget {
 
-    void setVisible(boolean b);
-    boolean isVisible();
-    void setActive(boolean b);
-    boolean isActive();
     /**
      * Use this value if you don't want the context menu to open by right-clicking.
      */
@@ -72,14 +68,18 @@ public interface IDragonLibWidget {
 
     void setMouseSelected(boolean selected);
 
-    int getX();
-    int getY();
-    int getWidth();
-    int getHeight();    
-    void setX(int x);
-    void setY(int y);
-    void setWidth(int w);
-    void setHeight(int h);
+    void set_visible(boolean b);
+    boolean visible();
+    void set_active(boolean b);
+    boolean active();
+    int x();
+    int y();
+    int width();
+    int height();
+    void set_x(int x);
+    void set_y(int y);
+    void set_width(int w);
+    void set_height(int h);
 
     /**
      * The button that must be used to open the context menu. Use {@code NO_CONTEXT_MENU_BUTTON} to prevent the context menu from opening by user inputs.

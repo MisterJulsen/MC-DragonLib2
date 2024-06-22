@@ -294,15 +294,15 @@ public class DLListBox<T> extends WidgetContainer implements Collection<DLListBo
                     GuiUtils.drawBox(graphics, GuiAreaDefinition.of(this), 0xFF000000, DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
                 }
                 if (isMouseSelected()) {
-                    GuiUtils.fill(graphics, getX(), getY(), getWidth(), getHeight(), 0x33FFFFFF);
+                    GuiUtils.fill(graphics, x(), y(), width(), height(), 0x33FFFFFF);
                 }
             } else {
                 DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, isActive() ? (isSelected() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON)) : ButtonState.DISABLED);
             }
 
-            int xCoord = getX() + getHeight() / 2 - getIcon().getWidth() / 2;
-            getIcon().render(graphics, xCoord, getY() + getHeight() / 2 -  getIcon().getHeight() / 2);
-            GuiUtils.drawString(graphics, font, xCoord + getIcon().getWidth() + 5, getY() + getHeight() / 2 - font.lineHeight / 2, getMessage(), isSelected() || isMouseSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+            int xCoord = x() + height() / 2 - getIcon().getWidth() / 2;
+            getIcon().render(graphics, xCoord, y() + getHeight() / 2 -  getIcon().getHeight() / 2);
+            GuiUtils.drawString(graphics, font, xCoord + getIcon().getWidth() + 5, y() + getHeight() / 2 - font.lineHeight / 2, getMessage(), isSelected() || isMouseSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
         }
     }
 
