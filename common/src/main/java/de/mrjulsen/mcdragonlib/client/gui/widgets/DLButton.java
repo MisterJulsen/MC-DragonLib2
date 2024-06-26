@@ -8,7 +8,6 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,6 +20,7 @@ public class DLButton extends Button implements IDragonLibWidget {
     private boolean mouseSelected;
     protected final Font font;
     protected AreaStyle style = AreaStyle.NATIVE;
+    protected boolean dl_hovered;
     
     protected int fontColor = 0xFFFFFFFF;
     protected int backColor = 0xFFFFFFFF;
@@ -51,10 +51,11 @@ public class DLButton extends Button implements IDragonLibWidget {
         this.menu = menu;
     }
 
-    public void onHoverChange(int mouseX, int mouseY, boolean isHovering) {}
+    public void onHoverChange(int mouseX, int mouseY, boolean isHovering) {
+    }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         GuiUtils.setTint(1.0F, 1.0F, 1.0F, this.alpha);
         renderMainLayer(new Graphics(graphics, graphics.pose()), mouseX, mouseY, partialTicks);
     }
@@ -62,22 +63,23 @@ public class DLButton extends Button implements IDragonLibWidget {
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
         DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        this.renderString(graphics.graphics(), font, j);
     }
 
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         IDragonLibWidget.super.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
 
-        boolean wasHovering = isHovered;
-        setHovered(mouseX, mouseY);
-        if (wasHovering != isHovered) {
-            onHoverChange(mouseX, mouseY, isHovered);
+        boolean wasHovering = dl_hovered;
+        set_hovered(mouseX, mouseY);
+        
+        if (wasHovering != dl_hovered) {
+            onHoverChange(mouseX, mouseY, dl_hovered);
         }
     }
 
-    public boolean setHovered(int mouseX, int mouseY) {
-        return isHovered = mouseX >= getX() && mouseX < getX() + getWidth() && mouseY >= getY() && mouseY < getY() + getHeight();
+    public boolean set_hovered(int mouseX, int mouseY) {
+        return dl_hovered = mouseX >= getX() && mouseX < getX() + getWidth() && mouseY >= getY() && mouseY < getY() + getHeight();
     }
 
     @Override

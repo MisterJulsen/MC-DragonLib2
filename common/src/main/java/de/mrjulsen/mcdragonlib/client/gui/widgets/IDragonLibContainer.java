@@ -213,16 +213,16 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
         }
     }
 
-    default boolean containerMouseScrolled(double mouseX, double mouseY, double delta) {
+    default boolean containerMouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
 
         List<GuiEventListener> listeners = getWidgetsReversed();
 
         for (GuiEventListener listener : listeners) {
-            if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, delta)) {
+            if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, deltaX, deltaY)) {
                 return true;
             }
             
-            if (listener instanceof IDragonLibWidget widget && ((listener instanceof IExtendedAreaWidget ext && ext.isInArea(mouseX, mouseY)) || widget.isMouseSelected()) && listener.mouseScrolled(mouseX, mouseY, delta)) {
+            if (listener instanceof IDragonLibWidget widget && ((listener instanceof IExtendedAreaWidget ext && ext.isInArea(mouseX, mouseY)) || widget.isMouseSelected()) && listener.mouseScrolled(mouseX, mouseY, deltaX, deltaY)) {
                 return true;
             }
         }

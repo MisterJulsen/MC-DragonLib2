@@ -113,12 +113,12 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double deltaX, double deltaY) {
         if (canScroll()) {
-            scroll = MathUtils.clamp((scroll - pDelta * stepSize), 0, maxScroll);
+            scroll = MathUtils.clamp((scroll - selectScrollDelta(deltaX, deltaY) * stepSize), 0, maxScroll);
 
             int i = maxScroll;
-            this.scrollPercentage = (double)this.scrollPercentage - pDelta * stepSize / (double)i;
+            this.scrollPercentage = (double)this.scrollPercentage - selectScrollDelta(deltaX, deltaY) * stepSize / (double)i;
             this.scrollPercentage = MathUtils.clamp(this.scrollPercentage, 0.0F, 1.0F);
             
             if (onValueChanged != null)
@@ -164,6 +164,7 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     protected abstract double getMouseScrollDirection(double pMouseX, double pMouseY);
     protected abstract int getScrollbarLength();
     protected abstract int getXorY();
+    protected abstract double selectScrollDelta(double deltaX, double deltaY);
 
     @Override
     public abstract void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick);

@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
+import de.mrjulsen.mcdragonlib.internal.TestOverlay;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
@@ -56,7 +57,7 @@ public class DragonLib {
     public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
     public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
     public static final int DAYTIME_SHIFT = 6000;
-    public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
+    public static final byte TPS = 1000 / 50; // TODO: dynamic tick time
     public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
 	/** One block pixel */ public static final float PIXEL = 1.0F / 16.0F;
 
@@ -170,9 +171,9 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
                 return EventResult.pass();
             });
 
-            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollDelta) -> {
+            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, deltaX, deltaY) -> {
                 for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
-                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), scrollDelta)) {
+                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), deltaX, deltaY)) {
                         return EventResult.interruptTrue();
                     }
                 }

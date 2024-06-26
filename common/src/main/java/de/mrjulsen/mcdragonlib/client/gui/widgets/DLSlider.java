@@ -173,7 +173,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         renderMainLayer(new Graphics(graphics, graphics.pose()), mouseX, mouseY, partialTicks);
     }
 
@@ -182,8 +182,8 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
         DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, ButtonState.DISABLED);
         DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.x() + (int)(this.value * (double)(this.getWidth() - 8)), this.y(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         
-        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        //int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        //GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
         GuiUtils.resetTint();
 
     }

@@ -46,7 +46,7 @@ public class DLNumberSelector extends WidgetContainer {
         }, null));
         builder.addSeparator();
         builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.menu.select_all"), Sprite.empty(), true, (b) -> {
-            innerTextBox.moveCursorToEnd();
+            innerTextBox.moveCursorToEnd(true);
             innerTextBox.setHighlightPos(0);
         }, null));
         builder.addSeparator();        
@@ -63,7 +63,7 @@ public class DLNumberSelector extends WidgetContainer {
 
     public DLNumberSelector(int x, int y, int width, int height, double initialValue, boolean showButtons, BiConsumer<DLNumberSelector, Double> onNumberChanged) {
         super(x, y, width, height);
-        innerTextBox = new DLEditBox(font, x + 1, y + 1, width - 2 - (showButtons ? DROP_DOWN_BUTTON_WIDTH : 0), height - 2, TextUtils.empty());
+        innerTextBox = new DLEditBox(font, x, y, width - (showButtons ? DROP_DOWN_BUTTON_WIDTH : 0), height, TextUtils.empty());
         innerTextBox.setMenu(null);
         innerTextBox.setFilter(this::isNumber);
         innerTextBox.setResponder((text) -> {

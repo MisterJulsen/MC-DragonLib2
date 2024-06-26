@@ -35,6 +35,12 @@ configurations {
     }
 }
 
+processResources {
+    doLast {
+        java.nio.file.Path.of(outputs.files.asPath).resolve("META-INF/MANIFEST.MF").text = "Manifest-Version: 1.0\nAutomatic-Module-Name: ignoreme\n"
+    }
+}
+
 dependencies {
     forge "net.minecraftforge:forge:$rootProject.forge_version"
 

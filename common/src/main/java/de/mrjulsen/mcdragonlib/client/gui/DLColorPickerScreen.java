@@ -221,7 +221,7 @@ public class DLColorPickerScreen extends DLScreen {
         this.bBox.setNumberBounds(0, 255);
 
         this.colorIntBox = addEditBox(
-            guiLeft + 50, guiTop + 135, 48, 16,
+            guiLeft + 49, guiTop + 134, 50, 18,
             "0", TextUtils.empty(), true,
             (x) -> {
                 if (rgbNoUpdate) {
@@ -273,7 +273,7 @@ public class DLColorPickerScreen extends DLScreen {
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
 
-        renderScreenBackground(graphics);
+        renderScreenBackground(graphics, mouseX, mouseY, partialTicks);
 
         //GuiUtils.drawTexture(gui, graphics, guiLeft, guiTop, 0, 0, WIDTH, HEIGHT);
 

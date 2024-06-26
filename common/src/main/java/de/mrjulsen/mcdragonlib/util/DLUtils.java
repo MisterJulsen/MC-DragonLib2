@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -95,7 +95,7 @@ public final class DLUtils {
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
-        Advancement adv = player.getServer().getAdvancements().getAdvancement(new ResourceLocation(modid, name));
+        AdvancementHolder adv = player.getServer().getAdvancements().get(new ResourceLocation(modid, name));        
         player.getAdvancements().award(adv, criteriaKey);
     }
 

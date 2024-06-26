@@ -211,7 +211,7 @@ public class WritableSignScreen extends DLScreen {
     @Override
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         Lighting.setupForFlatItems();
-        this.renderBackground(graphics);
+        this.renderBackground(graphics, pMouseX, pMouseY, pPartialTick);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 40, 16777215);
         this.renderSign(graphics);
         Lighting.setupFor3DItems();

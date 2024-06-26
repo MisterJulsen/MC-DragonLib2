@@ -47,7 +47,7 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
         }, null));
         builder.addSeparator();
         builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.menu.select_all"), Sprite.empty(), true, (b) -> {
-            this.moveCursorToEnd();
+            this.moveCursorToEnd(false);
             this.setHighlightPos(0);
         }, null));
         return builder;
@@ -113,8 +113,7 @@ public class DLEditBox extends EditBox implements ITickable, IDragonLibWidget {
 	}
     
     @Override
-    public void tick() {
-        super.tick();
+    public void tick() {        
     }
 
     @Override
