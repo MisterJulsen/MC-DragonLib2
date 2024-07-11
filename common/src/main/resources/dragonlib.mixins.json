@@ -7,7 +7,7 @@
     "FontAccessor",
     "BakedGlyphAccessor",
     "AbstractWidgetAccessor",
-    "ContainerEventHandlerMixin"
+    "ScreenMixin"
   ],
   "mixins": [
   ],

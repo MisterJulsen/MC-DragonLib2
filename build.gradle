@@ -26,6 +26,9 @@ subprojects {
     repositories {
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
         maven { url = "https://maven.parchmentmc.org" } // ParchmentMC
+
+        // Test
+        maven { url 'https://maven.isxander.dev/releases' }
     }
 
     dependencies {

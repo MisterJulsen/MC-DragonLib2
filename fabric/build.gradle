@@ -29,6 +29,9 @@ dependencies {
     modImplementation(include("dev.architectury:architectury-fabric:${rootProject.architectury_api_version}"))
     modImplementation(include("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${rootProject.forge_config_api_port_version}"))
 
+    // Test
+    //modImplementation("dev.isxander:yet-another-config-lib:3.5.0+1.20.1-fabric")
+
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 }

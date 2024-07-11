@@ -102,7 +102,7 @@ public class TestScreen extends DLScreen {
         container.set(addRenderableWidget(new TestContainer(225, 70, 100, 90)));
         container.get().setWidgetLayerIndex(1);
 
-        setAllowedLayer(0);
+        setAllowedLayer(1);
 
         DLListBox<String> box = addRenderableWidget(new DLListBox<>(225, 200, 100, 100, true));
         for (int i = 0; i < 20; i++) {

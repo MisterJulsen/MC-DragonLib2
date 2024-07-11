@@ -12,6 +12,7 @@ import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -20,6 +21,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 
 public abstract class WidgetContainer extends AbstractContainerEventHandler implements Renderable, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
 
@@ -250,6 +252,11 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         if (getFocused() != null && !sameWidget &&  getFocused() instanceof IDragonLibWidget w) {
             w.onFocusChangeEvent(true);
         }
+    }
+
+    @Override
+    public ComponentPath nextFocusPath(FocusNavigationEvent event) {
+        return dragonlib$nextFocusPath(event); // VERY HACKY! Plz help...
     }
     
     @Override

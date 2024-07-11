@@ -26,6 +26,7 @@ import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import de.mrjulsen.mcdragonlib.mixin.AbstractWidgetAccessor;
+import de.mrjulsen.mcdragonlib.mixin.ScreenMixin;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
@@ -35,6 +36,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
+import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -144,8 +146,6 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     public void renderScreenBackground(Graphics graphics) {
         renderBackground(graphics.graphics());
     }
-
-    
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -259,10 +259,61 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         }
     }
 
+    //#region HACKY FOCUS FIX
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 256 && this.shouldCloseOnEsc()) {
+            this.onClose();
+            return true;
+        } else if (this.getFocused() != null && this.getFocused().keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        } else {
+            Object event;
+            switch (keyCode) {
+                case 258:
+                    event = ((ScreenMixin)this).dragonlib$createTabEvent();
+                    break;
+                case 259:
+                case 260:
+                case 261:
+                default:
+                    event = ((ScreenMixin)this);
+                    break;
+                case 262:
+                    event = ((ScreenMixin)this).dragonlib$createArrowEvent(ScreenDirection.RIGHT);
+                    break;
+                case 263:
+                    event = ((ScreenMixin)this).dragonlib$createArrowEvent(ScreenDirection.LEFT);
+                    break;
+                case 264:
+                    event = ((ScreenMixin)this).dragonlib$createArrowEvent(ScreenDirection.DOWN);
+                    break;
+                case 265:
+                    event = ((ScreenMixin)this).dragonlib$createArrowEvent(ScreenDirection.UP);
+            }
+
+            FocusNavigationEvent focusNavigationEvent = (FocusNavigationEvent)event;
+            if (focusNavigationEvent != null) {
+                ComponentPath componentPath = nextFocusPath(focusNavigationEvent);
+                if (componentPath == null && focusNavigationEvent instanceof FocusNavigationEvent.TabNavigation) {
+                    ((ScreenMixin)this).dragonlib$clearFocus();
+                    componentPath = nextFocusPath(focusNavigationEvent);
+                }
+
+                if (componentPath != null) {
+                    this.changeFocus(componentPath);
+                }
+            }
+
+            return false;
+        }
+    }
+
     @Override
     public ComponentPath nextFocusPath(FocusNavigationEvent event) {
-        return null;
+        return dragonlib$nextFocusPath(event); // VERY HACKY! Plz help...
     }
+    //#endregion
 
     @Override
     public DLContextMenu getContextMenu() {
