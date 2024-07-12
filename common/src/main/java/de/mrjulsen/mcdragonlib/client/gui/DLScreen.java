@@ -268,7 +268,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         } else if (this.getFocused() != null && this.getFocused().keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         } else {
-            Object event;
+            FocusNavigationEvent event;
             switch (keyCode) {
                 case 258:
                     event = ((ScreenMixin)this).dragonlib$createTabEvent();
@@ -277,7 +277,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
                 case 260:
                 case 261:
                 default:
-                    event = ((ScreenMixin)this);
+                    event = null;
                     break;
                 case 262:
                     event = ((ScreenMixin)this).dragonlib$createArrowEvent(ScreenDirection.RIGHT);
