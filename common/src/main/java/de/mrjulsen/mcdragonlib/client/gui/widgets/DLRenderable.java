@@ -9,8 +9,8 @@ import net.minecraft.client.gui.components.Widget;
 
 public abstract class DLRenderable implements Widget, ITickable, IDragonLibWidget {
 
-    protected boolean active;
-    protected boolean visible;
+    protected boolean active = true;
+    protected boolean visible = true;
     protected int x;
     protected int y;
     protected int width;
