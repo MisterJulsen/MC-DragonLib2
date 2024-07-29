@@ -11,6 +11,8 @@ import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
+import de.mrjulsen.mcdragonlib.util.accessor.DataAccessorResponsePacket;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
@@ -135,8 +137,10 @@ public class DragonLib {
     public static void init() {
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
-            WritableSignPacket.class
+            WritableSignPacket.class,
+            DataAccessorResponsePacket.class
         ));
+        registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
@@ -201,6 +205,16 @@ public class DragonLib {
      */
     public static final NetworkManagerBase getDragonLibNetworkManager() {
         return dragonLibNet;
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static void registerCustom(Class<BasicDataAccessorPacket> c) {
+        try {
+            BasicDataAccessorPacket packet = c.getConstructor().newInstance();
+            getDragonLibNetworkManager().CHANNEL.register(c, packet::encode, (buf) -> (BasicDataAccessorPacket)packet.decode(buf), packet::handle);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            DragonLib.LOGGER.error("Unable to register packet.", e);
+        }
     }
 
     /**
