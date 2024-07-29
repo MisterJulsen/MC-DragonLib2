@@ -1,10 +1,7 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.client.util.BERUtils;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
@@ -21,12 +18,12 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
      * @param context
      * @param pBlockEntity
      * @param pPartialTicks
-     * @param pPoseStack
+     * @param graphics
      * @param pBufferSource
      * @param pPackedLight
      * @param pOverlay
      */
-    void render(BlockEntityRendererContext context, T pBlockEntity, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pOverlay);
+    void render(BlockEntityRendererContext context, T pBlockEntity, float pPartialTicks, BERGraphics graphics);
 
     /**
      * Called every tick. Can be used for animations.
@@ -44,7 +41,7 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
      * @param state
      * @param blockEntity
      */
-    default void update(Level level, BlockPos pos, BlockState state, T blockEntity, EUpdateReason reason) { }
+    default void update(Level level, BlockPos pos, BlockState state, T blockEntity, Object data) { }
 
     default FontUtils getFontUtils() {
         return fontUtils;
@@ -54,10 +51,4 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
      * Additional data from the default Block Entity Renderer.
      */
     public static record BlockEntityRendererContext(BlockEntityRendererProvider.Context context, BERUtils renderUtils) {}
-
-    public static enum EUpdateReason {
-        INITIALIZED,
-        DATA_CHANGED,
-        BLOCK_CHANGED
-    }
 }

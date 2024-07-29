@@ -1,11 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import de.mrjulsen.mcdragonlib.block.IBERInstance;
 import de.mrjulsen.mcdragonlib.client.ber.IBlockEntityRendererInstance.BlockEntityRendererContext;
 import de.mrjulsen.mcdragonlib.client.util.BERUtils;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -19,9 +16,9 @@ public class StaticBlockEntityRenderer<T extends BlockEntity & IBERInstance<T>> 
     }
 
     @Override
-    protected void renderBlock(T pBlockEntity, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pOverlay) {
+    protected void renderBlock(T pBlockEntity, float pPartialTicks, BERGraphics graphics) {
         context.renderUtils().initRenderEngine();
-        pBlockEntity.getRenderer().render(context, pBlockEntity, pPartialTicks, pPoseStack, pBufferSource, pPackedLight, pOverlay);
+        pBlockEntity.getRenderer().render(context, pBlockEntity, pPartialTicks, graphics);
     }
 
 }
