@@ -304,16 +304,32 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public int y() {
         return y;
-    }    
-
-    @Override
-    public void set_x(int x) {
-        this.x = x;
     }
 
     @Override
     public void set_y(int y) {
+        int dy = y - y();
         this.y = y;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_y(wgt.y() + dy);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.y += dy;
+            }
+        }
+    }
+
+    @Override
+    public void set_x(int x) {
+        int dx = x - x();
+        this.x = x;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_x(wgt.x() + dx);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.x += dx;
+            }
+        }
     }
 
     @Override
