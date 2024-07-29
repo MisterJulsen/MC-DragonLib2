@@ -8,12 +8,12 @@ import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
-import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Provides additional features which must be implemented by all DragonLib Containers that should be used in a DragonLib Screen.
@@ -169,7 +169,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      * @return {@code true}, when a context menu could be opened.
      */
     @SuppressWarnings("unchecked")
-    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
+    default boolean contextMenuMouseClickEvent(Screen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
         
         List<GuiEventListener> listeners = getWidgetsReversed();
 
