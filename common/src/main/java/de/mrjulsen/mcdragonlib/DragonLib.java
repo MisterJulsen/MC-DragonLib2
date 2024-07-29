@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
+import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
@@ -33,6 +34,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 
@@ -105,9 +107,11 @@ public class DragonLib {
     private static final Supplier<Registries> REGISTRIES = Suppliers.memoize(() -> Registries.get(MODID));    
     private static final Registrar<Item> ITEMS = REGISTRIES.get().get(Registry.ITEM_REGISTRY);        
     private static final Registrar<Block> BLOCKS = REGISTRIES.get().get(Registry.BLOCK_REGISTRY);
+    private static final Registrar<BlockEntityType<?>> BLOCK_ENTITIES = REGISTRIES.get().get(Registry.BLOCK_ENTITY_TYPE_REGISTRY);
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of(Material.STONE).strength(1.5f)));
+    public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(new ResourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
         
     private static NetworkManagerBase dragonLibNet;
 
