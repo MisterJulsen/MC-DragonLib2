@@ -155,8 +155,11 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
             }
             return true;
         }
-        return false;
+        
+        return super.mouseClicked(mouseX, mouseY, button);
     }
+
+    
 
     @Override
     public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
