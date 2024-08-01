@@ -117,7 +117,7 @@ public class DLTooltip {
     }
 
     public void render(Screen screen, Graphics graphics, int mouseX, int mouseY) {
-        render(screen, graphics, mouseX + 8, mouseY - 16, mouseX, mouseY, getDynamicOffsetX().get(), getDynamicOffsetY().get());
+        render(screen, graphics, mouseX + 8, mouseY - 16, mouseX, mouseY, getDynamicOffsetX() == null ? 0 : getDynamicOffsetX().get(), getDynamicOffsetY() == null ? 0 : getDynamicOffsetY().get());
     }
 
     public void render(Screen screen, Graphics graphics, int x, int y, int mouseX, int mouseY, int xOffset, int yOffset) {
