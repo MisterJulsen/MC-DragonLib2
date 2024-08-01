@@ -19,7 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 public class DragonLibBlock extends BaseEntityBlock {
 
     public DragonLibBlock(BlockBehaviour.Properties properties) {
-        super(properties);
+        super(properties.noOcclusion());
     }
 
     @Override
@@ -43,7 +43,7 @@ public class DragonLibBlock extends BaseEntityBlock {
     
     @Override
     public RenderShape getRenderShape(BlockState pState) {
-        return RenderShape.MODEL;
+        return RenderShape.INVISIBLE;
     }
     
 }

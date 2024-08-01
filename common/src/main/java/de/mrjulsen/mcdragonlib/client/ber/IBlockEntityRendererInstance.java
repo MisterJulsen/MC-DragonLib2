@@ -1,8 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
-import de.mrjulsen.mcdragonlib.client.util.BERUtils;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.level.Level;
@@ -15,15 +13,10 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
 
     /**
      * The rendering method.
-     * @param context
-     * @param pBlockEntity
      * @param pPartialTicks
      * @param graphics
-     * @param pBufferSource
-     * @param pPackedLight
-     * @param pOverlay
      */
-    void render(BlockEntityRendererContext context, T pBlockEntity, float pPartialTicks, BERGraphics graphics);
+    void render(BERGraphics<T> graphics, float partialTick);
 
     /**
      * Called every tick. Can be used for animations.
@@ -46,9 +39,4 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
     default FontUtils getFontUtils() {
         return fontUtils;
     }
-
-    /**
-     * Additional data from the default Block Entity Renderer.
-     */
-    public static record BlockEntityRendererContext(BlockEntityRendererProvider.Context context, BERUtils renderUtils) {}
 }

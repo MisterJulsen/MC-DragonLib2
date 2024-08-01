@@ -14,12 +14,13 @@ public abstract class RotatableBlockEntityRenderer<T extends BlockEntity> extend
     protected final Font font;
 
     public RotatableBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        super(context);
         this.font = context.getFont();
     }
 
     @Override
-    protected final void renderSafe(T pBlockEntity, float pPartialTicks, BERGraphics graphics) {
-        BlockState blockState = pBlockEntity.getBlockState();
+    protected final void renderSafe(BERGraphics<T> graphics, float partialTick) {
+        BlockState blockState = graphics.blockEntity().getBlockState();
         
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(0.5D, 0, 0.5F);
@@ -31,11 +32,11 @@ public abstract class RotatableBlockEntityRenderer<T extends BlockEntity> extend
         graphics.poseStack().translate(-0.5f, 1, -0.5f);
         graphics.poseStack().scale(0.0625f, -0.0625f, 0.0625f);
 
-        renderBlock(pBlockEntity, pPartialTicks, graphics);
+        renderBlock(graphics, partialTick);
 
         graphics.poseStack().popPose();
         
     }
 
-    protected abstract void renderBlock(T pBlockEntity, float pPartialTicks, BERGraphics graphics);
+    protected abstract void renderBlock(BERGraphics<T> graphics, float partialTick);
 }
