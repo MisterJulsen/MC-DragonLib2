@@ -1,13 +1,15 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
-
 import de.mrjulsen.mcdragonlib.client.util.BERUtils;
+import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec2;
 
 public class BERCube {
 
@@ -23,14 +25,15 @@ public class BERCube {
     }
 
     public static BERCube fullCube(ResourceLocation texture, float width, float height, float depth) {
-        return cube(texture, width, height, depth, dir -> true);
+        return cube(texture, width, height, depth, dir -> true, dir -> Pair.of(new Vec2(0, 0), new Vec2(1, 1)));
     }
 
-    public static BERCube cube(ResourceLocation texture, float width, float height, float depth, Predicate<Direction> directionCheck) {
+    public static BERCube cube(ResourceLocation texture, float width, float height, float depth, Predicate<Direction> directionCheck, Function<Direction, Pair<Vec2, Vec2>> uv) {
         BERCube cube = new BERCube(width, height, depth);
         for (Direction dir : Direction.values()) {
             if (directionCheck.test(dir)) {
-                cube.setQuad(texture, dir, 0, 0, 1, 1);
+                Pair<Vec2, Vec2> pair = uv.apply(dir);
+                cube.setQuad(texture, dir, pair.getFirst().x, pair.getFirst().y, pair.getSecond().x, pair.getSecond().y);
             }
         }
         return cube;
