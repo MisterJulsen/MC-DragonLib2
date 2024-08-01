@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.ber;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import de.mrjulsen.mcdragonlib.client.util.BERUtils;
@@ -114,6 +115,10 @@ public class BERCube {
 
     public BERQuad getQuadFor(Direction facing) {
         return quads[facing.get3DDataValue()];
+    }
+
+    public ImmutableList<BERQuad> getAllQuads() {
+        return ImmutableList.copyOf(quads);
     }
     
     public void render(BERGraphics<?> graphics) {
