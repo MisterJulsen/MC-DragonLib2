@@ -99,7 +99,7 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
         tooltips.forEach(x -> x.render(this, graphics, mouseX, mouseY));
 
         graphics.poseStack().pushPose();
-        graphics.poseStack().translate(0, 0, 500);
+        graphics.poseStack().translate(0, 0, 1000);
         if (getContextMenu() != null) {
             IDragonLibContainer.super.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
         }
@@ -129,11 +129,6 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
         graphics.poseStack().popPose();
 
         renderMainLayer(graphics, mouseX, mouseY, partialTick);
-
-        graphics.poseStack().pushPose();
-        graphics.poseStack().translate(0, 0, 100);
-        renderFrontLayer(graphics, mouseX, mouseY, partialTick);
-        graphics.poseStack().popPose();
     }    
 
     @Override
