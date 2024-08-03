@@ -24,6 +24,8 @@ public class DLNumberSelector extends WidgetContainer {
     private boolean useDecimals = false;
     private final BiConsumer<DLNumberSelector, Double> onNumberChanged;
 
+    private final DLNumberSelector instance = this;
+
     @SuppressWarnings("resource")
     protected DLContextMenu menu = new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
         DLContextMenuItem.Builder builder = new DLContextMenuItem.Builder();
@@ -63,7 +65,13 @@ public class DLNumberSelector extends WidgetContainer {
 
     public DLNumberSelector(int x, int y, int width, int height, double initialValue, boolean showButtons, BiConsumer<DLNumberSelector, Double> onNumberChanged) {
         super(x, y, width, height);
-        innerTextBox = new DLEditBox(font, x + 1, y + 1, width - 2 - (showButtons ? DROP_DOWN_BUTTON_WIDTH : 0), height - 2, TextUtils.empty());
+        innerTextBox = new DLEditBox(font, x + 1, y + 1, width - 2 - (showButtons ? DROP_DOWN_BUTTON_WIDTH : 0), height - 2, TextUtils.empty()) {
+            @Override
+            public void setMouseSelected(boolean selected) {
+                super.setMouseSelected(selected);
+                instance.setMouseSelected(selected);
+            }
+        };
         innerTextBox.setMenu(null);
         innerTextBox.setFilter(this::isNumber);
         innerTextBox.setResponder((text) -> {
@@ -85,11 +93,23 @@ public class DLNumberSelector extends WidgetContainer {
             int heightA = usableHeight / 2;
             DLButton btn1 = addRenderableWidget(new DLButton(x + width - DROP_DOWN_BUTTON_WIDTH, y + 1, DROP_DOWN_BUTTON_WIDTH - 1, heightA, TextUtils.text("+"), (btn) -> {
                 increment();
-            }));
+            }) {
+                @Override
+                public void setMouseSelected(boolean selected) {
+                    super.setMouseSelected(selected);
+                    instance.setMouseSelected(selected);
+                }
+            });
             btn1.setRenderStyle(AreaStyle.GRAY);
             DLButton btn2 = addRenderableWidget(new DLButton(x + width - DROP_DOWN_BUTTON_WIDTH, y + 1 + heightA, DROP_DOWN_BUTTON_WIDTH - 1, usableHeight - heightA, TextUtils.text("-"), (btn) -> {
                 decrement();
-            }));
+            }) {
+                @Override
+                public void setMouseSelected(boolean selected) {
+                    super.setMouseSelected(selected);
+                    instance.setMouseSelected(selected);
+                }
+            });
             btn2.setRenderStyle(AreaStyle.GRAY);
         }
 
@@ -164,7 +184,7 @@ public class DLNumberSelector extends WidgetContainer {
 
     @Override
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) { 
-        GuiUtils.fill(graphics, x, y, width, height, DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
+        GuiUtils.fill(graphics, x, y, width, height, innerTextBox.isFocused() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
         GuiUtils.fill(graphics, x + 1, y + 1, width - 2, height - 2, 0xFF000000);
         super.renderMainLayer(graphics, mouseX, mouseY, partialTicks);
     }
