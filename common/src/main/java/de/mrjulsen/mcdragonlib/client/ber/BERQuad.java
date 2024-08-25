@@ -100,7 +100,7 @@ public class BERQuad {
         if (translate != null) {
             graphics.poseStack().translate(translate.x(), translate.y(), translate.z());
         }
-        BERUtils.renderTexture(texture, graphics.blockEntity(), graphics, ambientOcclusion, x, y, z, width, height, u0, v0, u1, v1, facing, tint, useCustomLight ? light : graphics.packedLight());
+        BERUtils.renderTexture(texture, graphics, ambientOcclusion, x, y, z, width, height, u0, v0, u1, v1, facing, tint, useCustomLight ? light : graphics.packedLight());
         graphics.poseStack().popPose();
         graphics.poseStack().popPose();
     }
