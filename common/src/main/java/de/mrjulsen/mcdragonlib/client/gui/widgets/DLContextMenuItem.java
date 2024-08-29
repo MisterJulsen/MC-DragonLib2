@@ -30,6 +30,7 @@ public class DLContextMenuItem extends DLButton {
         super(x, y, w, Math.max(MIN_ICON_SIZE, icon.getHeight()), text, pOnPress);
         this.icon = icon;
         this.parentMenu = parent;
+        this.setTextShadow(false);
     }
 
     @SuppressWarnings("resource")
@@ -69,7 +70,7 @@ public class DLContextMenuItem extends DLButton {
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        int color = active ? (isHoveredOrFocused() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : 0xFFFFFFFF) : 0xFF404040;
+        int color = active() ? (isHoveredOrFocused() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : getFontColor()) : 0xFF404040;
 
         if ((this.isHoveredOrFocused() || (getContextMenu() != null && getContextMenu().isOpen())) && active) {
             GuiUtils.fill(graphics, x, y, width, height, 0x30FFFFFF);
@@ -78,11 +79,11 @@ public class DLContextMenuItem extends DLButton {
         int iconW = Math.max(MIN_ICON_SIZE, icon.getWidth());
 
         GuiUtils.setTint(color);
-        icon.render(graphics, x + DEFAULT_PADDING, y + height / 2 - icon.getHeight() / 2);
-        GuiUtils.drawString(graphics, font, x + DEFAULT_PADDING * 3 + iconW, y + height / 2 - font.lineHeight / 2, getMessage(), color, EAlignment.LEFT, false);
+        icon.render(graphics, x() + DEFAULT_PADDING, y() + height() / 2 - icon.getHeight() / 2);
+        GuiUtils.drawString(graphics, font, x() + DEFAULT_PADDING * 3 + iconW, y() + height() / 2 - font.lineHeight / 2, getMessage(), color, EAlignment.LEFT, isRenderingTextShadow());
 
         if (getContextMenu() != null) {
-            GuiUtils.drawString(graphics, font, x + width - DEFAULT_PADDING, y + height / 2 - font.lineHeight / 2, ARROW_TEXT, color, EAlignment.RIGHT, false);
+            GuiUtils.drawString(graphics, font, x() + width() - DEFAULT_PADDING, y() + height() / 2 - font.lineHeight / 2, ARROW_TEXT, color, EAlignment.RIGHT, isRenderingTextShadow());
         }
     }
 
