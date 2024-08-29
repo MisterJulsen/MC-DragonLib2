@@ -77,6 +77,9 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
                 break;
             case CENTER:
             default:
+                if (this.getMessage() != null) {
+                    labelWidth = font.width(this.getMessage()) + 4;
+                }
                 Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x + width / 2 - 8 - labelWidth / 2, y + height / 2 - 8);
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;

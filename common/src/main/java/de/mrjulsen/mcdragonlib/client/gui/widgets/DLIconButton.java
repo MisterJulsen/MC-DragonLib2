@@ -59,9 +59,11 @@ public class DLIconButton extends DLAbstractImageButton<DLIconButton> {
                 break;
             case CENTER:
             default:
-            sprite.render(graphics, x + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, y + height / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
+                }
+                sprite.render(graphics, x + width / 2 - sprite.getWidth() / 2 - labelWidth / 2, y + height / 2 - sprite.getHeight() / 2);
+                if (this.getMessage() != null) {
                     GuiUtils.drawString(graphics, font, x + width / 2 + sprite.getWidth() / 2 - labelWidth / 2 + 4, y + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
                 }
                 break;
