@@ -159,12 +159,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void tick() {
-        Iterator<? extends GuiEventListener> w = children().iterator();
-        while (w.hasNext()) {
-            if (w.next() instanceof ITickable tickableWidget) {
-                tickableWidget.tick();
-            }
-        }
+        this.renderables.stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
     }
 
     @Override
