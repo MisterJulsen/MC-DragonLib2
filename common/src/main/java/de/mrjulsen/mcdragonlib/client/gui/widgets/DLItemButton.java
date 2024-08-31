@@ -68,16 +68,18 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
                     GuiUtils.drawString(graphics, font, x() + 2 + 16 + 4, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
                 }
                 break;
-            case RIGHT:
+            case RIGHT:            
+                if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
+                    labelWidth = font.width(this.getMessage()) + 4;
+                }
                 Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x() + width() - 2 - labelWidth - 16, y() + height() / 2 - 8);
                 if (this.getMessage() != null) {
-                    labelWidth = font.width(this.getMessage()) + 4;
                     GuiUtils.drawString(graphics, font, x() + width() - 2 + 2, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.RIGHT, isRenderingTextShadow());
                 }
                 break;
             case CENTER:
             default:
-                if (this.getMessage() != null) {
+            if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
                     labelWidth = font.width(this.getMessage()) + 4;
                 }
                 Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(item, x() + width() / 2 - 8 - labelWidth / 2, y() + height() / 2 - 8);

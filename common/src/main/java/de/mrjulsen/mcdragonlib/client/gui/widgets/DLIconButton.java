@@ -48,23 +48,26 @@ public class DLIconButton extends DLAbstractImageButton<DLIconButton> {
             case LEFT:
                 sprite.render(graphics, x() + 2, y() + height() / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {
-                    GuiUtils.drawString(graphics, font, x() + 2 + 4 + sprite.getWidth(), y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
+                    GuiUtils.drawString(graphics, font, x() + 2 + (sprite.isEmpty() ? 0 : sprite.getWidth() + 4), y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
                 }
                 break;
             case RIGHT:
-                sprite.render(graphics, x() + width() - 2 - 4 - sprite.getWidth(), y() + height() / 2 - sprite.getHeight() / 2);
+                if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
+                    labelWidth = font.width(this.getMessage()) + 4;
+                }
+                sprite.render(graphics, x() + width() - 2 - labelWidth - sprite.getWidth(), y() + height() / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {;
-                    GuiUtils.drawString(graphics, font, x() + width() - 2 + 4 - 4, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
+                    GuiUtils.drawString(graphics, font, x() + width() - 2, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
                 }
                 break;
             case CENTER:
             default:
-                if (this.getMessage() != null) {
+                if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
                     labelWidth = font.width(this.getMessage()) + 4;
                 }
                 sprite.render(graphics, x() + width() / 2 - sprite.getWidth() / 2 - labelWidth / 2, y() + height() / 2 - sprite.getHeight() / 2);
                 if (this.getMessage() != null) {
-                    GuiUtils.drawString(graphics, font, x() + width() / 2 + sprite.getWidth() / 2 - labelWidth / 2 + 4, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
+                    GuiUtils.drawString(graphics, font, x() + width() / 2 + sprite.getWidth() / 2 - labelWidth / 2 + (sprite.isEmpty() ? 0 : 4), y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
                 }
                 break;
         }
