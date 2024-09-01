@@ -159,7 +159,10 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void tick() {
-        this.renderables.stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
+        List<ITickable> widgets = this.renderables.stream().filter(x -> x instanceof ITickable).map(x -> (ITickable)x).toList();
+        for (int i = 0; i < widgets.size(); i++) {
+            widgets.get(i).tick();
+        }
     }
 
     @Override

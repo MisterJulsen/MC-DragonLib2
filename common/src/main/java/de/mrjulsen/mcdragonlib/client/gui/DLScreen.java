@@ -23,6 +23,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.IExtendedAreaWidget;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
@@ -69,7 +70,10 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void tick() {
         super.tick();
-        this.renderables.stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
+        List<ITickable> widgets = this.renderables.stream().filter(x -> x instanceof ITickable).map(x -> (ITickable)x).toList();
+        for (int i = 0; i < widgets.size(); i++) {
+            widgets.get(i).tick();
+        }
     }
 
     protected void onDone() {}
