@@ -33,9 +33,10 @@ public final class TimeUtils {
     }
 
     private static long[] splitTime(long time) {
+        long ticks = time % DragonLib.TICKS_PER_DAY;
         long days = time / DragonLib.TICKS_PER_DAY;
-        long hours = time / DragonLib.TICKS_PER_INGAME_HOUR;
-        long minutes = time % DragonLib.TICKS_PER_INGAME_HOUR;
+        long hours = ticks / DragonLib.TICKS_PER_INGAME_HOUR;
+        long minutes = ticks % DragonLib.TICKS_PER_INGAME_HOUR;
         minutes = (long)((double)minutes / ((double)DragonLib.TICKS_PER_INGAME_HOUR / 60.0D));
 
         return new long[] {minutes, hours, days};
