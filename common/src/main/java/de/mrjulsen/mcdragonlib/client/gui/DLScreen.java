@@ -23,7 +23,6 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.IExtendedAreaWidget;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;

@@ -218,7 +218,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
     default boolean containerMouseScrolled(double mouseX, double mouseY, double delta) {
 
-        List<? extends GuiEventListener> listeners = get().children();
+        List<? extends GuiEventListener> listeners = childrenLayered();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, delta)) {
