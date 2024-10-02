@@ -8,7 +8,6 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
 import net.minecraft.network.chat.Component;
 
 public class DLSplitButton extends DLButton {

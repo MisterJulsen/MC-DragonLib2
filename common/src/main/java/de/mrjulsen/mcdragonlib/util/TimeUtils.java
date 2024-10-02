@@ -131,6 +131,14 @@ public final class TimeUtils {
             return time >= start || time <= end;
         }
     }
+    
+    public static String formatTime(long time, TimeFormat format) {
+        return TimeUtils.parseTime((time + DragonLib.DAYTIME_SHIFT) % DragonLib.TICKS_PER_DAY, format);
+    }
+
+    public static long formatToMinutes(long ticks) {
+        return (long)((double)ticks / (1000d / 60d));
+    }
 
     public static enum TimeFormat implements StringRepresentable, ITranslatableEnum {
         TICKS((byte)0, "ticks"),

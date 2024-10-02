@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
@@ -42,6 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -114,6 +116,7 @@ public class DragonLib {
     public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(new ResourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
         
     private static NetworkManagerBase dragonLibNet;
+    private static MinecraftServer currentServer;
 
     private static <T extends Block, I extends BlockItem>RegistrySupplier<T> registerBlock(String name, Supplier<T> block) {
         RegistrySupplier<T> toReturn = BLOCKS.register(new ResourceLocation(MODID, name), block);
@@ -194,6 +197,14 @@ public class DragonLib {
             ScheduledTask.runScheduledTasks();
         });
 
+        LifecycleEvent.SERVER_STARTED.register((server) -> {
+            DragonLib.currentServer = server;
+        });
+
+        LifecycleEvent.SERVER_STOPPED.register((server) -> {
+            DragonLib.currentServer = null;
+        });
+
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
@@ -213,6 +224,23 @@ public class DragonLib {
      */
     public static final NetworkManagerBase getDragonLibNetworkManager() {
         return dragonLibNet;
+    }
+
+    public static boolean hasServer() {
+        return currentServer != null;
+    }
+
+    public static Optional<MinecraftServer> getCurrentServer() {
+        return Optional.ofNullable(currentServer);
+    }
+
+    public static Level getPhysicalLevel() {
+        return hasServer() ? getCurrentServer().get().overworld() : ClientWrapper.getClientLevel();
+    }
+
+    public static long getCurrentWorldTime() {
+        Level level = getPhysicalLevel();
+        return level == null ? 0 : level.getDayTime();
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })

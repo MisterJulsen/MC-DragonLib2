@@ -59,22 +59,24 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
     @Override
     public void handle(T packet, Supplier<PacketContext> contextSupplier) {
         contextSupplier.get().queue(() -> {
-            CompoundTag nbt;
-            MutableSingle<Object> tempData = new MutableSingle<>(null);
-            boolean hadMore = true;
-            boolean hasMore = true;
-            int iteration = 0;
-            while (hadMore) {
-                hasMore = processServer(contextSupplier.get().getPlayer(), packet.param, packet.type, tempData, (nbt = new CompoundTag()), iteration);
-                DataAccessorResponsePacket newPacket = new DataAccessorResponsePacket(packet.requestId, hasMore, iteration, nbt);
-                if (packet.sendToClient) {
-                    DragonLib.getDragonLibNetworkManager().CHANNEL.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
-                } else {
-                    DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(newPacket);
+            new Thread(() -> {
+                CompoundTag nbt;
+                MutableSingle<Object> tempData = new MutableSingle<>(null);
+                boolean hadMore = true;
+                boolean hasMore = true;
+                int iteration = 0;
+                while (hadMore) {
+                    hasMore = processServer(contextSupplier.get().getPlayer(), packet.param, packet.type, tempData, (nbt = new CompoundTag()), iteration);
+                    DataAccessorResponsePacket newPacket = new DataAccessorResponsePacket(packet.requestId, hasMore, iteration, nbt);
+                    if (packet.sendToClient) {
+                        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
+                    } else {
+                        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(newPacket);
+                    }
+                    iteration++;
+                    hadMore = hasMore;
                 }
-                iteration++;
-                hadMore = hasMore;
-            }
+            }, "Data Accessor Server Worker").start();
         });
     }
 
