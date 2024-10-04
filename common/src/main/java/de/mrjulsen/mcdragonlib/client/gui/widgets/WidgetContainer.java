@@ -22,7 +22,7 @@ import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
-public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer>, AutoCloseable {
+public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
 
     protected int x;
     protected int y;
@@ -198,12 +198,13 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         this.renderables.clear();
         this.children.clear();
     }
-    
+
     @Override
     public void close() {
-        children().stream().filter(x -> x instanceof AutoCloseable).forEach(x -> {
+        children().stream().filter(x -> x instanceof AutoCloseable || x instanceof IDragonLibContainer).forEach(x -> {
             try {
-                ((AutoCloseable)x).close();
+                if (x instanceof AutoCloseable c) c.close();
+                else if (x instanceof IDragonLibContainer c) c.close();
             } catch (Exception e) {
                 DragonLib.LOGGER.error("Error while closing gui object.", e);
             }

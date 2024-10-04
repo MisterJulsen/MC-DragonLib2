@@ -13,6 +13,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenu;
@@ -65,7 +66,17 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
     protected void init() {
         super.init();
         tooltips.clear();
-    }    
+    }
+    
+    @Override
+    public void removed() {
+        super.removed();
+        try {
+            this.close();
+        } catch (Exception e) {
+            DragonLib.LOGGER.error("Error while closing gui object.", e);
+        }
+    }
 
     @Override
     protected void containerTick() {
@@ -345,5 +356,17 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
     @Override
     public boolean consumeScrolling(double mouseX, double mouseY) {
         return true;
+    }
+
+    @Override
+    public void close() throws Exception {
+        children().stream().filter(x -> x instanceof AutoCloseable || x instanceof IDragonLibContainer).forEach(x -> {
+            try {
+                if (x instanceof AutoCloseable c) c.close();
+                else if (x instanceof IDragonLibContainer c) c.close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
     }
 }

@@ -70,13 +70,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void removed() {
         super.removed();
-        children().stream().filter(x -> x instanceof AutoCloseable).forEach(x -> {
-            try {
-                ((AutoCloseable)x).close();
-            } catch (Exception e) {
-                DragonLib.LOGGER.error("Error while closing gui object.", e);
-            }
-        });
+        try {
+            this.close();
+        } catch (Exception e) {
+            DragonLib.LOGGER.error("Error while closing gui object.", e);
+        }
     }
 
     @Override
@@ -370,5 +368,17 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public int height() {
         return height;
+    }
+
+    @Override
+    public void close() throws Exception {
+        children().stream().filter(x -> x instanceof AutoCloseable || x instanceof IDragonLibContainer).forEach(x -> {
+            try {
+                if (x instanceof AutoCloseable c) c.close();
+                else if (x instanceof IDragonLibContainer c) c.close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
     }
 }

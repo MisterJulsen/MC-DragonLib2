@@ -270,4 +270,6 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             return false;
         }
     }
+
+    void close() throws Exception;
 }
