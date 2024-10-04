@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
@@ -21,7 +22,7 @@ import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
-public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
+public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer>, AutoCloseable {
 
     protected int x;
     protected int y;
@@ -196,6 +197,17 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     protected void clearWidgets() {
         this.renderables.clear();
         this.children.clear();
+    }
+    
+    @Override
+    public void close() {
+        children().stream().filter(x -> x instanceof AutoCloseable).forEach(x -> {
+            try {
+                ((AutoCloseable)x).close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
     }
 
     public boolean isInBounds(double mouseX, double mouseY) {

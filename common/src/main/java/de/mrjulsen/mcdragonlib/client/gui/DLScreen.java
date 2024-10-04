@@ -13,6 +13,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenu;
@@ -64,6 +65,18 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     protected void init() {
         super.init();
         tooltips.clear();
+    }
+    
+    @Override
+    public void removed() {
+        super.removed();
+        children().stream().filter(x -> x instanceof AutoCloseable).forEach(x -> {
+            try {
+                ((AutoCloseable)x).close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
     }
 
     @Override
