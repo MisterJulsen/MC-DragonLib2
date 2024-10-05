@@ -341,9 +341,9 @@ public class BERLabel {
 
                 if (getBackgroundColor() != 0 && !getText().getString().isEmpty()) {
                     if (isBackgroundColorFullSize()) {
-                        BERUtils.fillColor(graphics, -1, -1, 0, scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH);
+                        BERUtils.fillColor(graphics, -1, -1, 0, scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light);
                     } else {
-                        BERUtils.fillColor(graphics, (center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0, Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH);
+                        BERUtils.fillColor(graphics, (center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0, Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light);
                     }
                     graphics.poseStack().translate(0, 0, 0.01f);
                 }
