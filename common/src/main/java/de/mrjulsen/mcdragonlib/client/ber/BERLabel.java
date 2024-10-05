@@ -323,8 +323,12 @@ public class BERLabel {
         }
     }
 
-    @SuppressWarnings("resource")
     public void render(BERGraphics<?> graphics) {
+        render(graphics, graphics.packedLight());
+    }
+
+    @SuppressWarnings("resource")
+    public void render(BERGraphics<?> graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
@@ -344,7 +348,7 @@ public class BERLabel {
                     graphics.poseStack().translate(0, 0, 0.01f);
                 }
 
-                renderTextInBounds(graphics.poseStack(), getFontUtils(), graphics.multiBufferSource(), getText(), graphics.packedLight(),
+                renderTextInBounds(graphics.poseStack(), getFontUtils(), graphics.multiBufferSource(), getText(), light,
                     txtX,
                     0,
                     getBoundsHitReaction() == BoundsHitReaction.IGNORE ? Integer.MAX_VALUE : scaledMaxWidth
