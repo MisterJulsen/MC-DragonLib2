@@ -1,5 +1,11 @@
 package de.mrjulsen.mcdragonlib.util;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.function.Predicate;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
@@ -102,6 +108,30 @@ public final class MathUtils {
 
     public static double getScale(float fontWidth, float lineWidth, float min, float max) {
         return calcScale(min, max, lineWidth / max, fontWidth);
+    }  
+
+    public static double calculateMedian(Queue<Double> database, double smoothingThreshold, Predicate<Double> filter) {
+        if (database.isEmpty()) {
+            return 0;
+        }
+
+        List<Double> values = new LinkedList<>();
+        for (double i : database) {
+            if (!filter.test(i)) 
+                continue;
+
+            values.add(i);
+        }
+
+        Collections.sort(values);
+        double median = 0;
+        if (values.size() % 2 == 0) {
+            median = ((double)values.get(values.size() / 2) + (double)values.get(values.size() / 2 + 1)) / 2D;
+        }
+        median = values.get(values.size() / 2);
+
+        final double med = median;
+        return database.stream().mapToDouble(x -> x).filter(x -> Math.abs(med - x) <= smoothingThreshold).average().orElse(0);
     }
 }
 

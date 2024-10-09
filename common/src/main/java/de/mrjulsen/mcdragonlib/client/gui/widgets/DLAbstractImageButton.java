@@ -19,8 +19,8 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
     private AreaStyle style;
     private EAlignment alignment = EAlignment.CENTER;
 
-    public DLAbstractImageButton(ButtonType type, AreaStyle style, int pX, int pY, int w, int h, Component pMessage, Consumer<T> onClick) {
-        this(type, style, null, pX, pY, w, h, pMessage, onClick);
+    public DLAbstractImageButton(ButtonType type, AreaStyle style, int x, int y, int w, int h, Component pMessage, Consumer<T> onClick) {
+        this(type, style, null, x, y, w, h, pMessage, onClick);
     }
 
     public DLAbstractImageButton(ButtonType type, AreaStyle style, WidgetsCollection collection, int pX, int pY, int w, int h, Component pMessage, Consumer<T> onClick) {
@@ -32,6 +32,13 @@ public abstract class DLAbstractImageButton<T extends DLAbstractImageButton<T>> 
             collection.components.add(this);
         }
         this.collection = collection;
+        setTextShadow(false);
+    }
+    
+    @Override
+    public void setTextAlignment(EAlignment alignment) {
+        super.setTextAlignment(alignment);
+        withAlignment(alignment);
     }
 
     public ButtonType getButtonType() {

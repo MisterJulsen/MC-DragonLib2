@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Font;
 public abstract class DLOverlayScreen implements ITickable {
 
     private final long id = System.nanoTime();
+    protected final Font font = Minecraft.getInstance().font;
 
     @SuppressWarnings("resource")
     public Font getFont() {

@@ -8,10 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Scanner;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.Optional;
 
@@ -35,31 +32,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public final class DLUtils {
-
-    /**
-     * Compares two lists and checks whether all elements are equal and in the same order.
-     * @param <T> Any object
-     * @param a First list
-     * @param b Second list
-     * @param comparator Custom compare function
-     * @return {@code true} if the two lists contain the same objects in the same order. {@code false} otherwise.
-     */
-    public static <T> boolean compareCollections(Collection<T> a, Collection<T> b, BiPredicate<T, T> comparator) {
-        if (a.size() != b.size()) {
-            return false;
-        }
-
-        Iterator<T> i = a.iterator();
-        Iterator<T> k = b.iterator();
-
-        while (i.hasNext() && k.hasNext()) {
-            if (!comparator.test(i.next(), k.next())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     public static String getUUID(String playername) {
         try {
