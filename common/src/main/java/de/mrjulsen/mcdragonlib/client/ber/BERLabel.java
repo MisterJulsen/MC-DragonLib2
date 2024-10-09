@@ -376,7 +376,7 @@ public class BERLabel {
         for (int i = 0; i < text.getString().length(); i++) {
             int charCode = text.getString().charAt(i);
             CharData charData = charDataCache.computeIfAbsent(charCode, c -> {
-                GlyphInfo info = fontUtils.fontSet.getGlyphInfo(c);
+                GlyphInfo info = fontUtils.fontSet.getGlyphInfo(c, false);
                 float glyphWidth = info.getAdvance(text.getStyle().isBold());
                 BakedGlyphAccessor glyph = fontUtils.getGlyphAccessor(c);
                 float glyphUVDiff = glyph.getU1() - glyph.getU0();
