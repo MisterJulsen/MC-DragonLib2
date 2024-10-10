@@ -13,13 +13,13 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
-import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.navigation.ScreenAxis;
 import net.minecraft.client.gui.navigation.ScreenDirection;
@@ -180,7 +180,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
      * @return {@code true}, when a context menu could be opened.
      */
     @SuppressWarnings("unchecked")
-    default boolean contextMenuMouseClickEvent(DLScreen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
+    default boolean contextMenuMouseClickEvent(Screen screen, IDragonLibContainer<?> parent, int mouseX, int mouseY, int xOffset, int yOffset, int button, GuiAreaDefinition openingBounds) {
         
         List<GuiEventListener> listeners = getWidgetsReversed();
 
@@ -229,7 +229,7 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
 
     default boolean containerMouseScrolled(double mouseX, double mouseY, double delta) {
 
-        List<GuiEventListener> listeners = getWidgetsReversed();
+        List<? extends GuiEventListener> listeners = childrenLayered();
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof IDragonLibContainer container && listener != this && listener.isMouseOver(mouseX, mouseY) && container.containerMouseScrolled(mouseX, mouseY, delta)) {
@@ -237,6 +237,10 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
             }
             
             if (listener instanceof IDragonLibWidget widget && ((listener instanceof IExtendedAreaWidget ext && ext.isInArea(mouseX, mouseY)) || widget.isMouseSelected()) && listener.mouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+
+            if (listener instanceof AbstractWidget widget && widget.isMouseOver(mouseX, mouseY) && widget.mouseScrolled(mouseX, mouseY, delta)) {
                 return true;
             }
         }
@@ -393,4 +397,6 @@ public interface IDragonLibContainer<T extends ContainerEventHandler & IDragonLi
         return null;
     }
     //#endregion
+
+    void close() throws Exception;
 }

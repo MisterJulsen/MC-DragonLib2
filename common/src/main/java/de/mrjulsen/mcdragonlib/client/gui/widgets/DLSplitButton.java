@@ -8,7 +8,6 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
 import net.minecraft.network.chat.Component;
 
 public class DLSplitButton extends DLButton {
@@ -36,16 +35,16 @@ public class DLSplitButton extends DLButton {
     
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width - DROP_DOWN_BUTTON_WIDTH + 1, height, getBackColor(), style, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
-        DynamicGuiRenderer.renderArea(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY(), DROP_DOWN_BUTTON_WIDTH, height, getBackColor(), style, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, x(), y(), width() - DROP_DOWN_BUTTON_WIDTH + 1, height(), getBackColor(), style, !isActive() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
+        DynamicGuiRenderer.renderArea(graphics, x() + width() - DROP_DOWN_BUTTON_WIDTH, y(), DROP_DOWN_BUTTON_WIDTH, height(), getBackColor(), style, !isActive() || getContextMenu().isOpen() ? ButtonState.DOWN : (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON));
 
         int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, font, getX() + (width - DROP_DOWN_BUTTON_WIDTH) / 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), j, EAlignment.CENTER, true);
+        GuiUtils.drawString(graphics, font, x() + (width() - DROP_DOWN_BUTTON_WIDTH) / 2, y() + height() / 2 - font.lineHeight / 2, getMessage(), j, getTextAlignment(), isRenderingTextShadow());
         GuiUtils.setTint(j);
         if (getContextMenu().isOpen()) {
-            GuiIcons.ARROW_UP.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_UP.render(graphics, x() + width() - DROP_DOWN_BUTTON_WIDTH, y() + height() / 2 - GuiIcons.ICON_SIZE / 2);
         } else {
-            GuiIcons.ARROW_DOWN.render(graphics, getX() + width - DROP_DOWN_BUTTON_WIDTH, getY() + height / 2 - GuiIcons.ICON_SIZE / 2);
+            GuiIcons.ARROW_DOWN.render(graphics, x() + width() - DROP_DOWN_BUTTON_WIDTH, y() + height() / 2 - GuiIcons.ICON_SIZE / 2);
         }
         GuiUtils.resetTint();
     }

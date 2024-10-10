@@ -1,20 +1,25 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import de.mrjulsen.mcdragonlib.client.ITickable;
+import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 
 public abstract class DLRenderable implements Renderable, ITickable, IDragonLibWidget {
 
-    protected boolean active;
-    protected boolean visible;
+    protected boolean active = true;
+    protected boolean visible = true;
     protected int x;
     protected int y;
     protected int width;
     protected int height;
     
     public DLRenderable(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
     }
 
     @Override
@@ -96,6 +101,11 @@ public abstract class DLRenderable implements Renderable, ITickable, IDragonLibW
     }
 
     @Override
+    public boolean active() {
+        return isActive();
+    }
+
+    @Override
     public int getContextMenuOpenButton() {
         return IDragonLibWidget.NO_CONTEXT_MENU_BUTTON;
     }
@@ -106,5 +116,10 @@ public abstract class DLRenderable implements Renderable, ITickable, IDragonLibW
     }
 
     @Override
-    public final void render(GuiGraphics var1, int var2, int var3, float var4) { }
+    public final void render(GuiGraphics var1, int var2, int var3, float var4) {
+        renderMainLayer(new Graphics(var1, var1.pose()), var2, var3, var4);
+    }
+
+    @Override
+    public void tick() { }
 }

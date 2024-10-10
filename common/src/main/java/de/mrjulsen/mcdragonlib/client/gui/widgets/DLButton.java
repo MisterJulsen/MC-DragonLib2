@@ -21,6 +21,8 @@ public class DLButton extends Button implements IDragonLibWidget {
     private boolean mouseSelected;
     protected final Font font;
     protected AreaStyle style = AreaStyle.NATIVE;
+    protected boolean textShadow = true;
+    protected EAlignment textAlign = EAlignment.CENTER;
     
     protected int fontColor = 0xFFFFFFFF;
     protected int backColor = 0xFFFFFFFF;
@@ -33,17 +35,6 @@ public class DLButton extends Button implements IDragonLibWidget {
 
     public DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
         this(pX, pY, pWidth, pHeight, pMessage, (btn) -> {});
-    }    
-
-    public void setRenderStyle(AreaStyle style) {
-        this.style = style;
-        if (style.isCustom()) {
-            setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
-        }
-    }
-
-    public AreaStyle getStyle() {
-        return style;
     }
 
     @Override
@@ -60,9 +51,9 @@ public class DLButton extends Button implements IDragonLibWidget {
     }
 
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
-        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        DynamicGuiRenderer.renderArea(graphics, x(), y(), width(), height(), getBackColor(), getStyle(), isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        int j = active() ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, font, this.x() + this.width() / 2, this.y() + (this.height() - 8) / 2, this.getMessage(), j, getTextAlignment(), isRenderingTextShadow());
     }
 
     @Override
@@ -77,7 +68,34 @@ public class DLButton extends Button implements IDragonLibWidget {
     }
 
     public boolean setHovered(int mouseX, int mouseY) {
-        return isHovered = mouseX >= getX() && mouseX < getX() + getWidth() && mouseY >= getY() && mouseY < getY() + getHeight();
+        return isHovered = mouseX >= x() && mouseX < x() + getWidth() && mouseY >= y() && mouseY < y() + getHeight();
+    }
+
+    public void setRenderStyle(AreaStyle style) {
+        this.style = style;
+        if (style.isCustom()) {
+            setBackColor(DragonLib.DEFAULT_BUTTON_COLOR);
+        }
+    }
+
+    public AreaStyle getStyle() {
+        return style;
+    }
+
+    public void setTextShadow(boolean b) {
+        this.textShadow = b;
+    }
+
+    public boolean isRenderingTextShadow() {
+        return textShadow;
+    }
+
+    public void setTextAlignment(EAlignment alignment) {
+        this.textAlign = alignment;
+    }
+
+    public EAlignment getTextAlignment() {
+        return textAlign;
     }
 
     @Override
