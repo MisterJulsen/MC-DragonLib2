@@ -39,7 +39,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     protected int fontColor = 0xFFFFFFFF;
     protected int backColor = 0xFFFFFFFF;
     protected boolean textShadow = true;
-    protected EAlignment textAlignment;
+    protected EAlignment textAlignment = EAlignment.CENTER;
 
     private final DecimalFormat format;
     private final Consumer<DLSlider> onUpdateMessage;
