@@ -72,18 +72,18 @@ public class BERCube {
                 w = width;
                 h = height;
                 z = depth;
-                rot = Vector3f.YP.rotationDegrees(180);
                 break;
             default:
             case NORTH:
                 w = width;
                 h = height;
                 z = depth;
+                rot = Vector3f.YP.rotationDegrees(180);
                 break;
         }
         BERQuad quad = new BERQuad(texture, w, h, u0, v0, u1, v1, facing);
         quad.setRotation(rot);
-        quad.setTranslate(new Vector3f(-w / 2f, -h / 2f, -z / 2f));
+        quad.setTranslate(new Vector3f(-w / 2f, -h / 2f, z / 2f));
         quads[facing.get3DDataValue()] = quad;
         return quad;
     }
