@@ -129,6 +129,7 @@ public class DLContextMenu extends WidgetContainer {
         set_visible(false);
     }
 
+    @SuppressWarnings("resource")
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         boolean b = super.mouseClicked(mouseX, mouseY, button);

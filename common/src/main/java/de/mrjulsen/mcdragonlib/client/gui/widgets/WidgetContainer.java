@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.lwjgl.glfw.GLFW;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
@@ -161,11 +162,9 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void tick() {
-        Iterator<? extends GuiEventListener> w = children().iterator();
-        while (w.hasNext()) {
-            if (w.next() instanceof ITickable tickableWidget) {
-                tickableWidget.tick();
-            }
+        List<ITickable> widgets = this.renderables.stream().filter(x -> x instanceof ITickable).map(x -> (ITickable)x).toList();
+        for (int i = 0; i < widgets.size(); i++) {
+            widgets.get(i).tick();
         }
     }
 
@@ -200,6 +199,18 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     protected void clearWidgets() {
         this.renderables.clear();
         this.children.clear();
+    }
+
+    @Override
+    public void close() {
+        children().stream().filter(x -> x instanceof AutoCloseable || x instanceof IDragonLibContainer).forEach(x -> {
+            try {
+                if (x instanceof AutoCloseable c) c.close();
+                else if (x instanceof IDragonLibContainer c) c.close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
     }
 
     public boolean isInBounds(double mouseX, double mouseY) {
@@ -311,16 +322,32 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public int y() {
         return y;
-    }    
-
-    @Override
-    public void set_x(int x) {
-        this.x = x;
     }
 
     @Override
     public void set_y(int y) {
+        int dy = y - y();
         this.y = y;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_y(wgt.y() + dy);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.setY(wgt.getY() + dy);
+            }
+        }
+    }
+
+    @Override
+    public void set_x(int x) {
+        int dx = x - x();
+        this.x = x;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_x(wgt.x() + dx);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.setX(wgt.getX() + dx);
+            }
+        }
     }
 
     @Override

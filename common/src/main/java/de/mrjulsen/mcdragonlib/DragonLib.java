@@ -5,18 +5,23 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
+import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
+import de.mrjulsen.mcdragonlib.util.accessor.DataAccessorResponsePacket;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
+import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
@@ -31,12 +36,15 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -47,6 +55,7 @@ public class DragonLib {
 
     public static final String MODID = "dragonlib";
 	public static final String MOD_NAME = "DragonLib";
+    public static final String MRJULSEN_DISCORD = "https://discord.gg/AeSbNgvc7f";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
     
     public static final Random RANDOM = new Random();
@@ -102,11 +111,14 @@ public class DragonLib {
 public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() -> RegistrarManager.get(MODID)); 
     private static final Registrar<Item> ITEMS = MANAGER.get().get(Registries.ITEM);        
     private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
+    private static final Registrar<BlockEntityType<?>> BLOCK_ENTITIES = MANAGER.get().get(Registries.BLOCK_ENTITY_TYPE);
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
+    public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(new ResourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
         
     private static NetworkManagerBase dragonLibNet;
+    private static MinecraftServer currentServer;
 
     private static <T extends Block, I extends BlockItem>RegistrySupplier<T> registerBlock(String name, Supplier<T> block) {
         RegistrySupplier<T> toReturn = BLOCKS.register(new ResourceLocation(MODID, name), block);
@@ -134,8 +146,10 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
     public static void init() {
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
-            WritableSignPacket.class
+            WritableSignPacket.class,
+            DataAccessorResponsePacket.class
         ));
+        registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
@@ -185,11 +199,23 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             ScheduledTask.runScheduledTasks();
         });
 
+        LifecycleEvent.SERVER_STARTED.register((server) -> {
+            DragonLib.currentServer = server;
+        });
+
+        LifecycleEvent.SERVER_STOPPED.register((server) -> {
+            DragonLib.currentServer = null;
+        });
+
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
         });        
-        
+        /*
+        ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
+            BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
+        });
+        */
 
         // After loading
         printDraconicWelcomeMessage();
@@ -202,6 +228,33 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         return dragonLibNet;
     }
 
+    public static boolean hasServer() {
+        return currentServer != null;
+    }
+
+    public static Optional<MinecraftServer> getCurrentServer() {
+        return Optional.ofNullable(currentServer);
+    }
+
+    public static Level getPhysicalLevel() {
+        return hasServer() ? getCurrentServer().get().overworld() : ClientWrapper.getClientLevel();
+    }
+
+    public static long getCurrentWorldTime() {
+        Level level = getPhysicalLevel();
+        return level == null ? 0 : level.getDayTime();
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static void registerCustom(Class<BasicDataAccessorPacket> c) {
+        try {
+            BasicDataAccessorPacket packet = c.getConstructor().newInstance();
+            getDragonLibNetworkManager().CHANNEL.register(c, packet::encode, (buf) -> (BasicDataAccessorPacket)packet.decode(buf), packet::handle);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            DragonLib.LOGGER.error("Unable to register packet.", e);
+        }
+    }
+
     /**
      * Why 🐲? Because I can. Let me bee 🐝
      * @since 1.0
@@ -209,34 +262,46 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
      * @see 🐉
      */
     private static final void printDraconicWelcomeMessage() {
-        String[] dragonTypes = {"Dragon", "Fire Dragon", "Ice Dragon", "Lightning Dragon", "Mountain Dragon", "Poison Dragon", "Drake", "Wyvern", "Wyrm", "MrJulsen", "Toothless", "Drogon", "Smaug", "Ender Dragon", "Spyro", "Do you think dragons exist?"};
-        final int charCount = 66;
-
-        StringBuilder ver = new StringBuilder();
-        ver.append("Minecraft ");
-        ver.append(Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : ""));
-        ver.append(" ");
-        ver.append(Platform.getMinecraftVersion());
-        if (Platform.isDevelopmentEnvironment()) {
-            ver.append(" (Dev)");
-        } 
-        
-        int verLength = ver.length();
-        for (int i = 0; i < (charCount - verLength) / 2; i++) {
-            ver.insert(0, " ");
-            ver.append(" ");
-        }
-
+        String[] dragonTypes = {"Dragon", "Fire Dragon", "Ice Dragon", "Lightning Dragon", "Mountain Dragon", "Poison Dragon", "Drake", "Wyvern", "MrJulsen", "Toothless", "Drogon", "Smaug", "Ender Dragon", "Do you think dragons exist?"};
         new Thread(() -> {
-            LOGGER.info("                           +++ 🐉 +++                             ");
-            LOGGER.info("------------------------------------------------------------------");
-            LOGGER.info("                  Loaded DRAGONLIB by MRJULSEN!                   ");
-            LOGGER.info(ver.toString());
-            LOGGER.info("             Discord: https://discord.gg/AeSbNgvc7f               ");
-            LOGGER.info("      GitHub: https://github.com/MisterJulsen/MC-DragonLib2       ");
-            LOGGER.info(" Bug Reports: https://github.com/MisterJulsen/MC-DragonLib2/issues");
-            LOGGER.info("------------------------------------------------------------------");
-            LOGGER.info("                           +++ 🐉 +++                             ");
+            Mod mod = Platform.getMod(MODID);
+            List<String> lines = new ArrayList<>();
+
+            String border = "+++ 🐉 +++";
+            lines.add(border);
+            lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
+            lines.add(String.format("Minecraft %s%s%s", Platform.isForge() ? "Forge " : (Platform.isFabric() ? "Fabric " : ""), Platform.getMinecraftVersion(), Platform.isDevelopmentEnvironment() ? " (Dev)" : ""));
+            lines.add("");
+            lines.add(String.format("Discord: %s", MRJULSEN_DISCORD));
+            lines.add(String.format("GitHub: %s", mod.getHomepage().orElse("unknown")));
+            lines.add(String.format("Bug Reports: %s", mod.getIssueTracker().orElse("unknown")));
+            lines.add(border);
+
+            int width = lines.stream().mapToInt(String::length).max().getAsInt() + 4;
+            lines = new ArrayList<>(lines.stream().map(x -> centerStringInArea(x, width)).toList());
+            lines.add(1, lineOf('-', width));
+            lines.add(lines.size() - 1, lineOf('-', width));
+            
+            lines.forEach(LOGGER::info);
         }, dragonTypes[RANDOM.nextInt(dragonTypes.length)]).start();
+    }
+
+    private static final String centerStringInArea(String text, int width) {
+        if (text.isBlank()) {
+            return text;
+        }
+        StringBuilder sb = new StringBuilder(text);
+        int verLength = sb.length();
+        for (int i = 0; i < (width - verLength) / 2; i++) {
+            sb.insert(0, " ");
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
+
+    private static final String lineOf(char c, int width) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < width; i++) sb.append(c);
+        return sb.toString();
     }
 }

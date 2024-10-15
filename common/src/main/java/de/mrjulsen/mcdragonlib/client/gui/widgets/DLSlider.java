@@ -37,6 +37,8 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     protected AreaStyle style = AreaStyle.NATIVE;
     protected int fontColor = 0xFFFFFFFF;
     protected int backColor = 0xFFFFFFFF;
+    protected boolean textShadow = true;
+    protected EAlignment textAlignment;
 
     private final DecimalFormat format;
     private final Consumer<DLSlider> onUpdateMessage;
@@ -90,7 +92,22 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
         this.updateMessage();
     }
-    
+
+    public boolean isRenderingTextShadow() {
+        return textShadow;
+    }
+
+    public void setTextShadow(boolean textShadow) {
+        this.textShadow = textShadow;
+    }
+
+    public EAlignment getTextAlignment() {
+        return textAlignment;
+    }
+
+    public void setTextAlignment(EAlignment textAlignment) {
+        this.textAlignment = textAlignment;
+    }
 
     public void setRenderStyle(AreaStyle style) {
         this.style = style;
@@ -179,11 +196,11 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
     @SuppressWarnings("resource")
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        DynamicGuiRenderer.renderArea(graphics, getX(), getY(), width, height, getBackColor(), style, ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, x(), y(), width(), height(), getBackColor(), style, ButtonState.DISABLED);
         DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.x() + (int)(this.value * (double)(this.getWidth() - 8)), this.y(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         
-        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        int j = active() ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.x() + this.width() / 2, this.y() + (this.height() - 8) / 2, this.getMessage(), j, getTextAlignment(), isRenderingTextShadow());
         GuiUtils.resetTint();
 
     }

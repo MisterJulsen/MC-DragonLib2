@@ -21,8 +21,8 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
     private ItemStack item;
     private boolean renderItemTooltip = true;
 
-    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, WidgetsCollection collection, int pX, int pY, int w, int h, Component customText, Consumer<DLItemButton> onClick) {
-        super(type, color, collection, pX, pY, w, h, customText == null ? item.getHoverName() : customText, onClick);
+    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, WidgetsCollection collection, int x, int y, int w, int h, Component customText, Consumer<DLItemButton> onClick) {
+        super(type, color, collection, x, y, w, h, customText == null ? item.getHoverName() : customText, onClick);
         withItem(item);
 
         if (color == AreaStyle.NATIVE) {
@@ -32,16 +32,16 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
         }
     }
 
-    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, int pX, int pY, int w, int h, Component customText, Consumer<DLItemButton> onClick) {
-        this(type, color, item, null, pX, pY, w, h, customText, onClick);
+    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, int x, int y, int w, int h, Component customText, Consumer<DLItemButton> onClick) {
+        this(type, color, item, null, x, y, w, h, customText, onClick);
     }
 
-    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, WidgetsCollection collection, int pX, int pY, Component customText, Consumer<DLItemButton> onClick) {
-        this(type, color, item, collection, pX, pY, DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT, customText, onClick);
+    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, WidgetsCollection collection, int x, int y, Component customText, Consumer<DLItemButton> onClick) {
+        this(type, color, item, collection, x, y, DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT, customText, onClick);
     }
 
-    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, int pX, int pY, Component customText, Consumer<DLItemButton> onClick) {
-        this(type, color, item, pX, pY, DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT, customText, onClick);
+    public DLItemButton(ButtonType type, AreaStyle color, ItemStack item, int x, int y, Component customText, Consumer<DLItemButton> onClick) {
+        this(type, color, item, x, y, DEFAULT_BUTTON_WIDTH, DEFAULT_BUTTON_HEIGHT, customText, onClick);
     }
 
     public ItemStack getItem() {
@@ -64,22 +64,29 @@ public class DLItemButton extends DLAbstractImageButton<DLItemButton> {
         switch (getAlignment()) {            
             case LEFT:
                 if (this.getMessage() != null) {
-                    GuiUtils.drawString(graphics, font, getX() + 2 + 16 + 4, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, false);
+                    GuiUtils.drawString(graphics, font, x() + 2 + 16 + 4, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.LEFT, isRenderingTextShadow());
                 }
                 graphics.graphics().renderItem(item, getX() + 2, getY() + height / 2 - 8);
                 break;
-            case RIGHT:
-                if (this.getMessage() != null) {
+            case RIGHT:            
+                if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
                     labelWidth = font.width(this.getMessage()) + 4;
-                    GuiUtils.drawString(graphics, font, getX() + width - 2 + 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.RIGHT, false);
+                }
+                graphics.graphics().renderItem(item, x() + width() - 2 - labelWidth - 16, y() + height() / 2 - 8);
+                if (this.getMessage() != null) {
+                    GuiUtils.drawString(graphics, font, x() + width() - 2 + 2, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.RIGHT, isRenderingTextShadow());
                 }
                 graphics.graphics().renderItem(item, getX() + width - 2 - labelWidth - 16, getY() + height / 2 - 8);
                 break;
             case CENTER:
             default:
+            if (this.getMessage() != null && !this.getMessage().getString().isEmpty()) {
+                    labelWidth = font.width(this.getMessage()) + 4;
+                }
+                graphics.graphics().renderItem(item, x() + width() / 2 - 8 - labelWidth / 2, y() + height() / 2 - 8);
                 if (this.getMessage() != null) {
                     labelWidth = font.width(this.getMessage()) + 4;
-                    GuiUtils.drawString(graphics, font, getX() + width / 2 + 8 + 2, getY() + height / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.CENTER, false);
+                    GuiUtils.drawString(graphics, font, x() + width() / 2 + 8 + 2, y() + height() / 2 - font.lineHeight / 2, getMessage(), getFontColor(), EAlignment.CENTER, isRenderingTextShadow());
                 }
                 graphics.graphics().renderItem(item, getX() + width / 2 - 8 - labelWidth / 2, getY() + height / 2 - 8);
                 break;

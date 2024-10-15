@@ -383,4 +383,12 @@ public class GuiUtils {
         return slider;
     }
 
+    public static final String ELLIPSIS_STRING = "...";
+	public static Component ellipsisString(Font font, Component text, int maxWidth) {
+		int lineWidth = font.width(text);
+		return lineWidth < maxWidth ? text : TextUtils.text(font.substrByWidth(text, maxWidth - font.width(ELLIPSIS_STRING)).getString()).withStyle(text.getStyle()).append(ELLIPSIS_STRING);
+	}
+
+    
+
 }

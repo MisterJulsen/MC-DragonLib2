@@ -1,10 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -16,28 +14,29 @@ public abstract class RotatableBlockEntityRenderer<T extends BlockEntity> extend
     protected final Font font;
 
     public RotatableBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        super(context);
         this.font = context.getFont();
     }
 
     @Override
-    protected final void renderSafe(T pBlockEntity, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pOverlay) {
-        BlockState blockState = pBlockEntity.getBlockState();
+    protected final void renderSafe(BERGraphics<T> graphics, float partialTick) {
+        BlockState blockState = graphics.blockEntity().getBlockState();
         
-        pPoseStack.pushPose();
-        pPoseStack.translate(0.5D, 0, 0.5F);
-        pPoseStack.mulPose(Axis.YP.rotationDegrees(
+        graphics.poseStack().pushPose();
+        graphics.poseStack().translate(0.5D, 0, 0.5F);
+        graphics.poseStack().mulPose(Axis.YP.rotationDegrees(
             blockState.getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST || blockState.getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST
                 ? blockState.getValue(HorizontalDirectionalBlock.FACING).getOpposite().toYRot()
                 : blockState.getValue(HorizontalDirectionalBlock.FACING).toYRot()
         ));
-        pPoseStack.translate(-0.5f, 1, -0.5f);
-        pPoseStack.scale(0.0625f, -0.0625f, 0.0625f);
+        graphics.poseStack().translate(-0.5f, 1, -0.5f);
+        graphics.poseStack().scale(0.0625f, -0.0625f, 0.0625f);
 
-        renderBlock(pBlockEntity, pPartialTicks, pPoseStack, pBufferSource, pPackedLight, pOverlay);
+        renderBlock(graphics, partialTick);
 
-        pPoseStack.popPose();
+        graphics.poseStack().popPose();
         
     }
 
-    protected abstract void renderBlock(T pBlockEntity, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pOverlay);
+    protected abstract void renderBlock(BERGraphics<T> graphics, float partialTick);
 }
