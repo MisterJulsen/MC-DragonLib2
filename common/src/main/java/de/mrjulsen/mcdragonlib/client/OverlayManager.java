@@ -51,11 +51,11 @@ public class OverlayManager {
     }
 
     public static void tickAll() {
-        instances.values().forEach(x -> x.tick());
+        instances.values().stream().forEach(x -> x.tick());
     }
 
     public static void renderAll(PoseStack poseStack, float partialTicks) {
-        instances.values().forEach(x -> x.render(new Graphics(poseStack), partialTicks, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
+        instances.values().stream().forEach(x -> x.render(new Graphics(poseStack), partialTicks, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
     }
 
     public static Collection<DLOverlayScreen> getAllOverlays() {

@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
@@ -21,6 +22,9 @@ public class DLTooltip {
     protected GuiAreaDefinition assignedArea = null;
     protected AbstractWidget assignedWidget = null;
     protected boolean visible = true;
+
+    protected Supplier<Integer> dynamicOffsetX;
+    protected Supplier<Integer> dynamicOffsetY;
 
     protected DLTooltip(List<FormattedText> lines) {
         this.lines = lines;
@@ -99,21 +103,35 @@ public class DLTooltip {
         return maxWidth;
     }
 
-    public void render(Screen screen, Graphics graphics, int mouseX, int mouseY) {
-        render(screen, graphics, mouseX, mouseY, 0, 0);
+    public void setDynamicOffset(Supplier<Integer> offsetX, Supplier<Integer> offsetY) {
+        this.dynamicOffsetX = offsetX;
+        this.dynamicOffsetY = offsetY;
     }
 
-    public void render(Screen screen, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
+    public Supplier<Integer> getDynamicOffsetX() {
+        return dynamicOffsetX;
+    }
+
+    public Supplier<Integer> getDynamicOffsetY() {
+        return dynamicOffsetY;
+    }
+
+    public void render(Screen screen, Graphics graphics, int mouseX, int mouseY) {
+        render(screen, graphics, mouseX + 8, mouseY - 16, mouseX, mouseY, getDynamicOffsetX() == null ? 0 : getDynamicOffsetX().get(), getDynamicOffsetY() == null ? 0 : getDynamicOffsetY().get());
+    }
+
+    public void render(Screen screen, Graphics graphics, int x, int y, int mouseX, int mouseY, int xOffset, int yOffset) {
         if (lines.size() <= 0) {
             return;
         }
 
         if (assignedWidget != null) {
-            GuiUtils.renderTooltipWithOffset(screen, assignedWidget, getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, mouseX, mouseY, xOffset, yOffset);            
+            if ((assignedWidget instanceof IDragonLibWidget wgt && wgt.isMouseSelected()) || (assignedWidget.visible && assignedWidget.isMouseOver(mouseX, mouseY)))
+            GuiUtils.renderTooltipAt(screen, GuiAreaDefinition.of(assignedWidget), getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, x, y, mouseX, mouseY, xOffset, yOffset);            
         } else if (assignedArea != null) {
-            GuiUtils.renderTooltipWithOffset(screen, assignedArea, getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, mouseX, mouseY, xOffset, yOffset);  
+            GuiUtils.renderTooltipAt(screen, assignedArea, getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, x, y, mouseX, mouseY, xOffset, yOffset);  
         } else {
-            GuiUtils.renderTooltipWithOffset(screen, GuiAreaDefinition.of(screen), getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, mouseX, mouseY, xOffset, yOffset); 
+            GuiUtils.renderTooltipAt(screen, GuiAreaDefinition.of(screen), getLines(), getMaxWidth() > 0 ? getMaxWidth() : screen.width, graphics, x, y, mouseX, mouseY, xOffset, yOffset); 
         }        
     }
 }

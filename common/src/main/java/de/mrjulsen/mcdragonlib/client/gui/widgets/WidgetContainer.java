@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
@@ -97,22 +98,6 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         return active;
     }
 
-    @Override
-    public void setActive(boolean active) {
-        this.active = active;
-        children().stream().filter(x -> x instanceof AbstractWidget).forEach(x -> ((AbstractWidget)x).active = active);
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visible;
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-        this.visible = visible;
-    }
-
     public float getAlpha() {
         return alpha;
     }
@@ -141,7 +126,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         Iterator<Widget> w = renderables.iterator();
         while (w.hasNext()) {
             Widget widget = w.next();
-            if ((widget instanceof IDragonLibWidget d && (!d.isVisible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.getX(), d.getY(), d.getWidth(), d.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight())))) ||
+            if ((widget instanceof IDragonLibWidget d && (!d.visible() || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(d.x(), d.y(), d.width(), d.height(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight())))) ||
                 (widget instanceof AbstractWidget abs && (!abs.visible || (checkWidgetBounds() && !DLUtils.rectanglesIntersecting(abs.x, abs.y, abs.getWidth(), abs.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))))) {
                 continue;
             }
@@ -154,7 +139,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.visible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.x(), layeredWidget.y(), layeredWidget.width(), layeredWidget.height(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderBackLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }
@@ -165,7 +150,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         Iterator<Widget> w = this.renderables.iterator();
         while (w.hasNext()) {
             Widget widget = (Widget)w.next();
-            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.isVisible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.getX(), layeredWidget.getY(), layeredWidget.getWidth(), layeredWidget.getHeight(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
+            if (widget instanceof IDragonLibWidget layeredWidget && layeredWidget.visible() && (!checkWidgetBounds() || DLUtils.rectanglesIntersecting(layeredWidget.x(), layeredWidget.y(), layeredWidget.width(), layeredWidget.height(), this.getX() + checkWidgetBoundsOffset().getFirst(), this.getY() + checkWidgetBoundsOffset().getSecond(), this.getWidth(), this.getHeight()))) {
                 layeredWidget.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
             }
         }
@@ -175,11 +160,9 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
 
     @Override
     public void tick() {
-        Iterator<? extends GuiEventListener> w = children().iterator();
-        while (w.hasNext()) {
-            if (w.next() instanceof ITickable tickableWidget) {
-                tickableWidget.tick();
-            }
+        List<ITickable> widgets = this.renderables.stream().filter(x -> x instanceof ITickable).map(x -> (ITickable)x).toList();
+        for (int i = 0; i < widgets.size(); i++) {
+            widgets.get(i).tick();
         }
     }
 
@@ -216,6 +199,18 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
         this.children.clear();
     }
 
+    @Override
+    public void close() {
+        children().stream().filter(x -> x instanceof AutoCloseable || x instanceof IDragonLibContainer).forEach(x -> {
+            try {
+                if (x instanceof AutoCloseable c) c.close();
+                else if (x instanceof IDragonLibContainer c) c.close();
+            } catch (Exception e) {
+                DragonLib.LOGGER.error("Error while closing gui object.", e);
+            }
+        });
+    }
+
     public boolean isInBounds(double mouseX, double mouseY) {
         return getX() < mouseX && getX() + getWidth() > mouseX && getY() < mouseY && getY() + getHeight() > mouseY;
     }
@@ -223,7 +218,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
 
-        if (!isActive() || !isVisible() || !isInBounds(mouseX, mouseY)) {
+        if (!active() || !visible() || !isInBounds(mouseX, mouseY)) {
             return false;
         }
         
@@ -309,6 +304,84 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     @Override
     public int getWidgetLayerIndex() {
         return layerIndex;
+    }
+
+    
+    @Override
+    public int x() {
+        return x;
+    }
+
+    @Override
+    public int y() {
+        return y;
+    }
+
+    @Override
+    public void set_y(int y) {
+        int dy = y - y();
+        this.y = y;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_y(wgt.y() + dy);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.y += dy;
+            }
+        }
+    }
+
+    @Override
+    public void set_x(int x) {
+        int dx = x - x();
+        this.x = x;
+        for (GuiEventListener listener : children()) {
+            if (listener instanceof IDragonLibWidget wgt) {
+                wgt.set_x(wgt.x() + dx);
+            } else if (listener instanceof AbstractWidget wgt) {
+                wgt.x += dx;
+            }
+        }
+    }
+
+    @Override
+    public void set_width(int w) {
+        this.width = w;
+    }
+
+    @Override
+    public void set_height(int h) {
+        this.height = h;
+    }
+
+    @Override
+    public void set_visible(boolean b) {
+        this.visible = b;
+    }
+
+    @Override
+    public boolean visible() {
+        return visible;
+    }
+
+    @Override
+    public void set_active(boolean b) {
+        this.active = b;
+        children().stream().filter(x -> x instanceof AbstractWidget).forEach(x -> ((AbstractWidget)x).active = active);
+    }
+
+    @Override
+    public boolean active() {
+        return visible() && active;
+    }
+
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
     }
 
 }

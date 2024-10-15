@@ -38,6 +38,8 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     protected AreaStyle style = AreaStyle.NATIVE;
     protected int fontColor = 0xFFFFFFFF;
     protected int backColor = 0xFFFFFFFF;
+    protected boolean textShadow = true;
+    protected EAlignment textAlignment;
 
     private final DecimalFormat format;
     private final Consumer<DLSlider> onUpdateMessage;
@@ -91,7 +93,22 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
         this.updateMessage();
     }
-    
+
+    public boolean isRenderingTextShadow() {
+        return textShadow;
+    }
+
+    public void setTextShadow(boolean textShadow) {
+        this.textShadow = textShadow;
+    }
+
+    public EAlignment getTextAlignment() {
+        return textAlignment;
+    }
+
+    public void setTextAlignment(EAlignment textAlignment) {
+        this.textAlignment = textAlignment;
+    }
 
     public void setRenderStyle(AreaStyle style) {
         this.style = style;
@@ -180,11 +197,11 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
 
     @SuppressWarnings("resource")
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
-        DynamicGuiRenderer.renderArea(graphics, x, y, width, height, getBackColor(), style, ButtonState.DISABLED);
-        DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.getX() + (int)(this.value * (double)(this.getWidth() - 8)), this.getY(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, x(), y(), width(), height(), getBackColor(), style, ButtonState.DISABLED);
+        DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.x() + (int)(this.value * (double)(this.getWidth() - 8)), this.y(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
         
-        int j = active ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.x + this.width / 2, this.y + (this.height - 8) / 2, this.getMessage(), j, EAlignment.CENTER, true);
+        int j = active() ? getFontColor() : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED;
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, this.x() + this.width() / 2, this.y() + (this.height() - 8) / 2, this.getMessage(), j, getTextAlignment(), isRenderingTextShadow());
         GuiUtils.resetTint();
 
     }
@@ -295,50 +312,63 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     public void setFontColor(int color) {
         this.fontColor = color;        
     }
-    
     @Override
-    public int getX() {
+    public int x() {
         return x;
     }
 
     @Override
-    public int getY() {
+    public int y() {
         return y;
-    }
-    
+    }    
 
     @Override
-    public void setX(int x) {
+    public void set_x(int x) {
         this.x = x;
     }
 
     @Override
-    public void setY(int y) {
+    public void set_y(int y) {
         this.y = y;
     }
 
     @Override
-    public void setWidth(int w) {
+    public void set_width(int w) {
         this.width = w;
     }
 
     @Override
-    public void setHeight(int h) {
+    public void set_height(int h) {
         this.height = h;
     }
 
     @Override
-    public void setVisible(boolean b) {
+    public void set_visible(boolean b) {
         this.visible = b;
     }
 
     @Override
-    public boolean isVisible() {
+    public boolean visible() {
         return visible;
     }
 
     @Override
-    public void setActive(boolean b) {
+    public void set_active(boolean b) {
         this.active = b;
+    }
+
+    @Override
+    public boolean active() {
+        return super.isActive();
+    }
+
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
     }
 }

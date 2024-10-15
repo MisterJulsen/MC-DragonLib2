@@ -72,5 +72,14 @@ public final class ColorUtils {
     
         return vA | vR | vG | vB;
     }
+
+	public static int brightnessDependingFontColor(int color, int brightFontColor, int darkFontColor) {
+		int red = (color >> 16) & 0xFF;
+		int green = (color >> 8) & 0xFF;
+		int blue = color & 0xFF;
+  
+		double luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+		return luminance < 0.5 ? brightFontColor : darkFontColor;
+	}
     
 }

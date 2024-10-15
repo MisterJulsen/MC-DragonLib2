@@ -3,37 +3,41 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import de.mrjulsen.mcdragonlib.client.ITickable;
+import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import net.minecraft.client.gui.components.Widget;
 
 public abstract class DLRenderable implements Widget, ITickable, IDragonLibWidget {
 
-    protected boolean active;
-    protected boolean visible;
+    protected boolean active = true;
+    protected boolean visible = true;
     protected int x;
     protected int y;
     protected int width;
     protected int height;
     
     public DLRenderable(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
     }
 
     @Override
-    public void setVisible(boolean b) {
+    public void set_visible(boolean b) {
         this.visible = b;
     }
 
     @Override
-    public boolean isVisible() {
+    public boolean visible() {
         return visible;
     }
 
     @Override
-    public void setActive(boolean b) {
+    public void set_active(boolean b) {
         this.active = b;
     }
 
-    @Override
     public boolean isActive() {
         return active;
     }
@@ -58,43 +62,48 @@ public abstract class DLRenderable implements Widget, ITickable, IDragonLibWidge
     public void setMouseSelected(boolean selected) { }
 
     @Override
-    public int getX() {
+    public int x() {
         return x;
     }
 
     @Override
-    public int getY() {
+    public int y() {
         return y;
     }
 
     @Override
-    public int getWidth() {
+    public int width() {
         return width;
     }
 
     @Override
-    public int getHeight() {
+    public int height() {
         return height;
     }
 
     @Override
-    public void setX(int x) {
+    public void set_x(int x) {
         this.x = x;
     }
 
     @Override
-    public void setY(int y) {
+    public void set_y(int y) {
         this.y = y;
     }
 
     @Override
-    public void setWidth(int w) {
+    public void set_width(int w) {
         this.width = w;
     }
 
     @Override
-    public void setHeight(int h) {
+    public void set_height(int h) {
         this.height = h;
+    }
+
+    @Override
+    public boolean active() {
+        return isActive();
     }
 
     @Override
@@ -108,5 +117,10 @@ public abstract class DLRenderable implements Widget, ITickable, IDragonLibWidge
     }
 
     @Override
-    public final void render(PoseStack var1, int var2, int var3, float var4) { }
+    public final void render(PoseStack var1, int var2, int var3, float var4) {
+        renderMainLayer(new Graphics(var1), var2, var3, var4);
+    }
+
+    @Override
+    public void tick() { }
 }

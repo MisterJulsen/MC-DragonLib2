@@ -35,13 +35,15 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public abstract class DLScreen extends Screen implements IDragonLibContainer<DLScreen> {
+public class DLContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> implements IDragonLibContainer<DLContainerScreen<T>> {
 
     protected final List<DLTooltip> tooltips = new ArrayList<>();
-    protected DLContextMenu menu;
+    protected DLContextMenu contextMenu;
     private boolean mouseSelected;
 
     private int allowedLayerIndex = DEFAULT_LAYER_INDEX;
@@ -52,14 +54,13 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     public final BiConsumer<DLEditBox, Boolean> NO_EDIT_BOX_FOCUS_CHANGE_ACTION = (a, b) -> {};
     public final BiConsumer<DLSlider, Double> NO_SLIDER_CHANGE_VALUE_ACTION = (a, b) -> {};
 
-    protected DLScreen(Component title) {
-        super(title);
+    public DLContainerScreen(T menu, Inventory playerInventory, Component title) {
+        super(menu, playerInventory, title);
     }
 
-    @Override
-    public final boolean consumeScrolling(double mouseX, double mouseY) {
-        return true;
-    }
+    public void renderScreenBackground(Graphics graphics) {
+        renderBackground(graphics.poseStack());
+    }    
 
     @Override
     protected void init() {
@@ -78,12 +79,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        List<ITickable> widgets = this.renderables.stream().filter(x -> x instanceof ITickable).map(x -> (ITickable)x).toList();
-        for (int i = 0; i < widgets.size(); i++) {
-            widgets.get(i).tick();
-        }
+    protected void containerTick() {
+        super.containerTick();
+        this.renderables.stream().filter(x -> x instanceof ITickable).forEach(x -> ((ITickable)x).tick());
     }
 
     protected void onDone() {}
@@ -112,7 +110,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         tooltips.forEach(x -> x.render(this, graphics, mouseX, mouseY));
 
         graphics.poseStack().pushPose();
-        graphics.poseStack().translate(0, 0, 500);
+        graphics.poseStack().translate(0, 0, 1000);
         if (getContextMenu() != null) {
             IDragonLibContainer.super.renderFrontLayer(graphics, mouseX, mouseY, partialTick);
         }
@@ -129,9 +127,9 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
             widget.render(graphics.poseStack(), mouseX, mouseY, partialTicks);
         }
     }
-    
+
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+    protected void renderBg(PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
         mouseSelectEvent(mouseX, mouseY);
 
         Graphics graphics = new Graphics(poseStack);
@@ -142,28 +140,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         graphics.poseStack().popPose();
 
         renderMainLayer(graphics, mouseX, mouseY, partialTick);
-
-        graphics.poseStack().pushPose();
-        graphics.poseStack().translate(0, 0, 100);
-        renderFrontLayer(graphics, mouseX, mouseY, partialTick);
-        graphics.poseStack().popPose();
-    }
-
-    @Override
-    public void renderBackground(PoseStack poseStack) {
-        super.renderBackground(poseStack);
-    }
-
-    @Override
-    public void renderBackground(PoseStack poseStack, int i) {
-        super.renderBackground(poseStack, i);
-    }
-
-    public void renderScreenBackground(Graphics graphics) {
-        renderBackground(graphics.poseStack());
-    }
-
-    
+    }    
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -184,8 +161,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
             }
             return true;
         }
-        return false;
+        
+        return super.mouseClicked(mouseX, mouseY, button);
     }
+
+    
 
     @Override
     public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
@@ -193,7 +173,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
-    protected <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
+    protected <W extends GuiEventListener & NarratableEntry> W addWidget(W guiEventListener) {
         return super.addWidget(guiEventListener);
     }
 
@@ -211,8 +191,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         return addRenderableWidget(btn, x, y, width, height, tooltip);
 	}
 
-    protected <T extends Enum<T> & ITranslatableEnum> DLCycleButton<T> addCycleButton(String modid, Class<T> clazz, int x, int y, int width, int height, Component text, T initialValue, BiConsumer<DLCycleButton<?>, T> onValueChanged, DLTooltip tooltip) {
-        DLCycleButton<T> btn = GuiUtils.createCycleButton(modid, clazz, x, y, width, height, text, initialValue, onValueChanged);
+    protected <E extends Enum<E> & ITranslatableEnum> DLCycleButton<E> addCycleButton(String modid, Class<E> clazz, int x, int y, int width, int height, Component text, E initialValue, BiConsumer<DLCycleButton<?>, E> onValueChanged, DLTooltip tooltip) {
+        DLCycleButton<E> btn = GuiUtils.createCycleButton(modid, clazz, x, y, width, height, text, initialValue, onValueChanged);
         return addRenderableWidget(btn, x, y, width, height, tooltip);
 	}
 
@@ -284,12 +264,12 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
 
     @Override
     public DLContextMenu getContextMenu() {
-        return menu;
+        return contextMenu;
     }
 
     @Override
-    public void setMenu(DLContextMenu menu) {
-        this.menu = menu;
+    public void setMenu(DLContextMenu contextMenu) {
+        this.contextMenu = contextMenu;
     }    
     
     @Override
@@ -321,7 +301,10 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public void setMouseSelected(boolean selected) {
         this.mouseSelected = selected;
-    }  
+    }
+
+
+
     @Override
     public int x() {
         return 0;
@@ -368,6 +351,11 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     @Override
     public int height() {
         return height;
+    }
+
+    @Override
+    public boolean consumeScrolling(double mouseX, double mouseY) {
+        return true;
     }
 
     @Override
