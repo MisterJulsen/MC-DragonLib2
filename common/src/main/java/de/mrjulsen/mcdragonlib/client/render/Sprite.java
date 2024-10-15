@@ -71,6 +71,10 @@ public class Sprite {
         return new Sprite(TextureManager.INTENTIONAL_MISSING_TEXTURE, 0, 0, 0, 0, 0, 0);
     }
 
+    public boolean isEmpty() {
+        return renderWidth <= 0 && renderHeight <= 0;
+    }
+
     public void render(Graphics graphics, int x, int y) {
         if (texture == null) {
             GuiUtils.drawTexture(textureId, graphics, x + renderOffsetX, y + renderOffsetY, renderWidth, renderHeight, u, v, spriteWidth, spriteHeight, textureWidth, textureHeight);            

@@ -6,7 +6,9 @@
   "client": [
     "FontAccessor",
     "BakedGlyphAccessor",
-    "AbstractWidgetAccessor"
+    "AbstractWidgetAccessor",
+    "AbstractContainerScreenMixin",
+    "ScreenMixin"
   ],
   "mixins": [
   ],

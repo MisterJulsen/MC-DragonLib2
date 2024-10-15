@@ -34,10 +34,10 @@ public final class TimeUtils {
 
     private static long[] splitTime(long time) {
         long ticks = time % DragonLib.TICKS_PER_DAY;
-        long days = ticks / DragonLib.TICKS_PER_DAY;
+        long days = time / DragonLib.TICKS_PER_DAY;
         long hours = ticks / DragonLib.TICKS_PER_INGAME_HOUR;
         long minutes = ticks % DragonLib.TICKS_PER_INGAME_HOUR;
-        minutes = (long)(minutes / ((double)DragonLib.TICKS_PER_INGAME_HOUR / 60.0D));
+        minutes = (long)((double)minutes / ((double)DragonLib.TICKS_PER_INGAME_HOUR / 60.0D));
 
         return new long[] {minutes, hours, days};
     }
@@ -102,7 +102,7 @@ public final class TimeUtils {
         }
     }
     
-    public static String parseDurationShort(int time) {        
+    public static String parseDurationShort(long time) {        
         if (time < 0) {
             return "-";
         }
@@ -130,6 +130,14 @@ public final class TimeUtils {
         } else {
             return time >= start || time <= end;
         }
+    }
+    
+    public static String formatTime(long time, TimeFormat format) {
+        return TimeUtils.parseTime((time + DragonLib.DAYTIME_SHIFT) % DragonLib.TICKS_PER_DAY, format);
+    }
+
+    public static long formatToMinutes(long ticks) {
+        return (long)((double)ticks / (1000d / 60d));
     }
 
     public static enum TimeFormat implements StringRepresentable, ITranslatableEnum {
