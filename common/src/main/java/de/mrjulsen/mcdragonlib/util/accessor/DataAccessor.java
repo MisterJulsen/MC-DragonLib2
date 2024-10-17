@@ -6,27 +6,76 @@ import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
+import de.mrjulsen.mcdragonlib.util.WorkerAsync;
+import dev.architectury.platform.Platform;
 
 import java.util.UUID;
 
+import net.fabricmc.api.EnvType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 
 public class DataAccessor {
     private static final Map<UUID, IChunkProcessor> callbacks = new HashMap<>();
 
+    private static WorkerAsync serverWorker;
+    private static WorkerAsync clientWorker;
+
+    public static void startServerWorker() {
+        stopServerWorker();
+        serverWorker = new WorkerAsync("DragonLib Network Manager (Server)", DragonLib.LOGGER);
+        serverWorker.start();
+    }
+    
+    public static void startClientWorker() {
+        stopClientWorker();
+        clientWorker = new WorkerAsync("DragonLib Network Manager (Client)", DragonLib.LOGGER);
+        clientWorker.start();
+    }
+    
+    public static void stopServerWorker() {
+        DLUtils.doIfNotNull(serverWorker, WorkerAsync::stop);
+    }
+    
+    public static void stopClientWorker() {
+        DLUtils.doIfNotNull(clientWorker, WorkerAsync::stop);
+    }
+
+    public static WorkerAsync getServerWorker() {
+        return serverWorker;
+    }
+
+    public static WorkerAsync getClientWorker() {
+        return clientWorker;
+    }
+
+    public static WorkerAsync getWorker(boolean preferServer) {
+        if (clientWorker == null && serverWorker == null) {
+            startServerWorker();
+        }
+        boolean useClient = (!preferServer && Platform.getEnv() == EnvType.CLIENT && clientWorker != null) || (serverWorker == null);
+        return useClient ? clientWorker : serverWorker;
+    }
+
+
+
     public static UUID addCallback(IChunkProcessor callback) {
-        UUID id;
-        do {
-            id = UUID.randomUUID();
-        } while (callbacks.containsKey(id));
-        callbacks.put(id, callback);
-        return id;
+        synchronized (callbacks) {
+            UUID id;
+            do {
+                id = UUID.randomUUID();
+            } while (callbacks.containsKey(id));
+            callbacks.put(id, callback);
+            return id;
+        }
     }
 
     public static void run(UUID id, boolean hasMore, int iteration, CompoundTag nbt) {
-        if (callbacks.containsKey(id)) {
-            (hasMore ? callbacks.get(id) : callbacks.remove(id)).run(hasMore, iteration, nbt);
+        synchronized (callbacks) {
+            if (callbacks.containsKey(id)) {
+                (hasMore ? callbacks.get(id) : callbacks.remove(id)).run(hasMore, iteration, nbt);
+            }
         }
     }
 

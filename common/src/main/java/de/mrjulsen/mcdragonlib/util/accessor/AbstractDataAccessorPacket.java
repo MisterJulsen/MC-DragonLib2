@@ -8,6 +8,7 @@ import java.util.UUID;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
 import de.mrjulsen.mcdragonlib.net.IPacketBase;
+import de.mrjulsen.mcdragonlib.util.WorkerAsync;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -59,13 +60,13 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
     @Override
     public void handle(T packet, Supplier<PacketContext> contextSupplier) {
         contextSupplier.get().queue(() -> {
-            new Thread(() -> {
+            WorkerAsync worker = DataAccessor.getWorker(packet.sendToClient);
+            worker.queueTask(() -> {
                 CompoundTag nbt;
                 MutableSingle<Object> tempData = new MutableSingle<>(null);
-                boolean hadMore = true;
                 boolean hasMore = true;
                 int iteration = 0;
-                while (hadMore) {
+                do {
                     hasMore = processServer(contextSupplier.get().getPlayer(), packet.param, packet.type, tempData, (nbt = new CompoundTag()), iteration);
                     DataAccessorResponsePacket newPacket = new DataAccessorResponsePacket(packet.requestId, hasMore, iteration, nbt);
                     if (packet.sendToClient) {
@@ -74,9 +75,8 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
                         DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(newPacket);
                     }
                     iteration++;
-                    hadMore = hasMore;
-                }
-            }, "Data Accessor Server Worker").start();
+                } while (hasMore);
+            });
         });
     }
 
