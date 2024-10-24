@@ -1,9 +1,10 @@
 modLoader = "javafml"
-loaderVersion = "[49,)"
+loaderVersion = "[2,)"
 issueTrackerURL = "https://github.com/MisterJulsen/MC-DragonLib2/issues"
 license = "GNU General Public License v3.0"
 
 [[mods]]
+
 modId = "dragonlib"
 version = "${version}"
 displayName = "DragonLib"
@@ -16,22 +17,25 @@ DragonLib is a small and simple Multiloader Minecraft Library Mod based which us
 '''
 
 [[dependencies.dragonlib]]
-modId = "forge"
-mandatory = true
-versionRange = "[49,)"
+modId = "neoforge"
+type = "required"
+versionRange = "[20.4,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.dragonlib]]
 modId = "minecraft"
-mandatory = true
+type = "required"
 versionRange = "[1.20.4,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.dragonlib]]
 modId = "architectury"
-mandatory = true
+type = "required"
 versionRange = "[11.1.17,)"
-ordering = "NONE"
+ordering = "AFTER"
 side = "BOTH"
+
+[[mixins]]
+config = "dragonlib.mixins.json"

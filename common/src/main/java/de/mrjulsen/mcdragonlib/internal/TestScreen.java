@@ -67,7 +67,7 @@ public class TestScreen extends DLScreen {
         
         setMenu(menu);
 
-        DLSplitButton split = addRenderableWidget(new DLSplitButton(50, 140, 100, 20, TextUtils.text("Button 3"), (b) -> Minecraft.getInstance().setScreen(null),
+        addRenderableWidget(new DLSplitButton(50, 140, 100, 20, TextUtils.text("Button 3"), (b) -> Minecraft.getInstance().setScreen(null),
         new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
             DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
             builder2.add(new ContextMenuItemData(TextUtils.text("Test A"), Sprite.empty(), true, (b) -> {}, null));
@@ -75,8 +75,6 @@ public class TestScreen extends DLScreen {
             builder2.add(new ContextMenuItemData(TextUtils.text("Test B"), Sprite.empty(), true, (b) -> {}, null));
             return builder2;
         })));
-        split.setRenderStyle(AreaStyle.DRAGONLIB);
-        split.setBackColor(DragonLib.ERROR_BUTTON_COLOR);
 
         addRenderableWidget(new DLDropDownButton(50, 170, 100, 20, TextUtils.text("Button 4"),
         new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {

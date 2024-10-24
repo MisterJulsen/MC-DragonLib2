@@ -108,7 +108,7 @@ public abstract class ScrollableWidgetContainer extends WidgetContainer {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double f) {
-        return super.mouseScrolled(mouseX + xScrollOffset, mouseY + yScrollOffset, f);
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return super.mouseScrolled(mouseX + xScrollOffset, mouseY + yScrollOffset, scrollX, scrollY);
     }
 }

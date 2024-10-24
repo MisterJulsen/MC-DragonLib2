@@ -3,13 +3,13 @@ pluginManagement {
         maven { url "https://maven.fabricmc.net/" }
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://files.minecraftforge.net/maven/" }
-        maven { url = "https://maven.parchmentmc.org" }
         gradlePluginPortal()
     }
 }
 
-rootProject.name = 'dragonlib'
+rootProject.name = 'DragonLib 1.20.4'
 
 include 'common'
 include 'fabric'
 include 'forge'
+include 'neoforge'

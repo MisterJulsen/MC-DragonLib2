@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import com.mojang.serialization.MapCodec;
+
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -18,8 +20,15 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class DragonLibBlock extends BaseEntityBlock {
 
+    public static final MapCodec<DragonLibBlock> CODEC = simpleCodec(DragonLibBlock::new);
+
     public DragonLibBlock(BlockBehaviour.Properties properties) {
         super(properties.noOcclusion());
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override

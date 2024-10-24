@@ -4,8 +4,11 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.resources.ResourceLocation;
 
 public class DynamicGuiRenderer {
+    private static final WidgetSprites SPRITES = new WidgetSprites(new ResourceLocation("widget/button"), new ResourceLocation("widget/button_disabled"), new ResourceLocation("widget/button_highlighted"));
 
     public static final int TEXTURE_WIDTH = 32;
     public static final int TEXTURE_HEIGHT = 32;
@@ -67,25 +70,7 @@ public class DynamicGuiRenderer {
 
         GuiUtils.setTint(tint);
         if (style == AreaStyle.NATIVE) {
-            int i = 0;
-            switch (state) {
-                case SELECTED:
-                    i = 2;
-                    break;
-                case DOWN:
-                case DISABLED:
-                    i = 0;
-                    break;
-                default:
-                    i = 1;
-                    break;
-            }
-
-            int bottomH = h - (h / 2);
-            GuiUtils.drawTexture(DragonLib.NATIVE_WIDGETS, graphics, x, y, 0, 46 + i * 20, w / 2, h / 2);
-            GuiUtils.drawTexture(DragonLib.NATIVE_WIDGETS, graphics, x + w / 2, y, 200 - w / 2, 46 + i * 20, w / 2, h / 2);       
-            GuiUtils.drawTexture(DragonLib.NATIVE_WIDGETS, graphics, x, y + h / 2, 0, 46 + (i + 1) * 20 - bottomH, w / 2, bottomH);
-            GuiUtils.drawTexture(DragonLib.NATIVE_WIDGETS, graphics, x + w / 2, y + h / 2, 200 - w / 2, 46 + (i + 1) * 20 - bottomH, w / 2, bottomH);
+            graphics.graphics().blitSprite(SPRITES.get(state != ButtonState.DISABLED && state != ButtonState.DOWN, state == ButtonState.SELECTED), x, y, w, h);
         }
 
         int startU = 0, startV = style.getIndex() * 5;

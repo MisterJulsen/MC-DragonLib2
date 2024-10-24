@@ -52,7 +52,6 @@ public class DLContextMenuItem extends DLButton {
         } else if (getContextMenu() != null && !getContextMenu().isHovered()) {
             getContextMenu().close();
         }
-
     }
 
     @Override

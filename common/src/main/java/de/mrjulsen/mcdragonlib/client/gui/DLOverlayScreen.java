@@ -42,7 +42,7 @@ public abstract class DLOverlayScreen implements ITickable {
         return false;
     }
 
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double scrollX, double scrollY) {
         return false;
     }
 }

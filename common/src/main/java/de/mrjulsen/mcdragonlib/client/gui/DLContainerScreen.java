@@ -62,7 +62,7 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
     }
 
     public void renderScreenBackground(Graphics graphics) {
-        renderBackground(graphics.graphics());
+        renderTransparentBackground(graphics.graphics());
     }    
 
     @Override
@@ -236,8 +236,8 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double pDelta) {
-        return containerMouseScrolled(mouseX, mouseY, pDelta);
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return containerMouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
     
     @Override

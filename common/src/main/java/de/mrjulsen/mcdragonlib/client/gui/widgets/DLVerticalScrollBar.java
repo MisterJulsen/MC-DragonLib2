@@ -83,4 +83,9 @@ public class DLVerticalScrollBar extends DLAbstractScrollBar<DLVerticalScrollBar
     protected int getXorY() {
         return getY();
     }
+
+    @Override
+    protected double getScrollXOrY(double scrollX, double scrollY) {
+        return scrollY;
+    }
 }

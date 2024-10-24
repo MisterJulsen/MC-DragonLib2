@@ -16,6 +16,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
 public class DLButton extends Button implements IDragonLibWidget {
+
+    protected boolean hovered = false;
     
     private DLContextMenu menu;
     private boolean mouseSelected;
@@ -45,7 +47,7 @@ public class DLButton extends Button implements IDragonLibWidget {
     public void onHoverChange(int mouseX, int mouseY, boolean isHovering) {}
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         GuiUtils.setTint(1.0F, 1.0F, 1.0F, this.alpha);
         renderMainLayer(new Graphics(graphics, graphics.pose()), mouseX, mouseY, partialTicks);
     }
@@ -60,15 +62,15 @@ public class DLButton extends Button implements IDragonLibWidget {
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         IDragonLibWidget.super.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
 
-        boolean wasHovering = isHovered;
+        boolean wasHovering = hovered;
         setHovered(mouseX, mouseY);
-        if (wasHovering != isHovered) {
+        if (wasHovering != hovered) {
             onHoverChange(mouseX, mouseY, isHovered);
         }
     }
 
     public boolean setHovered(int mouseX, int mouseY) {
-        return isHovered = mouseX >= x() && mouseX < x() + getWidth() && mouseY >= y() && mouseY < y() + getHeight();
+        return hovered = mouseX >= x() && mouseX < x() + getWidth() && mouseY >= y() && mouseY < y() + getHeight();
     }
 
     public void setRenderStyle(AreaStyle style) {

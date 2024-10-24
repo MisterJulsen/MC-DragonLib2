@@ -67,8 +67,6 @@ public class DragonLib {
     public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
     public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
     public static final int DAYTIME_SHIFT = 6000;
-    public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
-    public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
 	/** One block pixel */ public static final float PIXEL = 1.0F / 16.0F;
 
     public static final ResourceLocation UI = new ResourceLocation(MODID, "textures/gui/ui.png");
@@ -193,9 +191,9 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
                 return EventResult.pass();
             });
 
-            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollDelta) -> {
+            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollX, scrollY) -> {
                 for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
-                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), scrollDelta)) {
+                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), scrollX, scrollY)) {
                         return EventResult.interruptTrue();
                     }
                 }
@@ -278,6 +276,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
      * @author MrJulsen
      * @see 🐉
      */
+    @SuppressWarnings("removal")
     private static final void printDraconicWelcomeMessage() {
         String[] dragonTypes = {"Dragon", "Fire Dragon", "Ice Dragon", "Lightning Dragon", "Mountain Dragon", "Poison Dragon", "Drake", "Wyvern", "MrJulsen", "Toothless", "Drogon", "Smaug", "Ender Dragon", "Do you think dragons exist?"};
         new Thread(() -> {
@@ -287,7 +286,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             String border = "+++ 🐉 +++";
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
-            lines.add(String.format("Minecraft %s%s%s", Platform.isForge() ? "Forge " : (Platform.isFabric() ? "Fabric " : ""), Platform.getMinecraftVersion(), Platform.isDevelopmentEnvironment() ? " (Dev)" : ""));
+            lines.add(String.format("Minecraft %s%s%s", Platform.isNeoForge() ? "NeoForge " : (Platform.isFabric() ? "Fabric " : (Platform.isForge() ? "Forge " : "")), Platform.getMinecraftVersion(), Platform.isDevelopmentEnvironment() ? " (Dev)" : ""));
             lines.add("");
             lines.add(String.format("Discord: %s", MRJULSEN_DISCORD));
             lines.add(String.format("GitHub: %s", mod.getHomepage().orElse("unknown")));

@@ -190,7 +190,7 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         renderMainLayer(new Graphics(graphics, graphics.pose()), mouseX, mouseY, partialTicks);
     }
 

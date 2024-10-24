@@ -69,4 +69,9 @@ public class DLHorizontalScrollBar extends DLAbstractScrollBar<DLHorizontalScrol
     protected int getXorY() {
         return getX();
     }
+
+    @Override
+    protected double getScrollXOrY(double scrollX, double scrollY) {
+        return scrollX;
+    }
 }

@@ -52,10 +52,6 @@ public final class TimeUtils {
         return rotation;
     }
 
-    public static long convertTicksToRealLife(long ticks) {
-        return ticks / (DragonLib.TICKS_PER_REAL_LIFE_DAY / DragonLib.TICKS_PER_DAY);
-    }
-
     public static String parseTime(long time, TimeFormat format) {
         if (format == TimeFormat.TICKS) {
             return TimeUtils.shiftDayTimeToMinecraftTicks(time) + "t";

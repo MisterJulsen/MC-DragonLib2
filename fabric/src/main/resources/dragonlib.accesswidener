@@ -1,0 +1,7 @@
+accessWidener   v2  named
+accessible class net/minecraft/client/gui/Font$StringRenderOutput
+accessible class net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace
+
+accessible field net/minecraft/client/gui/screens/Screen renderables Ljava/util/List;
+accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace brightness [F
+accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace lightmap [I

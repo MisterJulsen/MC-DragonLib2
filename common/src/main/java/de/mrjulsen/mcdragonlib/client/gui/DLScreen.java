@@ -152,13 +152,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         graphics.poseStack().popPose();
     }
 
-    @Override
-    public void renderBackground(GuiGraphics graphics) {
-        super.renderBackground(graphics);
-    }
-
     public void renderScreenBackground(Graphics graphics) {
-        renderBackground(graphics.graphics());
+        renderTransparentBackground(graphics.graphics());
     }
 
     @Override
@@ -249,8 +244,8 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double pDelta) {
-        return containerMouseScrolled(mouseX, mouseY, pDelta);
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return containerMouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
