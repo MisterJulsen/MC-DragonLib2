@@ -14,9 +14,11 @@ import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
+import de.mrjulsen.mcdragonlib.util.accessor.DataAccessor;
 import de.mrjulsen.mcdragonlib.util.accessor.DataAccessorResponsePacket;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
@@ -157,7 +159,14 @@ public class DragonLib {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
             });
+
+            ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
+                DataAccessor.startClientWorker();
+            });
             
+            ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {
+                DataAccessor.stopClientWorker();
+            });
 
             // Overlay Renderer
             ClientGuiEvent.RENDER_HUD.register((poseStack, partialTicks) -> {
@@ -200,18 +209,26 @@ public class DragonLib {
             ScheduledTask.runScheduledTasks();
         });
 
+        LifecycleEvent.SERVER_STARTING.register((server) -> {
+            DataAccessor.startServerWorker();
+        });
+
         LifecycleEvent.SERVER_STARTED.register((server) -> {
             DragonLib.currentServer = server;
+
         });
 
         LifecycleEvent.SERVER_STOPPED.register((server) -> {
+            DataAccessor.stopServerWorker();
             DragonLib.currentServer = null;
         });
 
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-        });        
+        });  
+        
+        
         /*
         ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
             BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
