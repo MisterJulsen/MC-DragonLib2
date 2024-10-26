@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.util;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class Wikipedia {
             new Thread(() -> {
                 Thread.currentThread().setName("Wikipedia Article Loader");
                 try {
-                    URL url = new URL(String.format("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=sitelinks&ids=%s", articleId));
+                    URL url = new URI(String.format("https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&props=sitelinks&ids=%s", articleId)).toURL();
                     Scanner scan = new Scanner(url.openStream());
                     String str = "";
                     while (scan.hasNext())

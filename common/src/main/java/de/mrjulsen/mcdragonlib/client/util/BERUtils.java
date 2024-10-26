@@ -92,7 +92,7 @@ public final class BERUtils {
     }
 
     public static void addVert(VertexConsumer builder, BERGraphics<?> graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
-        builder.vertex(graphics.poseStack().last().pose(), x, y, z).color(r, g, b, a).uv(u, v).uv2(lu, lv).overlayCoords(OverlayTexture.NO_OVERLAY).normal(graphics.poseStack().last().normal(), 0, 0, 1).endVertex();
+        builder.addVertex(graphics.poseStack().last().pose(), x, y, z).setColor(r, g, b, a).setUv(u, v).setUv2(lu, lv).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(graphics.poseStack().last(), 0, 0, 1);
     }
 
     private static void renderWithoutAO(VertexConsumer builder, BERGraphics<?> graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {

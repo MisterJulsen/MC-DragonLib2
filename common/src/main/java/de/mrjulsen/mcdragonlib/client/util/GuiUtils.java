@@ -17,6 +17,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCycleButton;
@@ -222,20 +223,19 @@ public class GuiUtils {
         graphics.graphics().blit(texture, x, y, w, h, 0, 0, w, h, w, h);
     }
 
-
-
     /* COPY OF: GuiGraphics */
-    private static void innerBlit(PoseStack pose, int textureId, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, float pMinU, float pMaxU, float pMinV, float pMaxV) {
+    private static void innerBlit(PoseStack pose, int textureId, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
         RenderSystem.setShaderTexture(0, textureId);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.enableBlend();
         Matrix4f matrix4f = pose.last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY1, (float)pBlitOffset).uv(pMinU, pMinV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY2, (float)pBlitOffset).uv(pMinU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY2, (float)pBlitOffset).uv(pMaxU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY1, (float)pBlitOffset).uv(pMaxU, pMinV).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        bufferBuilder.addVertex(matrix4f, (float)x1, (float)y1, (float)blitOffset).setUv(minU, minV).setColor(0xFFFFFFFF);
+        bufferBuilder.addVertex(matrix4f, (float)x1, (float)y2, (float)blitOffset).setUv(minU, maxV).setColor(0xFFFFFFFF);
+        bufferBuilder.addVertex(matrix4f, (float)x2, (float)y2, (float)blitOffset).setUv(maxU, maxV).setColor(0xFFFFFFFF);
+        bufferBuilder.addVertex(matrix4f, (float)x2, (float)y1, (float)blitOffset).setUv(maxU, minV).setColor(0xFFFFFFFF);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+        RenderSystem.disableBlend();
     }
     
     private static void blit(GuiGraphics graphics, int textureId, int pX, int pY, int pWidth, int pHeight, float pUOffset, float pVOffset, int pUWidth, int pVHeight, int pTextureWidth, int pTextureHeight) {
@@ -270,31 +270,14 @@ public class GuiUtils {
         graphics.graphics().fill(x, y, x + w, y + h, color);
     }
 
-    public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) {
-        float startAlpha = (float) (colorA >> 24 & 255) / 255.0F;
-        float startRed = (float) (colorA >> 16 & 255) / 255.0F;
-        float startGreen = (float) (colorA >> 8 & 255) / 255.0F;
-        float startBlue = (float) (colorA & 255) / 255.0F;
-        float endAlpha = (float) (colorB >> 24 & 255) / 255.0F;
-        float endRed = (float) (colorB >> 16 & 255) / 255.0F;
-        float endGreen = (float) (colorB >> 8 & 255) / 255.0F;
-        float endBlue = (float) (colorB & 255) / 255.0F;
-
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-
+    public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) {        
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-        tessellator.end();
-
-        RenderSystem.disableBlend();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        Matrix4f matrix4f = graphics.poseStack().last().pose();
+        buffer.addVertex(matrix4f, (float)x, (float)y, (float)z).setColor(colorA);
+        buffer.addVertex(matrix4f, (float)x, (float)y + h, (float)z).setColor(colorB);
+        buffer.addVertex(matrix4f, (float)x + w, (float)y + h, (float)z).setColor(colorB);
+        buffer.addVertex(matrix4f, (float)x + 1, (float)y, (float)z).setColor(colorA);
     }
 
     public static void drawBox(Graphics graphics, GuiAreaDefinition area, int fillColor, int borderColor) {

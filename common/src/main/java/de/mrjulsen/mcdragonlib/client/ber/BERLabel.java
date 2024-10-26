@@ -316,7 +316,7 @@ public class BERLabel {
     public void renderTick() {
         if (textData.get().shouldScroll()) {
             float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
-            xScrollOffset -= Minecraft.getInstance().getDeltaFrameTime() * getScrollingSpeed();
+            xScrollOffset -= Minecraft.getInstance().getTimer().getGameTimeDeltaTicks() * getScrollingSpeed();
             if (xScrollOffset < -textData.get().textWidth()) {
                 xScrollOffset = scaledMaxWidth;
             }

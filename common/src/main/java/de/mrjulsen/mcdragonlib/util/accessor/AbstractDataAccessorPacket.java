@@ -5,17 +5,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
-import de.mrjulsen.mcdragonlib.net.IPacketBase;
+import de.mrjulsen.mcdragonlib.net.BaseNetworkPacket;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
+import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorPacket<T, I, C, O>, I, C, O> implements IPacketBase<T> {
+public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorPacket<T, I, C, O>, I, C, O> extends BaseNetworkPacket<T> {
 
     protected UUID requestId;
     protected I param;
@@ -34,7 +34,7 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
     }
 
     @Override
-    public void encode(T packet, FriendlyByteBuf buf) {
+    public void encode(T packet, RegistryFriendlyByteBuf buf) {
         buf.writeUUID(packet.requestId);
         CompoundTag nbt = new CompoundTag();
         packet.encodeParam(packet.param, nbt);
@@ -45,7 +45,7 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
 
     @SuppressWarnings("unchecked")
     @Override
-    public T decode(FriendlyByteBuf buf) {
+    public T decode(RegistryFriendlyByteBuf buf) {
         try {
             UUID id = buf.readUUID();
             CompoundTag nbt = buf.readNbt();
@@ -70,9 +70,9 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
                     hasMore = processServer(contextSupplier.get().getPlayer(), packet.param, packet.type, tempData, (nbt = new CompoundTag()), iteration);
                     DataAccessorResponsePacket newPacket = new DataAccessorResponsePacket(packet.requestId, hasMore, iteration, nbt);
                     if (packet.sendToClient) {
-                        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
+                        NetworkManager.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
                     } else {
-                        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(newPacket);
+                        NetworkManager.sendToServer(newPacket);
                     }
                     iteration++;
                 } while (hasMore);

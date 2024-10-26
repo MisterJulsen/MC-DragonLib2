@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.function.Consumer;
@@ -35,7 +36,7 @@ public final class DLUtils {
 
     public static String getUUID(String playername) {
         try {
-            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + playername);
+            URL url = new URI("https://api.mojang.com/users/profiles/minecraft/" + playername).toURL();
             Scanner scan = new Scanner(url.openStream());
             String str = "";
             while (scan.hasNext())
@@ -51,7 +52,7 @@ public final class DLUtils {
 
     public static String getPlayerName(String uuid) {
         try {
-            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+            URL url = new URI("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL();
             Scanner scan = new Scanner(url.openStream());
             String str = "";
             while (scan.hasNext())
@@ -67,7 +68,7 @@ public final class DLUtils {
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
-        AdvancementHolder adv = player.getServer().getAdvancements().get(new ResourceLocation(modid, name));
+        AdvancementHolder adv = player.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(modid, name));
         player.getAdvancements().award(adv, criteriaKey);
     }
 

@@ -8,7 +8,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.resources.ResourceLocation;
 
 public class DynamicGuiRenderer {
-    private static final WidgetSprites SPRITES = new WidgetSprites(new ResourceLocation("widget/button"), new ResourceLocation("widget/button_disabled"), new ResourceLocation("widget/button_highlighted"));
+    private static final WidgetSprites SPRITES = new WidgetSprites(ResourceLocation.parse("widget/button"), ResourceLocation.parse("widget/button_disabled"), ResourceLocation.parse("widget/button_highlighted"));
 
     public static final int TEXTURE_WIDTH = 32;
     public static final int TEXTURE_HEIGHT = 32;

@@ -62,7 +62,7 @@ public class DLColorPickerScreen extends DLScreen {
     private Component textRGB = TextUtils.translate("gui.dragonlib.colorpicker.rgb");
     private Component textInteger = TextUtils.translate("gui.dragonlib.colorpicker.hex");
 
-    private static final ResourceLocation gui = new ResourceLocation(DragonLib.MODID, "textures/gui/color_picker.png");
+    private static final ResourceLocation gui = ResourceLocation.fromNamespaceAndPath(DragonLib.MODID, "textures/gui/color_picker.png");
 
     public DLColorPickerScreen(Screen lastScreen, int currentColor, Consumer<ColorObject> result, boolean vanillaLookAndFeel) {
         super(title);

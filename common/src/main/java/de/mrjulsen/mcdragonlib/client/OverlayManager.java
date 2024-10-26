@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -53,8 +54,8 @@ public class OverlayManager {
         instances.values().stream().forEach(x -> x.tick());
     }
 
-    public static void renderAll(GuiGraphics graphics, float partialTicks) {
-        instances.values().stream().forEach(x -> x.render(new Graphics(graphics, graphics.pose()), partialTicks, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
+    public static void renderAll(GuiGraphics graphics, DeltaTracker delta) {
+        instances.values().stream().forEach(x -> x.render(new Graphics(graphics, graphics.pose()), delta, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight()));
     }
 
     public static Collection<DLOverlayScreen> getAllOverlays() {

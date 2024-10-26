@@ -3,13 +3,13 @@ package de.mrjulsen.mcdragonlib.util.accessor;
 import java.util.function.Supplier;
 import java.util.UUID;
 
-import de.mrjulsen.mcdragonlib.net.IPacketBase;
+import de.mrjulsen.mcdragonlib.net.BaseNetworkPacket;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
-public class DataAccessorResponsePacket implements IPacketBase<DataAccessorResponsePacket> {
+public class DataAccessorResponsePacket extends BaseNetworkPacket<DataAccessorResponsePacket> {
 
     private UUID requestId;
     private boolean hasMore;
@@ -26,7 +26,7 @@ public class DataAccessorResponsePacket implements IPacketBase<DataAccessorRespo
     }
 
     @Override
-    public void encode(DataAccessorResponsePacket packet, FriendlyByteBuf buf) {
+    public void encode(DataAccessorResponsePacket packet, RegistryFriendlyByteBuf buf) {
         buf.writeUUID(packet.requestId);
         buf.writeBoolean(packet.hasMore);
         buf.writeInt(packet.iteration);
@@ -34,7 +34,7 @@ public class DataAccessorResponsePacket implements IPacketBase<DataAccessorRespo
     }
 
     @Override
-    public DataAccessorResponsePacket decode(FriendlyByteBuf buf) {
+    public DataAccessorResponsePacket decode(RegistryFriendlyByteBuf buf) {
         return new DataAccessorResponsePacket(buf.readUUID(), buf.readBoolean(), buf.readInt(), buf.readNbt());
     }
 

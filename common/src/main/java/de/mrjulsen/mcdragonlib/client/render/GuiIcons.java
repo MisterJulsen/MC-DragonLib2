@@ -25,7 +25,7 @@ public enum GuiIcons {
     private int v;
 
     public static final int ICON_SIZE = 16;
-    public static final ResourceLocation ICON_LOCATION = new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png");;
+    public static final ResourceLocation ICON_LOCATION = ResourceLocation.fromNamespaceAndPath(DragonLib.MODID, "textures/gui/icons.png");;
 
     GuiIcons(String id, int u, int v) {
         this.id = id;

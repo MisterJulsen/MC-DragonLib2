@@ -12,7 +12,7 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
 
     public DragonLibBlockEntityRenderer(Context context) {
         super(context);
-        cube = BERCube.fullCube(new ResourceLocation("textures/block/red_glazed_terracotta.png"), 1, 0.75f, 0.5f);
+        cube = BERCube.fullCube(ResourceLocation.parse("textures/block/red_glazed_terracotta.png"), 1, 0.75f, 0.5f);
         cube.setAmbienOcclusion(true);
     }
 

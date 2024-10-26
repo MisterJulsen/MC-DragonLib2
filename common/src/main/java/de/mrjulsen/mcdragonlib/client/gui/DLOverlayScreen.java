@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.client.gui;
 
 import de.mrjulsen.mcdragonlib.client.ITickable;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 
@@ -23,7 +24,7 @@ public abstract class DLOverlayScreen implements ITickable {
         return id;
     }
 
-    public abstract void render(Graphics graphics, float partialTicks, int screenWidth, int screenHeight);
+    public abstract void render(Graphics graphics, DeltaTracker delta, int screenWidth, int screenHeight);
     
     public void onClose() {}
 

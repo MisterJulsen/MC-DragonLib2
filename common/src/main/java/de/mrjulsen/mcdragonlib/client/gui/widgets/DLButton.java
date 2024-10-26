@@ -9,6 +9,7 @@ import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.ButtonState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -31,12 +32,12 @@ public class DLButton extends Button implements IDragonLibWidget {
 
     @SuppressWarnings({ "unchecked", "resource" })
     public <T extends DLButton> DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage, Consumer<T> pOnPress) {
-        super(pX, pY, pWidth, pHeight, pMessage, (btn) -> pOnPress.accept((T)btn), DEFAULT_NARRATION);
+        super(pX, pY, pWidth, pHeight, pMessage == null ? TextUtils.empty() : pMessage, (btn) -> pOnPress.accept((T)btn), DEFAULT_NARRATION);
         this.font = Minecraft.getInstance().font;
     }
 
     public DLButton(int pX, int pY, int pWidth, int pHeight, Component pMessage) {
-        this(pX, pY, pWidth, pHeight, pMessage, (btn) -> {});
+        this(pX, pY, pWidth, pHeight, pMessage == null ? TextUtils.empty() : pMessage, (btn) -> {});
     }
 
     @Override

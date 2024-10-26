@@ -43,7 +43,7 @@ public class BlockEntityUtil
     public static void sendUpdatePacket(BlockEntity blockEntity, CompoundTag compound)
     {
         addIdAndPosition(blockEntity, compound);
-        ClientboundBlockEntityDataPacket packet = ClientboundBlockEntityDataPacket.create(blockEntity, e -> compound);
+        ClientboundBlockEntityDataPacket packet = ClientboundBlockEntityDataPacket.create(blockEntity, (a, b) -> compound);
         sendUpdatePacket(blockEntity.getLevel(), blockEntity.getBlockPos(), packet);
     }
 
@@ -54,7 +54,7 @@ public class BlockEntityUtil
         compound.putInt("x", blockEntity.getBlockPos().getX());
         compound.putInt("y", blockEntity.getBlockPos().getY());
         compound.putInt("z", blockEntity.getBlockPos().getZ());
-        ClientboundBlockEntityDataPacket packet = ClientboundBlockEntityDataPacket.create(blockEntity, e -> compound);
+        ClientboundBlockEntityDataPacket packet = ClientboundBlockEntityDataPacket.create(blockEntity, (a, b) -> compound);
         sendUpdatePacket(blockEntity.getLevel(), blockEntity.getBlockPos(), packet);
     }
 

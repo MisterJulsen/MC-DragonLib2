@@ -40,7 +40,7 @@ public class TestScreen extends DLScreen {
         btn.setRenderStyle(AreaStyle.DRAGONLIB);
 
         addButton(50, 80, 100, 20, title, (b) -> setScreen(new DLColorPickerScreen(this, 0, (c) -> {}, false)), null).setRenderStyle(AreaStyle.DRAGONLIB);
-        Sprite sprite = new Sprite(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256, 0, 16, 16, 16, 12, 12);
+        Sprite sprite = new Sprite(ResourceLocation.fromNamespaceAndPath(DragonLib.MODID, "textures/gui/icons.png"), 256, 256, 0, 16, 16, 16, 12, 12);
 
         addRenderableWidget(new DLCheckBox(150, 100, 100, "CheckBox Widget Text", true, (cb) -> {
             System.out.println("Checkbox state is: " + cb.isChecked());
