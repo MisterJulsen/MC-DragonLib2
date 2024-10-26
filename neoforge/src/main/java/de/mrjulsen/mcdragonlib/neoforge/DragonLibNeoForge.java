@@ -1,11 +1,20 @@
 package de.mrjulsen.mcdragonlib.neoforge;
 
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import de.mrjulsen.mcdragonlib.DragonLib;
 
 @Mod(DragonLib.MODID)
 public final class DragonLibNeoForge {
-    public DragonLibNeoForge() {
+
+    private static ModContainer container;
+
+    public DragonLibNeoForge(ModContainer cont) {
+        container = cont;
         DragonLib.init();
+    }
+
+    public static ModContainer getModContainer() {
+        return container;
     }
 }

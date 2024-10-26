@@ -1,14 +1,14 @@
 package de.mrjulsen.mcdragonlib.config;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ModCommonConfig {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SPEC;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> TICKS_PER_DAY;
-    public static final ForgeConfigSpec.ConfigValue<Double> TIME_MULTIPLIER;
+    public static final ModConfigSpec.ConfigValue<Integer> TICKS_PER_DAY;
+    public static final ModConfigSpec.ConfigValue<Double> TIME_MULTIPLIER;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");

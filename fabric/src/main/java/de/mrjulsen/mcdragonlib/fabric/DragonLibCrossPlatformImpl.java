@@ -1,14 +1,13 @@
 package de.mrjulsen.mcdragonlib.fabric;
 
-import net.minecraftforge.fml.config.ModConfig;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
-import fuzs.forgeconfigapiport.fabric.impl.forge.ForgeConfigRegistryImpl;
+import fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl;
+import net.neoforged.fml.config.ModConfig.Type;
 
 public class DragonLibCrossPlatformImpl {
 
     public static void registerConfig() {        
-        ForgeConfigRegistryImpl.INSTANCE.register(DragonLib.MODID, ModConfig.Type.COMMON, ModCommonConfig.SPEC, DragonLib.MODID + "-common.toml");
+        NeoForgeConfigRegistryImpl.INSTANCE.register(DragonLib.MODID, Type.COMMON, ModCommonConfig.SPEC, DragonLib.MODID + "-common.toml");
     }
 }
