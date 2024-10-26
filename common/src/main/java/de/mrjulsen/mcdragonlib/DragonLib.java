@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
@@ -64,8 +65,6 @@ public class DragonLib {
     public static final Gson GSON = new Gson();
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat();
     
-    public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
-    public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
     public static final int DAYTIME_SHIFT = 6000;
 	/** One block pixel */ public static final float PIXEL = 1.0F / 16.0F;
 
@@ -144,6 +143,9 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
      */
     @SuppressWarnings("resource")
     public static void init() {
+
+        DragonLibCrossPlatform.registerConfig();
+
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
             WritableSignPacket.class,
@@ -268,6 +270,14 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             DragonLib.LOGGER.error("Unable to register packet.", e);
         }
+    }
+
+    public static long ticksPerDay() {
+        return ModCommonConfig.TICKS_PER_DAY.get();
+    }
+
+    public static long ticksPerIngameHour() {
+        return ticksPerDay() / 24;
     }
 
     /**
