@@ -8,7 +8,8 @@
     "BakedGlyphAccessor",
     "AbstractWidgetAccessor",
     "AbstractContainerScreenMixin",
-    "ScreenMixin"
+    "ScreenMixin",
+    "TextureManagerMixin"
   ],
   "mixins": [
   ],
