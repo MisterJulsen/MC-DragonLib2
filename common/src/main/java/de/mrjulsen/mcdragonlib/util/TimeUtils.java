@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.util;
 import java.time.Duration;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
@@ -25,19 +26,19 @@ public final class TimeUtils {
     }
 
     public static long shiftDayTimeToMinecraftTicks(long time) {
-        time = (time - DragonLib.DAYTIME_SHIFT) % DragonLib.TICKS_PER_DAY;
+        time = (time - DragonLib.DAYTIME_SHIFT) % DragonLib.ticksPerDay();
         if (time < 0) {
-            time += DragonLib.TICKS_PER_DAY;
+            time += DragonLib.ticksPerDay();
         }
         return time;
     }
 
     private static long[] splitTime(long time) {
-        long ticks = time % DragonLib.TICKS_PER_DAY;
-        long days = time / DragonLib.TICKS_PER_DAY;
-        long hours = ticks / DragonLib.TICKS_PER_INGAME_HOUR;
-        long minutes = ticks % DragonLib.TICKS_PER_INGAME_HOUR;
-        minutes = (long)((double)minutes / ((double)DragonLib.TICKS_PER_INGAME_HOUR / 60.0D));
+        long ticks = time % DragonLib.ticksPerDay();
+        long days = time / DragonLib.ticksPerDay();
+        long hours = ticks / DragonLib.ticksPerIngameHour();
+        long minutes = ticks % DragonLib.ticksPerIngameHour();
+        minutes = (long)((double)minutes / ((double)DragonLib.ticksPerIngameHour() / 60.0D));
 
         return new long[] {minutes, hours, days};
     }
@@ -80,9 +81,15 @@ public final class TimeUtils {
     }
 
     public static String parseDuration(long time) {
+        return parseDurationUnscaled(scaleTicks(time));
+    }
+    
+    public static String parseDurationUnscaled(long time) {
         if (time < 0) {
             return "-";
         }
+
+        time = scaleTicks(time);
 
         long[] splitTime = splitTime(time);
         long minutes = splitTime[TIME_SPLITTER_MINUTES_INDEX];
@@ -97,11 +104,16 @@ public final class TimeUtils {
             return TextUtils.translate(DragonLib.MODID + ".time_format.dhm", days, hours, minutes).getString();
         }
     }
-    
-    public static String parseDurationShort(long time) {        
+        
+    public static String parseDurationShort(long time) {
+        return parseDurationShortUnscaled(scaleTicks(time));
+    }
+
+    public static String parseDurationShortUnscaled(long time) {        
         if (time < 0) {
             return "-";
         }
+        time = scaleTicks(time);
 
         long[] splitTime = splitTime(time);
         long minutes = splitTime[TIME_SPLITTER_MINUTES_INDEX];
@@ -118,22 +130,35 @@ public final class TimeUtils {
     }
 
     public static boolean isInRange(long time, long start, long end) {
-        time = time % DragonLib.TICKS_PER_DAY;
-        start = start % DragonLib.TICKS_PER_DAY;
-        end = end % DragonLib.TICKS_PER_DAY;
+        time = time % DragonLib.ticksPerDay();
+        start = start % DragonLib.ticksPerDay();
+        end = end % DragonLib.ticksPerDay();
         if (start <= end) {
             return time >= start && time <= end;
         } else {
             return time >= start || time <= end;
         }
     }
+
+    public static long addTime(long current, long add, boolean scale) {
+        return scale ? current + scaleTicks(add) : current + add;
+    }
     
     public static String formatTime(long time, TimeFormat format) {
-        return TimeUtils.parseTime((time + DragonLib.DAYTIME_SHIFT) % DragonLib.TICKS_PER_DAY, format);
+        return TimeUtils.parseTime((time + DragonLib.DAYTIME_SHIFT) % DragonLib.ticksPerDay(), format);
     }
 
     public static long formatToMinutes(long ticks) {
-        return (long)((double)ticks / (1000d / 60d));
+        return (long)((double)ticks / ((double)DragonLib.ticksPerIngameHour() / 60d));
+    }
+
+    public static long scaleTicks(long ticks) {
+        return (long)Math.ceil(ticks / ModCommonConfig.TIME_MULTIPLIER.get());
+    }
+
+    public static long scaleTicksSinceStart(long total, long start) {
+        long diff = total - start;
+        return start + scaleTicks(diff);
     }
 
     public static enum TimeFormat implements StringRepresentable, ITranslatableEnum {
