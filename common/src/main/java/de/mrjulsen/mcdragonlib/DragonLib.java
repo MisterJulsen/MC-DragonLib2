@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
@@ -14,9 +15,11 @@ import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
+import de.mrjulsen.mcdragonlib.util.accessor.DataAccessor;
 import de.mrjulsen.mcdragonlib.util.accessor.DataAccessorResponsePacket;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
@@ -63,8 +66,6 @@ public class DragonLib {
     public static final Gson GSON = new Gson();
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat();
     
-    public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
-    public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
     public static final int DAYTIME_SHIFT = 6000;
     public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
     public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
@@ -145,6 +146,9 @@ public class DragonLib {
      */
     @SuppressWarnings("resource")
     public static void init() {
+
+        DragonLibCrossPlatform.registerConfig();
+
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
             WritableSignPacket.class,
@@ -157,7 +161,14 @@ public class DragonLib {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
             });
+
+            ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
+                DataAccessor.startClientWorker();
+            });
             
+            ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {
+                DataAccessor.stopClientWorker();
+            });
 
             // Overlay Renderer
             ClientGuiEvent.RENDER_HUD.register((poseStack, partialTicks) -> {
@@ -200,18 +211,26 @@ public class DragonLib {
             ScheduledTask.runScheduledTasks();
         });
 
+        LifecycleEvent.SERVER_STARTING.register((server) -> {
+            DataAccessor.startServerWorker();
+        });
+
         LifecycleEvent.SERVER_STARTED.register((server) -> {
             DragonLib.currentServer = server;
+
         });
 
         LifecycleEvent.SERVER_STOPPED.register((server) -> {
+            DataAccessor.stopServerWorker();
             DragonLib.currentServer = null;
         });
 
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-        });        
+        });  
+        
+        
         /*
         ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
             BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
@@ -254,6 +273,14 @@ public class DragonLib {
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             DragonLib.LOGGER.error("Unable to register packet.", e);
         }
+    }
+
+    public static long ticksPerDay() {
+        return ModCommonConfig.TICKS_PER_DAY.get();
+    }
+
+    public static long ticksPerIngameHour() {
+        return ticksPerDay() / 24;
     }
 
     /**

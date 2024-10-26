@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 import java.util.UUID;
 
 import de.mrjulsen.mcdragonlib.net.IPacketBase;
+import de.mrjulsen.mcdragonlib.util.WorkerAsync;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -40,7 +41,10 @@ public class DataAccessorResponsePacket implements IPacketBase<DataAccessorRespo
     @Override
     public void handle(DataAccessorResponsePacket packet, Supplier<PacketContext> contextSupplier) {
         contextSupplier.get().queue(() -> {
-            DataAccessor.run(packet.requestId, packet.hasMore, packet.iteration, packet.nbt);
+            WorkerAsync worker = DataAccessor.getWorker(false);
+            worker.queueTask(() -> {
+                DataAccessor.run(packet.requestId, packet.hasMore, packet.iteration, packet.nbt);
+            });
         });
     }
     
