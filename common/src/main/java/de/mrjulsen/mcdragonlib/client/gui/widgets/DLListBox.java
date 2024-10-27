@@ -19,7 +19,7 @@ import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
-public class DLListBox<T> extends WidgetContainer implements Collection<DLListBox.DLListBoxItem<T>> {
+public class DLListBox<T> extends DLWidgetContainer implements Collection<DLListBox.DLListBoxItem<T>> {
 
     private int itemHeight = 16;
     private boolean multiselect;
@@ -207,7 +207,7 @@ public class DLListBox<T> extends WidgetContainer implements Collection<DLListBo
         return true;
     }
 
-    private static class DLListBoxContainer<T> extends ScrollableWidgetContainer {
+    private static class DLListBoxContainer<T> extends DLScrollableWidgetContainer {
 
         public DLListBoxContainer(int x, int y, int width, int height) {
             super(x, y, width, height);

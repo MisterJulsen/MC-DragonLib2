@@ -18,14 +18,12 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
-
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 
-@Deprecated(forRemoval = true)
-public abstract class WidgetContainer extends AbstractContainerEventHandler implements Renderable, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
+public abstract class DLWidgetContainer extends AbstractContainerEventHandler implements Renderable, NarratableEntry, ITickable, IDragonLibContainer<DLWidgetContainer> {
 
     protected int x;
     protected int y;
@@ -47,7 +45,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     protected final Font font;
 
     @SuppressWarnings("resource")
-    public WidgetContainer(int x, int y, int width, int height) {
+    public DLWidgetContainer(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
