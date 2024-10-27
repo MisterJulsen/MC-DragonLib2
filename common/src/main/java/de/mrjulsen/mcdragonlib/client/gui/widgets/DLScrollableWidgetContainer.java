@@ -9,13 +9,12 @@ import de.mrjulsen.mcdragonlib.data.Pair;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 
-@Deprecated(forRemoval = true)
-public abstract class ScrollableWidgetContainer extends WidgetContainer {
+public abstract class DLScrollableWidgetContainer extends DLWidgetContainer {
 
     protected double xScrollOffset;
     protected double yScrollOffset;
 
-    public ScrollableWidgetContainer(int x, int y, int width, int height) {
+    public DLScrollableWidgetContainer(int x, int y, int width, int height) {
         super(x, y, width, height);
     }
 

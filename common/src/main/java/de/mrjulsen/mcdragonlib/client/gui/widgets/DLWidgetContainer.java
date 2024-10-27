@@ -22,8 +22,7 @@ import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
-@Deprecated(forRemoval = true)
-public abstract class WidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<WidgetContainer> {
+public abstract class DLWidgetContainer extends AbstractContainerEventHandler implements Widget, NarratableEntry, ITickable, IDragonLibContainer<DLWidgetContainer> {
 
     protected int x;
     protected int y;
@@ -45,7 +44,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     protected final Font font;
 
     @SuppressWarnings("resource")
-    public WidgetContainer(int x, int y, int width, int height) {
+    public DLWidgetContainer(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
