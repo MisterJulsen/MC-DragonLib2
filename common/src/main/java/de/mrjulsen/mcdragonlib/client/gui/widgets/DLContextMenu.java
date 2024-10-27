@@ -14,7 +14,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.world.phys.Vec2;
 
-public class DLContextMenu extends WidgetContainer {
+public class DLContextMenu extends DLWidgetContainer {
 
     private final Supplier<DLContextMenuItem.Builder> openAction;
     private final Supplier<GuiAreaDefinition> area;

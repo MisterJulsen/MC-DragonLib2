@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
 
 public final class MathUtils {
@@ -132,6 +133,49 @@ public final class MathUtils {
 
         final double med = median;
         return database.stream().mapToDouble(x -> x).filter(x -> Math.abs(med - x) <= smoothingThreshold).average().orElse(0);
+    }
+
+    public static final Vec3 CENTER_OF_ORIGIN = new Vec3(0.5f, 0.5f, 0.5f);
+
+    public static Vec3 rotate(Vec3 vec, Vec3 rotationVec) {
+        return rotate(vec, rotationVec.x, rotationVec.y, rotationVec.z);
+    }
+
+    public static Vec3 rotate(Vec3 vec, double xRot, double yRot, double zRot) {
+        return rotate(rotate(rotate(vec, xRot, Axis.X), yRot, Axis.Y), zRot, Axis.Z);
+    }
+
+    public static Vec3 rotateCentered(Vec3 vec, double deg, Axis axis) {
+        Vec3 shift = getCenterOf(BlockPos.ZERO);
+        return rotate(vec.subtract(shift), deg, axis).add(shift);
+    }
+
+    public static Vec3 rotate(Vec3 vec, double deg, Axis axis) {
+        if (deg == 0)
+            return vec;
+        if (vec == Vec3.ZERO)
+            return vec;
+
+        float angle = (float) (deg / 180f * Math.PI);
+        double sin = Math.sin(angle);
+        double cos = Math.cos(angle);
+        double x = vec.x;
+        double y = vec.y;
+        double z = vec.z;
+
+        if (axis == Axis.X)
+            return new Vec3(x, y * cos - z * sin, z * cos + y * sin);
+        if (axis == Axis.Y)
+            return new Vec3(x * cos + z * sin, y, z * cos - x * sin);
+        if (axis == Axis.Z)
+            return new Vec3(x * cos - y * sin, y * cos + x * sin, z);
+        return vec;
+    }
+
+    public static Vec3 getCenterOf(Vec3i pos) {
+        if (pos.equals(Vec3i.ZERO))
+            return CENTER_OF_ORIGIN;
+        return Vec3.atLowerCornerOf(pos).add(0.5f, 0.5f, 0.5f);
     }
 }
 
