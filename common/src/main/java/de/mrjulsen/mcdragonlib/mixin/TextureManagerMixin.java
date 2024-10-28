@@ -24,7 +24,7 @@ public class TextureManagerMixin {
     private Map<ResourceLocation, AbstractTexture> byPath;
 
     @PlatformOnly(value = PlatformOnly.FABRIC)
-    @Inject(method = "release", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/TextureUtil;releaseTextureId(I)V", shift = Shift.BEFORE))
+    @Inject(method = "release", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;safeClose(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V", shift = Shift.BEFORE))
     public void onRelease(ResourceLocation path, CallbackInfo ci) {
         this.byPath.remove(path);
     }
