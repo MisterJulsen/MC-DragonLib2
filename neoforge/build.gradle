@@ -59,6 +59,9 @@ dependencies {
 }
 
 processResources {
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
+    
     inputs.property 'version', project.version
 
     filesMatching('META-INF/mods.toml') {
