@@ -4,7 +4,6 @@ import java.util.function.Supplier;
 import java.util.UUID;
 
 import de.mrjulsen.mcdragonlib.net.BaseNetworkPacket;
-import de.mrjulsen.mcdragonlib.util.WorkerAsync;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -41,10 +40,7 @@ public class DataAccessorResponsePacket extends BaseNetworkPacket<DataAccessorRe
     @Override
     public void handle(DataAccessorResponsePacket packet, Supplier<PacketContext> contextSupplier) {
         contextSupplier.get().queue(() -> {
-            WorkerAsync worker = DataAccessor.getWorker(false);
-            worker.queueTask(() -> {
-                DataAccessor.run(packet.requestId, packet.hasMore, packet.iteration, packet.nbt);
-            });
+            DataAccessor.run(packet.requestId, packet.hasMore, packet.iteration, packet.nbt);
         });
     }
     

@@ -34,6 +34,7 @@ public abstract class WritableSignBlockEntity extends SyncedBlockEntity {
         this.lines[line] = text;
         BlockEntityUtil.sendUpdatePacket(this);
         this.setChanged();
+        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 512);
     }
 
     public void setTexts(String[] messages) {
@@ -41,6 +42,7 @@ public abstract class WritableSignBlockEntity extends SyncedBlockEntity {
         this.lines = messages;
         BlockEntityUtil.sendUpdatePacket(this);
         this.setChanged();
+        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 512);
     }
 
     public String getText(int line) {
