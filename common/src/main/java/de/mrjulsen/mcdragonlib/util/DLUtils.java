@@ -72,7 +72,12 @@ public final class DLUtils {
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
-        AdvancementHolder adv = player.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(modid, name));
+        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(modid, name);
+        AdvancementHolder adv = player.getServer().getAdvancements().get(location);
+        if (adv == null) {
+            DragonLib.LOGGER.warn("Advancement does not exist: " + location);
+            return;
+        }
         player.getAdvancements().award(adv, criteriaKey);
     }
 

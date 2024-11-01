@@ -9,7 +9,7 @@ import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
-import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
+import de.mrjulsen.mcdragonlib.net.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -46,14 +46,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -126,7 +124,6 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
     public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(ResourceLocation.fromNamespaceAndPath(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
         
-    private static NetworkManagerBase dragonLibNet;
     private static MinecraftServer currentServer;
 
     private static <T extends Block, I extends BlockItem>RegistrySupplier<T> registerBlock(String name, Supplier<T> block) {
@@ -156,7 +153,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
 
         DragonLibCrossPlatform.registerConfig();
 
-        dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
+        DLNetworkManager.registerPackets(MODID, List.of(
             WritableSignPacket.class,
             DataAccessorResponsePacket.class
         ), List.of(
@@ -248,13 +245,6 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         printDraconicWelcomeMessage();
     }
 
-    /**
-     * @return The network manager of the DragonLib mod. Please use your own network manager in your mod. this is intended for DraagonLib's internal stuff.
-     */
-    public static final NetworkManagerBase getDragonLibNetworkManager() {
-        return dragonLibNet;
-    }
-
     public static boolean hasServer() {
         return currentServer != null;
     }
@@ -276,7 +266,6 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
     private static void registerCustom(Class<BasicDataAccessorPacket> c) {
         try {
             BasicDataAccessorPacket packet = c.getConstructor().newInstance();
-            String name = UUID.nameUUIDFromBytes(packet.getClass().getName().getBytes(StandardCharsets.UTF_8)).toString().replace("-", "");
             
             StreamCodec<? super RegistryFriendlyByteBuf, BasicDataAccessorPacket> codec = StreamCodec.of((buf, msg) -> {
                 packet.encode(msg, buf);
@@ -284,8 +273,11 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
                 return (BasicDataAccessorPacket)packet.decode(buf);
             });
 
-            NetworkManager.registerReceiver(Side.C2S, packet.typeOf(DragonLib.MODID, name), codec, (buf, context) -> {
-                packet.handle(packet, () -> context);
+            NetworkManager.registerReceiver(Side.C2S, packet.typeOf(DragonLib.MODID, "client_accessor_packet"), codec, (p, context) -> {
+                packet.handle(p, () -> context);
+            });
+            NetworkManager.registerReceiver(Side.S2C, packet.typeOf(DragonLib.MODID, "server_accessor_packet"), codec, (p, context) -> {
+                packet.handle(p, () -> context);
             });
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             DragonLib.LOGGER.error("Unable to register packet.", e);
