@@ -8,8 +8,11 @@ import java.util.UUID;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.NetworkManager.Side;
+import dev.architectury.platform.Platform;
+import net.fabricmc.api.EnvType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
 
 public class DLNetworkManager {
 
@@ -29,7 +32,7 @@ public class DLNetworkManager {
         try {
             Class<T> clazz = (Class<T>)c;
             T packet = clazz.getConstructor().newInstance();
-            String name = UUID.nameUUIDFromBytes(clazz.getName().getBytes(StandardCharsets.UTF_8)).toString().replace("-", "");
+            String name = UUID.nameUUIDFromBytes(clazz.getName().getBytes(StandardCharsets.UTF_8)).toString().replace("-", "") + "_" + (side == Side.C2S ? "client" : "server");
             
             StreamCodec<? super RegistryFriendlyByteBuf, T> codec = StreamCodec.of((buf, msg) -> {
                 packet.encode(msg, buf);
@@ -37,12 +40,31 @@ public class DLNetworkManager {
                 return packet.decode(buf);
             });
 
-            NetworkManager.registerReceiver(side, packet.typeOf(modid, name), codec, (p, context) -> {
-                packet.handle(p, () -> context);
-            });
+            if (side == Side.C2S || Platform.getEnv() == EnvType.CLIENT) {
+                NetworkManager.registerReceiver(side, packet.typeOf(side, modid, name), codec, (p, context) -> {
+                    packet.handle(p, () -> context);
+                });
+            } else {
+                NetworkManager.registerS2CPayloadType(packet.typeOf(side, modid, name), codec);
+            }
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             DragonLib.LOGGER.error("Unable to register packet.", e);
         }
+    }
+
+    public static <T extends BaseNetworkPacket<T>> void sendToServer(T packet) {
+        packet.prepareSendForSide(Side.C2S);
+        NetworkManager.sendToServer(packet);
+    }
+
+    public static <T extends BaseNetworkPacket<T>> void sendToPlayer(ServerPlayer player, T packet) {
+        packet.prepareSendForSide(Side.S2C);
+        NetworkManager.sendToPlayer(player, packet);
+    }
+
+    public static <T extends BaseNetworkPacket<T>> void sendToPlayers(Iterable<ServerPlayer> players, T packet) {
+        packet.prepareSendForSide(Side.S2C);
+        NetworkManager.sendToPlayers(players, packet);
     }
 }
 

@@ -273,12 +273,17 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
                 return (BasicDataAccessorPacket)packet.decode(buf);
             });
 
-            NetworkManager.registerReceiver(Side.C2S, packet.typeOf(DragonLib.MODID, "client_accessor_packet"), codec, (p, context) -> {
-                packet.handle(p, () -> context);
-            });
-            NetworkManager.registerReceiver(Side.S2C, packet.typeOf(DragonLib.MODID, "server_accessor_packet"), codec, (p, context) -> {
-                packet.handle(p, () -> context);
-            });
+            
+            if (Platform.getEnv() == EnvType.CLIENT) {                
+                NetworkManager.registerReceiver(Side.C2S, packet.typeOf(Side.C2S, DragonLib.MODID, "client_accessor_packet"), codec, (p, context) -> {
+                    packet.handle(p, () -> context);
+                });
+                NetworkManager.registerReceiver(Side.S2C, packet.typeOf(Side.S2C, DragonLib.MODID, "server_accessor_packet"), codec, (p, context) -> {
+                    packet.handle(p, () -> context);
+                });
+            } else {
+                NetworkManager.registerS2CPayloadType(packet.typeOf(Side.S2C, DragonLib.MODID, "server_accessor_packet"), codec);
+            }
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             DragonLib.LOGGER.error("Unable to register packet.", e);
         }

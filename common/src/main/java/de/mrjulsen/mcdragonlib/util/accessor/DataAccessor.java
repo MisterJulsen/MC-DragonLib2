@@ -6,9 +6,9 @@ import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
+import de.mrjulsen.mcdragonlib.net.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
-import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 
 import java.util.UUID;
@@ -112,7 +112,7 @@ public class DataAccessor {
             }
         });
         instance.setData(id, param, type, true);
-        NetworkManager.sendToServer(instance);
+        DLNetworkManager.sendToServer(instance);
     }
     
     /**
@@ -147,7 +147,7 @@ public class DataAccessor {
             }
         });
         instance.setData(id, param, type, false);
-        NetworkManager.sendToPlayer(player, instance);
+        DLNetworkManager.sendToPlayer(player, instance);
     }
 
     @FunctionalInterface
