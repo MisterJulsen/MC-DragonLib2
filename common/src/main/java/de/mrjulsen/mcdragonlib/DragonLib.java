@@ -272,12 +272,12 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             }, (buf) -> {
                 return (BasicDataAccessorPacket)packet.decode(buf);
             });
-
             
-            if (Platform.getEnv() == EnvType.CLIENT) {                
-                NetworkManager.registerReceiver(Side.C2S, packet.typeOf(Side.C2S, DragonLib.MODID, "client_accessor_packet"), codec, (p, context) -> {
-                    packet.handle(p, () -> context);
-                });
+            NetworkManager.registerReceiver(Side.C2S, packet.typeOf(Side.C2S, DragonLib.MODID, "client_accessor_packet"), codec, (p, context) -> {
+                packet.handle(p, () -> context);
+            });
+            
+            if (Platform.getEnv() == EnvType.CLIENT) {
                 NetworkManager.registerReceiver(Side.S2C, packet.typeOf(Side.S2C, DragonLib.MODID, "server_accessor_packet"), codec, (p, context) -> {
                     packet.handle(p, () -> context);
                 });
