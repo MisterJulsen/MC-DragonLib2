@@ -49,10 +49,12 @@ public class WritableSignPacket extends BaseNetworkPacket<WritableSignPacket> {
 
     @Override
     public void handle(WritableSignPacket packet, Supplier<PacketContext> contextSupplier) {
-        ServerPlayer sender = (ServerPlayer)contextSupplier.get().getPlayer();
-        if (sender.level().getBlockEntity(packet.pos) instanceof WritableSignBlockEntity blockEntity) {
-            blockEntity.setTexts(packet.messages);
-        }
+        contextSupplier.get().queue(() -> {
+            ServerPlayer sender = (ServerPlayer)contextSupplier.get().getPlayer();
+            if (sender.level().getBlockEntity(packet.pos) instanceof WritableSignBlockEntity blockEntity) {
+                blockEntity.setTexts(packet.messages);
+            }
+        });
     }
 }
 

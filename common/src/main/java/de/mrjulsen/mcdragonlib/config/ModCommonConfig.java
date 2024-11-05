@@ -8,6 +8,7 @@ public class ModCommonConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.ConfigValue<Integer> TICKS_PER_DAY;
+    public static final ModConfigSpec.ConfigValue<Integer> DAYTIME_SHIFT;
     public static final ModConfigSpec.ConfigValue<Double> TIME_MULTIPLIER;
 
     static {
@@ -17,6 +18,8 @@ public class ModCommonConfig {
             .defineInRange("time.ticks_per_day", 24000, 0, Integer.MAX_VALUE);
         TIME_MULTIPLIER = BUILDER.comment("The scale of the tick length. 1 means that a tick has normal duration (0.05 seconds). 20 would therefore result in a length of 1 second per tick. If in doubt, leave it unchanged! (Default: 1)")
             .defineInRange("time.time_multiplier", 1D, 0D, Double.MAX_VALUE);
+        DAYTIME_SHIFT = BUILDER.comment("The number of ticks by which the time of day is shifted to match the real daytime. By default, 0 ticks is 6 AM, but 0 ticks should represent 12 AM (midnight). If in doubt, leave it unchanged! (Default: 6000)")
+            .defineInRange("time.daytime_shift", 6000, 0, Integer.MAX_VALUE);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

@@ -16,7 +16,6 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
@@ -270,14 +269,8 @@ public class GuiUtils {
         graphics.graphics().fill(x, y, x + w, y + h, color);
     }
 
-    public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) {        
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        Matrix4f matrix4f = graphics.poseStack().last().pose();
-        buffer.addVertex(matrix4f, (float)x, (float)y, (float)z).setColor(colorA);
-        buffer.addVertex(matrix4f, (float)x, (float)y + h, (float)z).setColor(colorB);
-        buffer.addVertex(matrix4f, (float)x + w, (float)y + h, (float)z).setColor(colorB);
-        buffer.addVertex(matrix4f, (float)x + 1, (float)y, (float)z).setColor(colorA);
+    public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) { 
+        graphics.graphics().fillGradient(x, y, x + w, y + h, z, colorA, colorB);
     }
 
     public static void drawBox(Graphics graphics, GuiAreaDefinition area, int fillColor, int borderColor) {

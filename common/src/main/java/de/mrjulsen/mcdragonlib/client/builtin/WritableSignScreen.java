@@ -12,10 +12,10 @@ import com.mojang.math.Axis;
 
 import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
 import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
+import de.mrjulsen.mcdragonlib.net.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
 import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
-import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -86,7 +86,7 @@ public class WritableSignScreen extends DLScreen {
     }
 
     public void removed() {
-        NetworkManager.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
+        DLNetworkManager.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
     }
 
     public void tick() {
@@ -99,7 +99,7 @@ public class WritableSignScreen extends DLScreen {
 
     @Override
     protected void onDone() {
-        NetworkManager.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
+        DLNetworkManager.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
         this.minecraft.setScreen(null);
     }
 

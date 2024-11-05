@@ -7,8 +7,8 @@ import java.util.UUID;
 
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
 import de.mrjulsen.mcdragonlib.net.BaseNetworkPacket;
+import de.mrjulsen.mcdragonlib.net.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
-import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -70,9 +70,9 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
                     hasMore = processServer(contextSupplier.get().getPlayer(), packet.param, packet.type, tempData, (nbt = new CompoundTag()), iteration);
                     DataAccessorResponsePacket newPacket = new DataAccessorResponsePacket(packet.requestId, hasMore, iteration, nbt);
                     if (packet.sendToClient) {
-                        NetworkManager.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
+                        DLNetworkManager.sendToPlayer((ServerPlayer)contextSupplier.get().getPlayer(), newPacket);
                     } else {
-                        NetworkManager.sendToServer(newPacket);
+                        DLNetworkManager.sendToServer(newPacket);
                     }
                     iteration++;
                 } while (hasMore);

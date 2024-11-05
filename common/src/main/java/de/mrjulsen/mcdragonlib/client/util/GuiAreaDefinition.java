@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.util;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLWidgetContainer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.WidgetContainer;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -57,8 +58,13 @@ public class GuiAreaDefinition {
     public static <T extends Screen> GuiAreaDefinition of(T screen) {
         return new GuiAreaDefinition(0, 0, screen.width, screen.height);
     }
-
+    
+    @Deprecated(forRemoval = true)
     public static <T extends WidgetContainer> GuiAreaDefinition of(T container) {
+        return new GuiAreaDefinition(container.getX(), container.getY(), container.getWidth(), container.getHeight());
+    }
+
+    public static <T extends DLWidgetContainer> GuiAreaDefinition of(T container) {
         return new GuiAreaDefinition(container.getX(), container.getY(), container.getWidth(), container.getHeight());
     }
 
