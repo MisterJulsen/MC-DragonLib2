@@ -64,10 +64,13 @@ public class DragonLib {
     public static final Random RANDOM = new Random();
     public static final Gson GSON = new Gson();
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat();
-    
-    public static final int DAYTIME_SHIFT = 6000;
-    public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
-    public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
+
+    @Deprecated(forRemoval = true) public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
+    @Deprecated(forRemoval = true) public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
+    @Deprecated(forRemoval = true) public static final int DAYTIME_SHIFT = 6000;
+    @Deprecated(forRemoval = true) public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
+    @Deprecated(forRemoval = true) public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
+    public static final int MS_PER_REAL_LIFE_DAY = 86400000;
 	/** One block pixel */ public static final float PIXEL = 1.0F / 16.0F;
 
     public static final ResourceLocation UI = new ResourceLocation(MODID, "textures/gui/ui.png");
@@ -276,6 +279,21 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
 
     public static long ticksPerDay() {
         return ModCommonConfig.TICKS_PER_DAY.get();
+    }
+
+    public static long daytimeShift() {
+        return ModCommonConfig.DAYTIME_SHIFT.get();
+    }
+
+    public static long tps() {
+        int msPerTick = 50;
+        return (long)(1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+    }
+
+    public static long ticksPerRealLifeDay() {
+        long msPerDay = MS_PER_REAL_LIFE_DAY;
+        int msPerTick = 50;
+        return (long)((double)msPerDay / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
     }
 
     public static long ticksPerIngameHour() {
