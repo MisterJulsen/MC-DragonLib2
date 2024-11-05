@@ -142,13 +142,17 @@ public class DragonLib {
         });
     }
 
-    
+    private static boolean initialized = false;
     
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
-    @SuppressWarnings("resource")
+    @SuppressWarnings({ "resource", "removal" })
     public static void init() {
+        if (initialized) {
+            throw new IllegalAccessError("Prohibited to init DragonLib manually!");
+        }
+        initialized = true;
 
         DragonLibCrossPlatform.registerConfig();
 
