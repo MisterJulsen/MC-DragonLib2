@@ -26,7 +26,7 @@ public final class TimeUtils {
     }
 
     public static long shiftDayTimeToMinecraftTicks(long time) {
-        time = (time - DragonLib.DAYTIME_SHIFT) % DragonLib.ticksPerDay();
+        time = (time - DragonLib.daytimeShift()) % DragonLib.ticksPerDay();
         if (time < 0) {
             time += DragonLib.ticksPerDay();
         }
@@ -44,13 +44,17 @@ public final class TimeUtils {
     }
 
     public static long dayTime(Level level) {
-        return level.getDayTime() + DragonLib.DAYTIME_SHIFT;
+        return level.getDayTime() + DragonLib.daytimeShift();
     }
 
     public static double calcClockHandRotationDegrees(long time, double mod) {
         int modNumber = (int)(time % mod);
         double rotation = (modNumber / mod) * 360.0;
         return rotation;
+    }
+
+    public static long convertTicksToRealLife(long ticks) {
+        return ticks / (DragonLib.ticksPerRealLifeDay() / DragonLib.ticksPerDay());
     }
 
     public static String parseTime(long time, TimeFormat format) {
@@ -80,16 +84,14 @@ public final class TimeUtils {
         return "";
     }
 
-    public static String parseDuration(long time) {
-        return parseDurationUnscaled(scaleTicks(time));
+    public static String parseDurationScaled(long time) {
+        return parseDuration(scaleTicks(time));
     }
     
-    public static String parseDurationUnscaled(long time) {
+    public static String parseDuration(long time) {
         if (time < 0) {
             return "-";
         }
-
-        time = scaleTicks(time);
 
         long[] splitTime = splitTime(time);
         long minutes = splitTime[TIME_SPLITTER_MINUTES_INDEX];
@@ -105,15 +107,14 @@ public final class TimeUtils {
         }
     }
         
-    public static String parseDurationShort(long time) {
-        return parseDurationShortUnscaled(scaleTicks(time));
+    public static String parseDurationShortScaled(long time) {
+        return parseDurationShort(scaleTicks(time));
     }
 
-    public static String parseDurationShortUnscaled(long time) {        
+    public static String parseDurationShort(long time) {        
         if (time < 0) {
             return "-";
         }
-        time = scaleTicks(time);
 
         long[] splitTime = splitTime(time);
         long minutes = splitTime[TIME_SPLITTER_MINUTES_INDEX];
@@ -140,25 +141,43 @@ public final class TimeUtils {
         }
     }
 
+    /**
+     * Adds a certain amount of ticks to the current tick value and possibly scales the value based on the time scale.
+     * @param current The current tick value.
+     * @param add The amount of ticks to add.
+     * @param scale Whether the additional ticks should be scaled or not.
+     * @return The new total tick time.
+     */
     public static long addTime(long current, long add, boolean scale) {
         return scale ? current + scaleTicks(add) : current + add;
     }
     
     public static String formatTime(long time, TimeFormat format) {
-        return TimeUtils.parseTime((time + DragonLib.DAYTIME_SHIFT) % DragonLib.ticksPerDay(), format);
+        return TimeUtils.parseTime((time + DragonLib.daytimeShift()) % DragonLib.ticksPerDay(), format);
     }
 
     public static long formatToMinutes(long ticks) {
         return (long)((double)ticks / ((double)DragonLib.ticksPerIngameHour() / 60d));
     }
 
+    /**
+     * Scales the given ticks based on the time scale.
+     * @param ticks The ticks to scale.
+     * @return The scales tick value.
+     */
     public static long scaleTicks(long ticks) {
         return (long)Math.ceil(ticks / ModCommonConfig.TIME_MULTIPLIER.get());
     }
 
-    public static long scaleTicksSinceStart(long total, long start) {
-        long diff = total - start;
-        return start + scaleTicks(diff);
+    /**
+     * Scales only the difference of the current ticks from a base value and returns the total time in ticks
+     * @param total The total tick time.
+     * @param base The base reference value.
+     * @return The total time with scaled diff.
+     */
+    public static long scaleTicksDiff(long total, long base) {
+        long diff = total - base;
+        return base + scaleTicks(diff);
     }
 
     public static enum TimeFormat implements StringRepresentable, ITranslatableEnum {

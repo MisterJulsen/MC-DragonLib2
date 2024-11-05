@@ -13,7 +13,7 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 
-public class DLNumberSelector extends WidgetContainer {
+public class DLNumberSelector extends DLWidgetContainer {
 
     private static final int DROP_DOWN_BUTTON_WIDTH = 13;
 
