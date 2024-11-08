@@ -56,6 +56,14 @@
     "gui.dragonlib.menu.select_all": "Select all",
     "gui.dragonlib.menu.decrement": "Decrement",
     "gui.dragonlib.menu.increment": "Increment",
+    
+    "gui.dragonlib.scrollbar.here": "Here",
+    "gui.dragonlib.scrollbar.top": "Top",
+    "gui.dragonlib.scrollbar.bottom": "Down",
+    "gui.dragonlib.scrollbar.page_up": "Page up",
+    "gui.dragonlib.scrollbar.page_down": "Page down",
+    "gui.dragonlib.scrollbar.step_up": "Scroll up",
+    "gui.dragonlib.scrollbar.step_down": "Scroll down",
 
     "block.dragonlib.dragon": "Dragon"
 }
