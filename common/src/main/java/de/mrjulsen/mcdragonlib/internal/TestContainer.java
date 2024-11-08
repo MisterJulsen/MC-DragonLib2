@@ -32,7 +32,7 @@ public class TestContainer extends DLScrollableWidgetContainer {
             .setAutoScrollerSize(true)
             .setScreenSize(height)
             .setStepSize(15)
-            .updateMaxScroll(20 * 20)
+            .setMaxScroll(20 * 20)
         ;
     }
 
