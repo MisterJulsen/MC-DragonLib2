@@ -39,7 +39,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class DLUtils {
 
-    public static UUID getUUID(String playername) {
+    public static UUID getPlayerUUID(String playername) {
         try {
             URL url = new URI("https://api.mojang.com/users/profiles/minecraft/" + playername).toURL();
             Scanner scan = new Scanner(url.openStream());
@@ -70,6 +70,16 @@ public final class DLUtils {
             DragonLib.LOGGER.warn("Could not get username for player with UUID " + uuid, e);
             return "Unknown User";
         }
+    }
+    
+    @Deprecated(forRemoval = true)
+    public static String getUUID(String playername) {
+        return getPlayerUUID(playername).toString();
+    }
+
+    @Deprecated(forRemoval = true)
+    public static String getPlayerName(String uuid) {
+        return getPlayerName(UUID.fromString(uuid));
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
