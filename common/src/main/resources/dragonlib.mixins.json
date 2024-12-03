@@ -9,7 +9,8 @@
     "AbstractWidgetAccessor",
     "AbstractContainerScreenMixin",
     "ScreenMixin",
-    "TextureManagerMixin"
+    "TextureManagerMixin",
+    "ItemRendererMixin"
   ],
   "mixins": [
   ],
