@@ -323,12 +323,12 @@ public class BERLabel {
         }
     }
 
-    public void render(BERGraphics<?> graphics) {
+    public void render(RenderGraphics graphics) {
         render(graphics, graphics.packedLight());
     }
 
     @SuppressWarnings("resource")
-    public void render(BERGraphics<?> graphics, int light) {
+    public void render(RenderGraphics graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
