@@ -74,7 +74,7 @@ public class BERLabel {
         return rawXScale;
     });
     private final Cache<Float> textWidth = new Cache<>(() -> {
-        return getFontUtils().font.width(getText()) * textData.get().scale();
+        return getText().getString().isEmpty() ? 0 : getFontUtils().font.width(getText()) * textData.get().scale();
     });
     private final Map<Integer, CharData> charDataCache = new HashMap<>();
 
