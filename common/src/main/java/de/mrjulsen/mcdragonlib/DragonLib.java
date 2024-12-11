@@ -143,6 +143,9 @@ public class DragonLib {
     }
 
     private static boolean initialized = false;
+
+    private static final Ticker clientTicker = new Ticker();
+    private static final Ticker serverTicker = new Ticker();
     
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
@@ -164,12 +167,17 @@ public class DragonLib {
         registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
+            ClientTickEvent.CLIENT_PRE.register((Minecraft mc) -> {
+                clientTicker.tick();
+            });
+
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
             });
 
             ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
+                clientTicker.reset();
                 DataAccessor.startClientWorker();
             });
             
@@ -214,11 +222,16 @@ public class DragonLib {
         }
 
         // On server tick
-        TickEvent.Server.SERVER_POST.register((server) -> {            
+        TickEvent.Server.SERVER_PRE.register((server) -> {           
+            serverTicker.tick();
+        });
+
+        TickEvent.Server.SERVER_POST.register((server) -> {           
             ScheduledTask.runScheduledTasks();
         });
 
         LifecycleEvent.SERVER_STARTING.register((server) -> {
+            serverTicker.reset();
             DataAccessor.startServerWorker();
         });
 
@@ -270,6 +283,14 @@ public class DragonLib {
     public static long getCurrentWorldTime() {
         Level level = getPhysicalLevel();
         return level == null ? 0 : level.getDayTime();
+    }
+
+    public static long getCurrentClientTickTime() {
+        return clientTicker.getTicks();
+    }
+
+    public static long getCurrentServerTickTime() {
+        return serverTicker.getTicks();
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
