@@ -39,4 +39,8 @@ public class MapCache<T, S, I> {
     public void clear(S hashInput) {
         cache.remove(hashFunction.apply(hashInput));
     }
+
+    public int getCachedDataCount() {
+        return cache.size();
+    }
 }
