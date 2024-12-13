@@ -83,15 +83,15 @@ public class BERQuad {
         this.rotation = rotation;
     }
 
-    public void render(BERGraphics<?> graphics) {
+    public void render(RenderGraphics graphics) {
         render(graphics, 0, 0, 0);
     }
     
-    public void renderPx(BERGraphics<?> graphics) {
+    public void renderPx(RenderGraphics graphics) {
         renderPx(graphics, 0, 0, 0);
     }
     
-    public void render(BERGraphics<?> graphics, float x, float y, float z) {
+    public void render(RenderGraphics graphics, float x, float y, float z) {
         graphics.poseStack().pushPose();
         if (rotation != null) {
             graphics.poseStack().mulPose(rotation);
@@ -105,7 +105,7 @@ public class BERQuad {
         graphics.poseStack().popPose();
     }
     
-    public void renderPx(BERGraphics<?> graphics, float x, float y, float z) {
+    public void renderPx(RenderGraphics graphics, float x, float y, float z) {
         render(graphics, BERUtils.bpx(x), BERUtils.bpx(y), BERUtils.bpx(z));
     }
 }
