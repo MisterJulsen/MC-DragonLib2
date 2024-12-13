@@ -22,6 +22,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
 import de.mrjulsen.mcdragonlib.core.ColorObject;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
@@ -84,7 +85,7 @@ public class GuiUtils {
 
     @SuppressWarnings("resource")
     public static <W extends AbstractWidget, T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, W widget, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
-        if (widget.isMouseOver(mouseX + xOffset, mouseY + yOffset)) {
+        if ((widget instanceof IDragonLibWidget dlw && dlw.isMouseSelected()) || (!(widget instanceof IDragonLibWidget) && widget.isMouseOver(mouseX + xOffset, mouseY + yOffset))) {
             graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
             return true;
         }

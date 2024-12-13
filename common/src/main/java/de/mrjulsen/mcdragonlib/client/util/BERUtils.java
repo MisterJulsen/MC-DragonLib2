@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ber.BERGraphics;
+import de.mrjulsen.mcdragonlib.client.ber.RenderGraphics;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.util.ColorUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -25,7 +26,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 
 public final class BERUtils {
 
@@ -74,7 +74,7 @@ public final class BERUtils {
         RenderSystem.setShaderColor(argb[1], argb[2], argb[3], argb[0]);
     }
 
-    public static void renderTexture(ResourceLocation texture, BERGraphics<?> graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint, int light) {
+    public static void renderTexture(ResourceLocation texture, RenderGraphics graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint, int light) {
         VertexConsumer vertexconsumer = graphics.vertexConsumer(texture);
         short[] color = ColorUtils.decodeARGB(tint);
         addQuadSide(facing, vertexconsumer, graphics, ao,
@@ -87,15 +87,15 @@ public final class BERUtils {
         );        
     }
 
-    public static void renderTexture(ResourceLocation texture, BERGraphics<?> graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint) {
+    public static void renderTexture(ResourceLocation texture, RenderGraphics graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint) {
         renderTexture(texture, graphics, ao, x, y, z, w, h, u0, v0, u1, v1, facing, tint, graphics.packedLight());        
     }
 
-    public static void addVert(VertexConsumer builder, BERGraphics<?> graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
+    public static void addVert(VertexConsumer builder, RenderGraphics graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
         builder.vertex(graphics.poseStack().last().pose(), x, y, z).color(r, g, b, a).uv(u, v).uv2(lu, lv).overlayCoords(OverlayTexture.NO_OVERLAY).normal(graphics.poseStack().last().normal(), 0, 0, 1).endVertex();
     }
 
-    private static void renderWithoutAO(VertexConsumer builder, BERGraphics<?> graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
+    private static void renderWithoutAO(VertexConsumer builder, RenderGraphics graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
         addVert(builder, graphics, x0, y0, z0, u0, v0, r, g, b, a, packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF);
         addVert(builder, graphics, x0, y1, z0, u0, v1, r, g, b, a, packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF);
         addVert(builder, graphics, x1, y1, z1, u1, v1, r, g, b, a, packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF);
@@ -103,12 +103,12 @@ public final class BERUtils {
     }
 
     @SuppressWarnings("resource")
-    private static void renderWithAO(BlockEntity be, BlockState state, Direction direction, VertexConsumer builder, BERGraphics<?> graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
+    private static void renderWithAO(Direction direction, VertexConsumer builder, BERGraphics<?> graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
         float[] afloat = new float[Direction.values().length * 2];
         BitSet bitset = new BitSet(3);
         ModelBlockRenderer.AmbientOcclusionFace ao = new AmbientOcclusionFace();
         BlockAndTintGetter batg = Minecraft.getInstance().level;
-        ao.calculate(batg, state, be.getBlockPos(), direction, afloat, bitset, true);
+        ao.calculate(batg, graphics.blockEntity().getBlockState(), graphics.blockEntity().getBlockPos(), direction, afloat, bitset, true);
         
         addVert(builder, graphics, x0, y0, z0, u0, v0, r * ao.brightness[0], g * ao.brightness[0], b * ao.brightness[0], a, ao.lightmap[0] & 0xFFFF, (ao.lightmap[0] >> 16) & 0xFFFF);
         addVert(builder, graphics, x0, y1, z0, u0, v1, r * ao.brightness[1], g * ao.brightness[1], b * ao.brightness[1], a, ao.lightmap[1] & 0xFFFF, (ao.lightmap[1] >> 16) & 0xFFFF);
@@ -117,8 +117,8 @@ public final class BERUtils {
     }
 
     @SuppressWarnings("resources")
-    public static void addQuadSide(Direction direction, VertexConsumer builder, BERGraphics<?> graphics, boolean ao, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
-        if (!ao || !Minecraft.useAmbientOcclusion() || graphics.blockEntity().getLevel() == null || graphics.blockEntity().getBlockPos() == null) {
+    public static void addQuadSide(Direction direction, VertexConsumer builder, RenderGraphics graphics, boolean ao, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
+        if (!ao || !Minecraft.useAmbientOcclusion() || !(graphics instanceof BERGraphics<?> berGraphics) || berGraphics.blockEntity().getLevel() == null || berGraphics.blockEntity().getBlockPos() == null) {
             try {
                 renderWithoutAO(builder, graphics, x0, y0, z0, x1, y1, z1, u0, v0, u1, v1, r, g, b, a, packedLight);
             } catch (Exception e2) {
@@ -126,7 +126,7 @@ public final class BERUtils {
             }
         } else {
             try {
-                renderWithAO(graphics.blockEntity(), graphics.blockEntity().getBlockState(), direction, builder, graphics, x0, y0, z0, x1, y1, z1, u0, v0, u1, v1, r, g, b, a, packedLight);
+                renderWithAO(direction, builder, berGraphics, x0, y0, z0, x1, y1, z1, u0, v0, u1, v1, r, g, b, a, packedLight);
                 aoRenderingErrorKnown = false;
             } catch (Exception e) {
                 if (!aoRenderingErrorKnown) {
@@ -143,15 +143,15 @@ public final class BERUtils {
         }
     }
 
-    public static void fillColor(BERGraphics<?> graphics, float x, float y, float z, float w, float h, int color, Direction facing, int light) {
+    public static void fillColor(RenderGraphics graphics, float x, float y, float z, float w, float h, int color, Direction facing, int light) {
         renderTexture(BLANK_TEXTURE_LOCATION, graphics, false, x, y, z, w, h, 0, 0, 1, 1, facing, color, light);
     }
 
-    public static void fillColor(BERGraphics<?> graphics, float x, float y, float z, float w, float h, int color, Direction facing) {
+    public static void fillColor(RenderGraphics graphics, float x, float y, float z, float w, float h, int color, Direction facing) {
         fillColor(graphics, x, y, z, w, h, color, facing, graphics.packedLight());
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {
         float dx = x;
         switch (alignment) {
             case RIGHT:
@@ -166,23 +166,23 @@ public final class BERUtils {
         font.drawInBatch(text, dx, y, color, drawShadow, graphics.poseStack().last().pose(), graphics.multiBufferSource(), transparent ? DisplayMode.SEE_THROUGH : DisplayMode.NORMAL, backgroundColor, packedLight);
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
         drawString(graphics, font, x, y, text, color, alignment, drawShadow, false, 0, packedLight);
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow) {
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow) {
         drawString(graphics, font, x, y, text, color, alignment, drawShadow, graphics.packedLight());
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {        
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {        
         drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, drawShadow, transparent, backgroundColor, packedLight);
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
         drawString(graphics, font, x, y, text, color, alignment, drawShadow, false, 0, packedLight);
     }
 
-    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow) {
+    public static void drawString(RenderGraphics graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow) {
         drawString(graphics, font, x, y, text, color, alignment, drawShadow, graphics.packedLight());
     }
 }

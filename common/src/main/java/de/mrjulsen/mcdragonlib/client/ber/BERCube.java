@@ -124,7 +124,7 @@ public class BERCube {
         return ImmutableList.copyOf(quads);
     }
     
-    public void render(BERGraphics<?> graphics) {
+    public void render(RenderGraphics graphics) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(width / 2f, height / 2f, depth / 2f);
         for (BERQuad quad : quads) {            

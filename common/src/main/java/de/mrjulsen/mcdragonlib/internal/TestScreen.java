@@ -90,7 +90,7 @@ public class TestScreen extends DLScreen {
         AtomicReference<TestContainer> container = new AtomicReference<>();
         DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
         scrollBar.setScreenSize(90);
-        scrollBar.updateMaxScroll(20 * 20);
+        scrollBar.setMaxScroll(20 * 20);
         scrollBar.setStepSize(8);
         scrollBar.setAutoScrollerSize(true);
         scrollBar.withOnValueChanged((bar) -> {

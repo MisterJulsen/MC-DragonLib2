@@ -1,41 +1,42 @@
 {
   "schemaVersion": 1,
-  "id": "dragonlib",
+  "id": "${modid}",
   "version": "${version}",
-  "name": "DragonLib",
-  "description": "DragonLib is a small and simple Multiloader Minecraft Library Mod which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. If you are a developer and want to use the mod, then you are welcome, but at your own risk!",
+  "name": "${display_name}",
+  "description": "${description}",
   "authors": [
-    "MrJulsen"
+    "${authors}"
   ],
   "contact": {
-    "homepage": "https://github.com/MisterJulsen/MC-DragonLib2",
-    "sources": "https://github.com/MisterJulsen/MC-DragonLib2",
-    "issues": "https://github.com/MisterJulsen/MC-DragonLib2/issues"
+    "homepage": "${homepage}",
+    "issues": "${issues}",
+    "sources": "${source}"
   },
-  "license": "GNU General Public License v3.0",
-  "icon": "icon.png",
+  "license": "${license}",
+  "icon": "${icon}",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "de.mrjulsen.mcdragonlib.fabric.DragonLibFabric"
+      "${maven_group}.fabric.${display_name}Fabric"
     ]
   },
   "mixins": [
-    "dragonlib.mixins.json"
+    "${modid}.mixins.json"
   ],
   "depends": {
-    "fabric": "*",
-    "minecraft": ">=1.20.1",
-    "architectury": ">=9.1.12"
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
+    "architectury": ">=${architectury_api_version}",
+    "fabric-api": "*"
   },
   "custom": {
     "modmenu": {
       "links": {
-        "Discord": "https://discord.gg/AeSbNgvc7f"
+        "Discord": "${discord}"
       },
-      "badges": [ "library" ],
       "update_checker": true
     }
   },
-  "accessWidener": "dragonlib.accesswidener"
+  "accessWidener": "${modid}.accesswidener"
 }

@@ -18,7 +18,7 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     public static final int MIN_SCROLLBAR_THICKNESS = 7;
     public static final int MIN_SCROLLER_SIZE = 5;
 
-    protected final GuiAreaDefinition scrollArea;
+    protected GuiAreaDefinition scrollArea;
 
     protected double scrollPercentage;
     protected double scroll;
@@ -119,6 +119,11 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
         return self();
     }
 
+    public T setScrollArea(GuiAreaDefinition area) {
+        this.scrollArea = area;
+        return self();
+    }
+
     public boolean getAutoScrollerSize() {
         return this.autoScrollerSize;
     }
@@ -133,6 +138,10 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
 
     public int getScreenSize() {
         return maxUnitsPerPage;
+    }
+
+    public GuiAreaDefinition getScrollArea() {
+        return scrollArea;
     }
 
 

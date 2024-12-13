@@ -1,6 +1,6 @@
 {
   "pack": {
-    "description": "DragonLib",
+    "description": "${display_name}",
     "pack_format": 15
   }
 }
