@@ -9,7 +9,6 @@ version = "${version}"
 displayName = "${display_name}"
 displayUrl="${homepage}"
 authors = "${authors}"
-credits="This mod is inspired by Mapper's RoadStuff mod."
 description = '''${description}'''
 logoFile = "${icon}"
 
