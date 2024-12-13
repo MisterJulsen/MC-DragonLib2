@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -291,16 +292,20 @@ public class DragonLib {
         return ModCommonConfig.DAYTIME_SHIFT.get();
     }
 
-    /** The current tick speed. */
+    /** ticks per second */
     public static double tps() {
-        int msPerTick = 50;
-        return (1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+        return mcTps() * ModCommonConfig.TIME_MULTIPLIER.get();
     }
 
-    /** Minecraft's current default tick speed. */
+    /** Minecraft's ticks per second */
     public static double mcTps() {
-        return 20D;
+        return (double)TimeUnit.SECONDS.toMillis(1) / (double)MinecraftServer.MS_PER_TICK;
     } 
+
+    /** ms per tick */
+    public static double mspt() {
+        return (double)MinecraftServer.MS_PER_TICK * ModCommonConfig.TIME_MULTIPLIER.get();
+    }
 
     public static long ticksPerRealLifeDay() {
         long msPerDay = MS_PER_REAL_LIFE_DAY;
