@@ -291,10 +291,16 @@ public class DragonLib {
         return ModCommonConfig.DAYTIME_SHIFT.get();
     }
 
-    public static long tps() {
+    /** The current tick speed. */
+    public static double tps() {
         int msPerTick = 50;
-        return (long)(1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+        return (1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
     }
+
+    /** Minecraft's current default tick speed. */
+    public static double mcTps() {
+        return 20D;
+    } 
 
     public static long ticksPerRealLifeDay() {
         long msPerDay = MS_PER_REAL_LIFE_DAY;
