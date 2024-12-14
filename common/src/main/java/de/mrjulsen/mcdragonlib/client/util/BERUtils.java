@@ -72,7 +72,12 @@ public final class BERUtils {
         short[] argb = ColorUtils.decodeARGB(color);
         RenderSystem.setShaderColor(argb[1], argb[2], argb[3], argb[0]);
     }
-
+    
+    @Deprecated(forRemoval = true)
+    public static void renderTexture(ResourceLocation texture, BERGraphics<?> graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint, int light) {
+        renderTexture(texture, (RenderGraphics)graphics, ao, x, y, z, w, h, u0, v0, u1, v1, facing, tint, light);
+    }
+    
     public static void renderTexture(ResourceLocation texture, RenderGraphics graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint, int light) {
         VertexConsumer vertexconsumer = graphics.vertexConsumer(texture);
         short[] color = ColorUtils.decodeARGB(tint);
@@ -85,9 +90,19 @@ public final class BERUtils {
             light
         );        
     }
+    
+    @Deprecated(forRemoval = true)
+    public static void renderTexture(ResourceLocation texture, BERGraphics<?> graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint) {
+        renderTexture(texture, (RenderGraphics)graphics, ao, x, y, z, w, h, u0, v0, u1, v1, facing, tint);
+    }
 
     public static void renderTexture(ResourceLocation texture, RenderGraphics graphics, boolean ao, float x, float y, float z, float w, float h, float u0, float v0, float u1, float v1, Direction facing, int tint) {
         renderTexture(texture, graphics, ao, x, y, z, w, h, u0, v0, u1, v1, facing, tint, graphics.packedLight());        
+    }
+    
+    @Deprecated(forRemoval = true)
+    public static void addVert(VertexConsumer builder, BERGraphics<?> graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
+        addVert(builder, (RenderGraphics)graphics, x, y, z, u, v, r, g, b, a, lu, lv);
     }
 
     public static void addVert(VertexConsumer builder, RenderGraphics graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
@@ -115,6 +130,11 @@ public final class BERUtils {
         addVert(builder, graphics, x1, y0, z1, u1, v0, r * ao.brightness[3], g * ao.brightness[3], b * ao.brightness[3], a, ao.lightmap[3] & 0xFFFF, (ao.lightmap[3] >> 16) & 0xFFFF);
     }
 
+    @Deprecated(forRemoval = true)
+    public static void addQuadSide(Direction direction, VertexConsumer builder, BERGraphics<?> graphics, boolean ao, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
+        addQuadSide(direction, builder, (RenderGraphics)graphics, ao, x0, y0, z0, x1, y1, z1, u0, v0, u1, v1, r, g, b, a, packedLight);
+    }
+    
     @SuppressWarnings("resources")
     public static void addQuadSide(Direction direction, VertexConsumer builder, RenderGraphics graphics, boolean ao, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
         if (!ao || !Minecraft.useAmbientOcclusion() || !(graphics instanceof BERGraphics<?> berGraphics) || berGraphics.blockEntity().getLevel() == null || berGraphics.blockEntity().getBlockPos() == null) {
@@ -142,10 +162,20 @@ public final class BERUtils {
         }
     }
 
+    @Deprecated(forRemoval = true)
+    public static void fillColor(BERGraphics<?> graphics, float x, float y, float z, float w, float h, int color, Direction facing, int light) {
+        fillColor((RenderGraphics)graphics, x, y, z, w, h, color, facing, light);
+    }
+
     public static void fillColor(RenderGraphics graphics, float x, float y, float z, float w, float h, int color, Direction facing, int light) {
         renderTexture(BLANK_TEXTURE_LOCATION, graphics, false, x, y, z, w, h, 0, 0, 1, 1, facing, color, light);
     }
 
+    @Deprecated(forRemoval = true)
+    public static void fillColor(BERGraphics<?> graphics, float x, float y, float z, float w, float h, int color, Direction facing) {
+        fillColor((RenderGraphics)graphics, x, y, z, w, h, color, facing);
+    }
+    
     public static void fillColor(RenderGraphics graphics, float x, float y, float z, float w, float h, int color, Direction facing) {
         fillColor(graphics, x, y, z, w, h, color, facing, graphics.packedLight());
     }
@@ -183,5 +213,35 @@ public final class BERUtils {
 
     public static void drawString(RenderGraphics graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow) {
         drawString(graphics, font, x, y, text, color, alignment, drawShadow, graphics.packedLight());
+    }
+    
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow, transparent, backgroundColor, packedLight);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow, packedLight);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, Component text, int color, EAlignment alignment, boolean drawShadow) {
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, boolean transparent, int backgroundColor, int packedLight) {        
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow, transparent, backgroundColor, packedLight);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow, int packedLight) {        
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow, packedLight);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static void drawString(BERGraphics<?> graphics, Font font, float x, float y, String text, int color, EAlignment alignment, boolean drawShadow) {
+        drawString((RenderGraphics)graphics, font, x, y, text, color, alignment, drawShadow);
     }
 }
