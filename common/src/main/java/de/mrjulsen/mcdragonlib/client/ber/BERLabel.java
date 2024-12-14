@@ -323,8 +323,18 @@ public class BERLabel {
         }
     }
 
+    @Deprecated(forRemoval = true)
+    public void render(BERGraphics<?> graphics) {
+        render((RenderGraphics)graphics);
+    }
+
     public void render(RenderGraphics graphics) {
         render(graphics, graphics.packedLight());
+    }
+
+    @Deprecated(forRemoval = true)
+    public void render(BERGraphics<?> graphics, int light) {
+        render((RenderGraphics)graphics, light);
     }
 
     @SuppressWarnings("resource")

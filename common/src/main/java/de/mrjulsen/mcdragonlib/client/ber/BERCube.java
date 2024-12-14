@@ -120,11 +120,16 @@ public class BERCube {
     public ImmutableList<BERQuad> getAllQuads() {
         return ImmutableList.copyOf(quads);
     }
-    
+
+    @Deprecated(forRemoval = true)
+    public void render(BERGraphics<?> graphics) {
+        render((RenderGraphics)graphics);
+    }
+
     public void render(RenderGraphics graphics) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(width / 2f, height / 2f, depth / 2f);
-        for (BERQuad quad : quads) {            
+        for (BERQuad quad : quads) {
             if (quad == null) {
                 continue;
             }
