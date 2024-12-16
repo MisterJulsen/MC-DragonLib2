@@ -83,22 +83,12 @@ public class BERQuad {
         this.rotation = rotation;
     }
 
-    @Deprecated(forRemoval = true)
-    public void render(BERGraphics<?> graphics) {
-        render((RenderGraphics)graphics);
-    }
-
     public void render(RenderGraphics graphics) {
         render(graphics, 0, 0, 0);
     }
     
     public void renderPx(RenderGraphics graphics) {
         renderPx(graphics, 0, 0, 0);
-    }
-    
-    @Deprecated(forRemoval = true)
-    public void render(BERGraphics<?> graphics, float x, float y, float z) {
-        render((RenderGraphics)graphics, x, y, z);
     }
 
     public void render(RenderGraphics graphics, float x, float y, float z) {
