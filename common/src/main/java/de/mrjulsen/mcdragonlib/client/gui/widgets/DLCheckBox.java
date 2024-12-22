@@ -11,6 +11,7 @@ import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.data.Cache;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 
@@ -21,26 +22,33 @@ public class DLCheckBox extends DLButton {
 
     protected boolean checked;
 
-    protected final GuiAreaDefinition boxArea;
+    protected final Cache<GuiAreaDefinition> boxArea = new Cache<>(() -> new GuiAreaDefinition(x(), y() + (DEFAULT_CHECKBOX_HEIGHT + 4) / 2 - DEFAULT_CHECKBOX_HEIGHT / 2, DEFAULT_CHECKBOX_HEIGHT, DEFAULT_CHECKBOX_HEIGHT));
     protected final Consumer<DLCheckBox> onCheckedChanged;
 
     public DLCheckBox(int pX, int pY, int pWidth, String pMessage, boolean checked, Consumer<DLCheckBox> onCheckedChanged) {
         super(pX, pY, pWidth, DEFAULT_CHECKBOX_HEIGHT + 4, TextUtils.text(pMessage), (b) -> ((DLCheckBox)b).toggleChecked());
-        boxArea = new GuiAreaDefinition(getX(), getY() + (DEFAULT_CHECKBOX_HEIGHT + 4) / 2 - DEFAULT_CHECKBOX_HEIGHT / 2, DEFAULT_CHECKBOX_HEIGHT, DEFAULT_CHECKBOX_HEIGHT);
         setChecked(checked);
         this.onCheckedChanged = onCheckedChanged;
     }
 
     public boolean setChecked(boolean b) {
-        this.checked = b;
-        if (onCheckedChanged != null) {
+        return setChecked(b, true);
+    }
+
+    public boolean setChecked(boolean value, boolean callEvents) {
+        this.checked = value;
+        if (callEvents && onCheckedChanged != null) {
             onCheckedChanged.accept(this);
         }
         return checked;
     }
 
     public boolean toggleChecked() {
-        return setChecked(!checked);
+        return toggleChecked(true);
+    }
+
+    public boolean toggleChecked(boolean callEvents) {
+        return setChecked(!checked, callEvents);
     }
 
     public boolean isChecked() {
@@ -49,10 +57,10 @@ public class DLCheckBox extends DLButton {
 
     @Override
     public void renderMainLayer(Graphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        DynamicGuiRenderer.renderArea(graphics, boxArea, getBackColor(), getStyle(), ButtonState.DOWN);
+        DynamicGuiRenderer.renderArea(graphics, boxArea.get(), getBackColor(), getStyle(), ButtonState.DOWN);
         GuiUtils.resetTint();
         if (isMouseSelected()) {
-            GuiUtils.drawBox(graphics, boxArea, 0, 0xFFFFFFFF);
+            GuiUtils.drawBox(graphics, boxArea.get(), 0, 0xFFFFFFFF);
         }
         if (isChecked()) {
             GuiUtils.setTint(active() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
@@ -75,6 +83,30 @@ public class DLCheckBox extends DLButton {
         }
 
         super.renderFrontLayer(graphics, mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public void set_width(int w) {        
+        super.set_width(w);
+        boxArea.clear();
+    }
+
+    @Override
+    public void set_height(int h) {
+        super.set_height(h);
+        boxArea.clear();
+    }
+
+    @Override
+    public void set_x(int x) {
+        super.set_x(x);
+        boxArea.clear();
+    }
+
+    @Override
+    public void set_y(int y) {
+        super.set_y(y);
+        boxArea.clear();
     }
     
 }
