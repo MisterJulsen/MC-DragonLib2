@@ -74,7 +74,7 @@ public class BERLabel {
         return rawXScale;
     });
     private final Cache<Float> textWidth = new Cache<>(() -> {
-        return getFontUtils().font.width(getText()) * textData.get().scale();
+        return getText().getString().isEmpty() ? 0 : getFontUtils().font.width(getText()) * textData.get().scale();
     });
     private final Map<Integer, CharData> charDataCache = new HashMap<>();
 
@@ -323,12 +323,12 @@ public class BERLabel {
         }
     }
 
-    public void render(BERGraphics<?> graphics) {
+    public void render(RenderGraphics graphics) {
         render(graphics, graphics.packedLight());
     }
 
     @SuppressWarnings("resource")
-    public void render(BERGraphics<?> graphics, int light) {
+    public void render(RenderGraphics graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();

@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -166,6 +167,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
+
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 OverlayManager.tickAll();
             });
@@ -215,7 +217,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         }
 
         // On server tick
-        TickEvent.Server.SERVER_POST.register((server) -> {            
+        TickEvent.Server.SERVER_POST.register((server) -> {           
             ScheduledTask.runScheduledTasks();
         });
 
@@ -301,9 +303,19 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         return ModCommonConfig.DAYTIME_SHIFT.get();
     }
 
-    public static long tps() {
-        int msPerTick = 50;
-        return (long)(1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+    /** ticks per second */
+    public static double tps() {
+        return mcTps() * ModCommonConfig.TIME_MULTIPLIER.get();
+    }
+
+    /** Minecraft's ticks per second */
+    public static double mcTps() {
+        return (double)TimeUnit.SECONDS.toMillis(1) / (double)DragonLib.getCurrentServer().map(x -> x.tickRateManager().millisecondsPerTick()).orElse(50f);
+    } 
+
+    /** ms per tick */
+    public static double mspt() {
+        return (double)DragonLib.getCurrentServer().map(x -> x.tickRateManager().millisecondsPerTick()).orElse(50f) * ModCommonConfig.TIME_MULTIPLIER.get();
     }
 
     public static long ticksPerRealLifeDay() {

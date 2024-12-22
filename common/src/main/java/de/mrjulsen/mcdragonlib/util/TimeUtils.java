@@ -14,6 +14,10 @@ public final class TimeUtils {
     private static final byte TIME_SPLITTER_HOURS_INDEX = 1;
     private static final byte TIME_SPLITTER_DAYS_INDEX = 2;
 
+    public static final long convertTicksToMs(long ticks) {
+        return (long)(ticks * DragonLib.mspt());
+    }
+
     public static final String formatDurationMs(long s) {
         Duration duration = Duration.ofMillis(s);
         long HH = duration.toHours();
