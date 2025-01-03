@@ -260,7 +260,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         widget.setX(x);
         widget.setY(y);
         widget.setWidth(width);
-        ((AbstractWidgetAccessor)widget).setHeight(height);
+        ((AbstractWidgetAccessor)widget).dragonlib$setHeight(height);
         
 		return addRenderableWidget(widget);
     }
