@@ -12,6 +12,8 @@ public class ModCommonConfig {
     public static final ForgeConfigSpec.ConfigValue<Double> TIME_MULTIPLIER;
     public static final ForgeConfigSpec.ConfigValue<ECachingMode> CACHING;
 
+    public static final ForgeConfigSpec.ConfigValue<Boolean> HIDE_SODIUM_WARNING;
+
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");
         
@@ -23,6 +25,9 @@ public class ModCommonConfig {
             .defineInRange("time.daytime_shift", 6000, 0, Integer.MAX_VALUE);
         CACHING = BUILDER.comment("Specifies how aggressively data should be cached. The lower the value, the less data will be cached, which can reduce RAM usage. However, depending on the situation, less caching can lead to increased CPU usage and cause lag. Only works with mods that actively use the feature! If in doubt, leave unchanged. (Default: NORMAL, OFF = only the most important data will be cached)")
             .defineEnum("caching.mode", ECachingMode.NORMAL);
+
+        HIDE_SODIUM_WARNING = BUILDER.comment("Hides the warning when Sodium is installed, but no mod that fixes the visual glitches.")
+            .define("compat.hide_sodium_warning", false);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

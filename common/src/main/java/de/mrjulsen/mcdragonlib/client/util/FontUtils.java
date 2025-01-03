@@ -25,7 +25,7 @@ public class FontUtils {
     @SuppressWarnings("resource")
     public FontUtils(ResourceLocation fontStyle) {
         this.font = Minecraft.getInstance().font;
-        this.fontSet = ((FontAccessor)this.font).invokeGetFontSet(fontStyle);
+        this.fontSet = ((FontAccessor)this.font).dragonlib$invokeGetFontSet(fontStyle);
     }    
 
     public BakedGlyphAccessor getGlyphAccessor(int charCode) {
@@ -34,7 +34,7 @@ public class FontUtils {
 
     public void pushUV(int charCode) {
         BakedGlyphAccessor glyph = getGlyphAccessor(charCode);
-        pushUV(charCode, glyph.getU0(), glyph.getV0(), glyph.getU1(), glyph.getV1());
+        pushUV(charCode, glyph.dragonlib$getU0(), glyph.dragonlib$getV0(), glyph.dragonlib$getU1(), glyph.dragonlib$getV1());
     }
 
     protected void pushUV(int charCode, float u0, float v0, float u1, float v1) {
@@ -55,10 +55,10 @@ public class FontUtils {
         }
         
         BakedGlyphAccessor glyph = getGlyphAccessor(charCode);
-        glyph.setU0(data.u0());
-        glyph.setV0(data.v0());
-        glyph.setU1(data.u1());
-        glyph.setV1(data.v1());
+        glyph.dragonlib$setU0(data.u0());
+        glyph.dragonlib$setV0(data.v0());
+        glyph.dragonlib$setU1(data.u1());
+        glyph.dragonlib$setV1(data.v1());
         return true;
     }
 
