@@ -25,7 +25,7 @@ public class TextureManagerMixin {
 
     @PlatformOnly(value = PlatformOnly.FABRIC)
     @Inject(method = "release", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;safeClose(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V", shift = Shift.BEFORE))
-    public void onRelease(ResourceLocation path, CallbackInfo ci) {
+    public void dragonlib$release(ResourceLocation path, CallbackInfo ci) {
         this.byPath.remove(path);
     }
 }

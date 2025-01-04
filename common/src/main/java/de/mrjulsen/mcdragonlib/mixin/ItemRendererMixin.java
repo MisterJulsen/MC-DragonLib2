@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 public class ItemRendererMixin {
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V", shift = Shift.BEFORE))
-    public void onRender(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
+    public void dragonlib$render(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (itemStack.getItem() instanceof ICustomItemRenderer renderer) {
             poseStack.pushPose();
             RenderGraphics graphics = new RenderGraphics(poseStack, bufferSource, combinedLight, combinedOverlay);
