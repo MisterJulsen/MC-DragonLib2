@@ -22,12 +22,12 @@ public class AbstractContainerScreenMixin extends Screen {
     }
 
     @Redirect(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(DDI)Z"))
-    private boolean changeCondition(Screen screen, double a, double b, int c) {
+    private boolean dragonlib$mouseClicked(Screen screen, double a, double b, int c) {
         return !(screen instanceof IDragonLibWidget) && super.mouseClicked(a, b, c);
     }
 
     @Inject(method = "render", at = @At(value = "TAIL"))
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    public void dragonlib$render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if ((AbstractContainerScreen<?>)(Object)this instanceof DLContainerScreen screen) {
             Graphics graphics = new Graphics(guiGraphics, guiGraphics.pose());
             graphics.poseStack().pushPose();

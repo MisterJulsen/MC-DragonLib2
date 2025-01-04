@@ -247,7 +247,7 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
         widget.setX(x);
         widget.setY(y);
         widget.setWidth(width);
-        ((AbstractWidgetAccessor)widget).setHeight(height);
+        ((AbstractWidgetAccessor)widget).dragonlib$setHeight(height);
         
 		return addRenderableWidget(widget);
     }

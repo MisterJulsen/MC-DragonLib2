@@ -11,31 +11,31 @@ public interface BakedGlyphAccessor {
     
 	@Mutable
     @Accessor("u0")
-    void setU0(float value);
+    void dragonlib$setU0(float value);
 	
     @Accessor("u0")
-    float getU0();
+    float dragonlib$getU0();
 
 	@Mutable
     @Accessor("u1")
-    void setU1(float value);
+    void dragonlib$setU1(float value);
 
     @Accessor("u1")
-    float getU1();
+    float dragonlib$getU1();
 
 
     @Mutable
     @Accessor("v0")
-    void setV0(float value);
+    void dragonlib$setV0(float value);
 
     @Accessor("v0")
-    float getV0();
+    float dragonlib$getV0();
 
     @Mutable
     @Accessor("v1")
-    void setV1(float value);
+    void dragonlib$setV1(float value);
 	
     @Accessor("v1")
-    float getV1();
+    float dragonlib$getV1();
 
 }

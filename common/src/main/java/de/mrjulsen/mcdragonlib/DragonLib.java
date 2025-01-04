@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
@@ -244,6 +245,9 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
         });
         */
+        if (Platform.getEnv() == EnvType.CLIENT) {
+            CompatManager.run();
+        }
 
         // After loading
         printDraconicWelcomeMessage();
