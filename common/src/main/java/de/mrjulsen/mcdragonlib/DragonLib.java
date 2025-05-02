@@ -251,7 +251,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             CompatManager.run();
         }
 
-        CommandRegistrationEvent.EVENT.register((dispatcher, selection) -> {
+        CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) -> {
             DebugCommand.register(dispatcher, selection);
         });
 
