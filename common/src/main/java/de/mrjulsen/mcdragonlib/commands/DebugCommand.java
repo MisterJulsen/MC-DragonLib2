@@ -42,12 +42,12 @@ public class DebugCommand {
     }
 
     private static int networkingActiveCallbacks(CommandSourceStack cmd) throws CommandSyntaxException {
-        cmd.sendSuccess(TextUtils.text("The following network callbacks are waiting:\n" + DataAccessor.debug_activeCallbacks()), false);
+        cmd.sendSuccess(() -> TextUtils.text("The following network callbacks are waiting:\n" + DataAccessor.debug_activeCallbacks()), false);
         return 1;
     }
 
     private static int networkingActiveTasks(CommandSourceStack cmd) throws CommandSyntaxException {
-        cmd.sendSuccess(TextUtils.text("The following network tasks are running:\n" + AbstractDataAccessorPacket.debug_activeTasks()), false);
+        cmd.sendSuccess(() -> TextUtils.text("The following network tasks are running:\n" + AbstractDataAccessorPacket.debug_activeTasks()), false);
         return 1;
     }
 }
