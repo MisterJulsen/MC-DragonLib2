@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
@@ -23,6 +24,7 @@ import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
@@ -248,6 +250,10 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         if (Platform.getEnv() == EnvType.CLIENT) {
             CompatManager.run();
         }
+
+        CommandRegistrationEvent.EVENT.register((dispatcher, selection) -> {
+            DebugCommand.register(dispatcher, selection);
+        });
 
         // After loading
         printDraconicWelcomeMessage();
