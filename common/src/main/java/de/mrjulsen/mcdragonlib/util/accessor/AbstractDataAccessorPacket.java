@@ -1,9 +1,12 @@
 package de.mrjulsen.mcdragonlib.util.accessor;
 
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
@@ -12,6 +15,7 @@ import de.mrjulsen.mcdragonlib.util.WorkerAsync;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
@@ -62,6 +66,7 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
         contextSupplier.get().queue(() -> {
             WorkerAsync worker = DataAccessor.getWorker(packet.sendToClient);
             worker.queueTask(() -> {
+                debug_activeTasksTracker.merge(packet.type.getId(), 1, Integer::sum);
                 CompoundTag nbt;
                 MutableSingle<Object> tempData = new MutableSingle<>(null);
                 boolean hasMore = true;
@@ -76,6 +81,8 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
                     }
                     iteration++;
                 } while (hasMore);
+
+                debug_activeTasksTracker.computeIfPresent(packet.type.getId(), (k, v) -> v > 1 ? v - 1 : null);
             });
         });
     }
@@ -85,5 +92,17 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
     public abstract boolean processServer(Player player, I param, DataAccessorType<I, C, O> type, MutableSingle<Object> temp, CompoundTag nbt, int iteration);
     public abstract C receiveChunk(boolean hasMore, C previous, int iteration, CompoundTag nbt);
     public abstract O processClient(C chunks);
+
+
     
+    private static final Map<ResourceLocation, Integer> debug_activeTasksTracker = new ConcurrentHashMap<>();
+    
+
+
+    public static String debug_activeTasks() {
+        return debug_activeTasksTracker.entrySet()
+            .stream()
+            .map(e -> " - " + e.getKey() + ": " + e.getValue())
+            .collect(Collectors.joining("\n"));
+    }
 }
