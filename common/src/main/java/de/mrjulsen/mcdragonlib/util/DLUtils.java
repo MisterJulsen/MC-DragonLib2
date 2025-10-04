@@ -248,4 +248,14 @@ public final class DLUtils {
     public ChunkPos getChunkOfSection(SectionPos section) {
         return new ChunkPos(section.getX(), section.getZ());
     }
+
+    public static boolean isValidURL(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            url.toURI();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

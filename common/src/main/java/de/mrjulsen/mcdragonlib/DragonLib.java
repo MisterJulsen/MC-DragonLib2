@@ -30,12 +30,14 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -148,9 +150,10 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
-    @SuppressWarnings({ "resource", "removal" })
+    @SuppressWarnings({ "removal" })
     public static void init() {
         if (initialized) {
+            // You shall not pass!
             throw new IllegalAccessError("Prohibited to init DragonLib manually!");
         }
         initialized = true;
@@ -165,7 +168,6 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
-
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
@@ -237,14 +239,8 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-        });  
+        }); 
         
-        
-        /*
-        ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
-            BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
-        });
-        */
         if (Platform.getEnv() == EnvType.CLIENT) {
             CompatManager.run();
         }
@@ -327,7 +323,24 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
      * @see 🐉
      */
     private static final void printDraconicWelcomeMessage() {
-        String[] dragonTypes = {"Dragon", "Fire Dragon", "Ice Dragon", "Lightning Dragon", "Mountain Dragon", "Poison Dragon", "Drake", "Wyvern", "MrJulsen", "Toothless", "Drogon", "Smaug", "Ender Dragon", "Do you think dragons exist?"};
+        String[] dragonTypes = {
+            "Dragon",
+            "Fire Dragon",
+            "Ice Dragon",
+            "Lightning Dragon",
+            "Mountain Dragon",
+            "Poison Dragon",
+            "Drake",
+            "Wyvern",
+            "MrJulsen",
+            "Toothless",
+            "Drogon",
+            "Smaug",
+            "Ender Dragon",
+            "Do you think dragons exist?",
+            "Here be Dragons!"
+        };
+        LOGGER.info("Starting the setup of DragonLib...");
         new Thread(() -> {
             Mod mod = Platform.getMod(MODID);
             List<String> lines = new ArrayList<>();
@@ -335,7 +348,13 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             String border = "+++ 🐉 +++";
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
-            lines.add(String.format("Minecraft %s%s%s", Platform.isForge() ? "Forge " : (Platform.isFabric() ? "Fabric " : ""), Platform.getMinecraftVersion(), Platform.isDevelopmentEnvironment() ? " (Dev)" : ""));
+            lines.add(String.format("Minecraft %s %s %s%s%s",
+                Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : ""),
+                (Platform.getEnvironment() == Env.CLIENT ? "Client" : (Platform.getEnvironment() == Env.SERVER ? "Server" : "?")),
+                Platform.getMinecraftVersion(),
+                getModloaderVersion(),
+                Platform.isDevelopmentEnvironment() ? " (Dev)" : "")
+            );
             lines.add("");
             lines.add(String.format("Discord: %s", MRJULSEN_DISCORD));
             lines.add(String.format("GitHub: %s", mod.getHomepage().orElse("unknown")));
@@ -368,5 +387,14 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < width; i++) sb.append(c);
         return sb.toString();
+    }
+
+    private static String getModloaderVersion() {
+        if (Platform.isForge()) {
+            return Platform.getOptionalMod("forge").map(x -> "-" + x.getVersion()).orElse("");
+        } else if (Platform.isFabric()) {
+            return Platform.getOptionalMod("fabric").map(x -> "-" + x.getVersion()).orElse("");
+        }
+        return "";
     }
 }

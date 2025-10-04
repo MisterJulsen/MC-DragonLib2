@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 /**
  * @author MrCrayfish
- * @see https://github.com/MrCrayfish/MrCrayfishFurnitureMod/blob/1.18.X/src/main/java/com/mrcrayfish/furniture/util/BlockEntityUtil.java
  */
 public class BlockEntityUtil
 {

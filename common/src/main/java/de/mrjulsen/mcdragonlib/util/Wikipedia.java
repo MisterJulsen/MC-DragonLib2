@@ -96,7 +96,7 @@ public class Wikipedia {
             if (articleLanguages.containsKey(langId)) {                
                 url = String.format("https://%s.wikipedia.org/wiki/%s", language, articleLanguages.get(langId));
             } else if (articleLanguages.containsKey("enwiki")) {                
-                url = String.format("https://en.wikipedia.org/wiki/%s", language, articleLanguages.get("enwiki"));
+                url = String.format("https://%s.wikipedia.org/wiki/%s", language, articleLanguages.get("enwiki"));
             } else if (articleLanguages.size() > 0) {                
                 Entry<String, String> firstEntry = articleLanguages.entrySet().stream().findFirst().get();
                 url = String.format("https://%s.wikipedia.org/wiki/%s", firstEntry.getKey().replace("wiki", ""), firstEntry.getValue());

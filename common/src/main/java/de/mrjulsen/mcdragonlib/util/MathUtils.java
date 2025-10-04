@@ -12,6 +12,13 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
 
 public final class MathUtils {
+
+    public static double bounds(double value, double add, double min, double max) {
+        if ((add > 0 && value >= max - add) || (add < 0 && value <= min + add)) {
+            return value;
+        }
+        return value + add;
+    }
     
     public static double round(double value, int decimals) {
         if (decimals < 0)

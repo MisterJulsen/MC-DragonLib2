@@ -1,13 +1,13 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 
 public class ClientWrapper {
     public static void openTestScreen() {
-        DLScreen.setScreen(new TestScreen(TextUtils.text("TestScreen")));
+        Minecraft.getInstance().setScreen(new DLScreenWrapper(root -> new DLWindow(root)));
     }
 
     @SuppressWarnings("resource")

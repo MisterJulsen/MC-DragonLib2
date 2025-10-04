@@ -48,12 +48,11 @@ public class GuiUtils {
 
     public static void enableScissor(Graphics graphics, int x, int y, int w, int h) {
         int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();
-        RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
-        graphics.poseStack().pushPose();
+        //RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
+        RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);   
     }
 
     public static void disableScissor(Graphics graphics) {
-        graphics.poseStack().popPose();
         RenderSystem.disableScissor();
     }
 
@@ -370,5 +369,71 @@ public class GuiUtils {
 	}
 
     
+
+    
+    // einfache Linie zwischen zwei Punkten
+    public static void drawLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
+
+    // Dreieck füllen
+    public static void drawTriangle(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float x3, float y3, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x3, y3, 0).color(r, g, b, a).endVertex();
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
+
+    // Kreis füllen (approximiert durch viele Dreiecke)
+    public static void drawCircle(GuiGraphics guiGraphics, float cx, float cy, float radius, int segments, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
+
+        for (int i = 0; i <= segments; i++) {
+            double angle = 2 * Math.PI * i / segments;
+            float x = cx + (float)Math.cos(angle) * radius;
+            float y = cy + (float)Math.sin(angle) * radius;
+            buffer.vertex(x, y, 0).color(r, g, b, a).endVertex();
+        }
+
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
 
 }

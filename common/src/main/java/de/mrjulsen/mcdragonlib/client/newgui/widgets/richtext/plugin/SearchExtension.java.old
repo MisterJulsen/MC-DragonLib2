@@ -1,0 +1,137 @@
+package de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.plugin;
+
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.DLRichTextEditBox;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.RichTextComponent;
+import de.mrjulsen.mcdragonlib.client.util.Graphics;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SearchExtension {
+
+    private static final int SEARCH_HIGHLIGHT_COLOR = 0xA0FFFF00;
+
+    private RichTextBoxExtensionContext context;
+
+    private final List<DLRichTextEditBox.TextRange> searchResultHighlights = new ArrayList<>();
+    private String searchTerm = "";
+    private int lastNavigatedHighlightIndex = -1;
+    private boolean caseSensitive = false;
+    private boolean wholeWords = false;
+
+    public void onExtensionActivated(RichTextBoxExtensionContext context) {
+        this.context = context;
+    }
+
+    public void onExtensionDeactivated() {
+    }
+
+    public void clearSearch() {
+        searchTerm = "";
+        lastNavigatedHighlightIndex = -1;
+        clearSearchHighlightsAndRefresh();
+    }
+
+    private void clearSearchHighlightsAndRefresh() {
+        if (!searchResultHighlights.isEmpty()) {
+            searchResultHighlights.clear();
+            lastNavigatedHighlightIndex = -1;
+        }
+    }
+
+    public boolean find() {
+        return find(searchTerm, caseSensitive, wholeWords);
+    }
+
+    public boolean find(String searchTerm, boolean caseSensitive, boolean wholeWords) {
+        if (searchTerm == null || context.getEditBox().getRichText() == null) {
+            clearSearch();
+            return false;
+        }
+        this.searchTerm = searchTerm;
+        this.caseSensitive = caseSensitive;
+        this.wholeWords = wholeWords;
+        this.lastNavigatedHighlightIndex = -1;
+        this.searchResultHighlights.clear();
+        if (searchTerm.isEmpty()) {
+            return false;
+        }
+
+        RichTextComponent rtc = context.getEditBox().getRichText();
+        String plainTextContent = rtc.getPlainText();
+        String textToSearchInEffective = caseSensitive ? plainTextContent : plainTextContent.toLowerCase();
+        String termToSearchEffective = wholeWords ? this.searchTerm : this.searchTerm.toLowerCase();
+        int termEffectiveCharLength = termToSearchEffective.length();
+        if (termEffectiveCharLength == 0) {
+            return false;
+        }
+
+        int currentSearchCharOffset = 0;
+        while (currentSearchCharOffset < textToSearchInEffective.length()) {
+            int foundCharIdx = textToSearchInEffective.indexOf(termToSearchEffective, currentSearchCharOffset);
+            if (foundCharIdx == -1) break;
+            if (caseSensitive) {
+                if (!isWholeWordMatch(plainTextContent, foundCharIdx, termEffectiveCharLength)) {
+                    currentSearchCharOffset = foundCharIdx + 1;
+                    continue;
+                }
+            }
+            int foundCpStart = plainTextContent.codePointCount(0, foundCharIdx);
+            String matchedOriginalTextSegment = plainTextContent.substring(foundCharIdx, foundCharIdx + termEffectiveCharLength);
+            int termOriginalCpLength = matchedOriginalTextSegment.codePointCount(0, matchedOriginalTextSegment.length());
+            searchResultHighlights.add(new DLRichTextEditBox.TextRange(foundCpStart, foundCpStart + termOriginalCpLength));
+            currentSearchCharOffset = foundCharIdx + termEffectiveCharLength;
+        }
+        if (!searchResultHighlights.isEmpty()) {
+            lastNavigatedHighlightIndex = 0;
+            navigateToHighlight(lastNavigatedHighlightIndex);
+        }
+        return !searchResultHighlights.isEmpty();
+    }
+
+    public boolean findNext() {
+        if (searchResultHighlights.isEmpty() || searchTerm.isEmpty()) return false;
+        if (lastNavigatedHighlightIndex == -1 || lastNavigatedHighlightIndex >= searchResultHighlights.size() - 1)
+            lastNavigatedHighlightIndex = 0;
+        else lastNavigatedHighlightIndex++;
+        navigateToHighlight(lastNavigatedHighlightIndex);
+        return true;
+    }
+
+    public boolean findPrevious() {
+        if (searchResultHighlights.isEmpty() || searchTerm.isEmpty()) return false;
+        if (lastNavigatedHighlightIndex <= 0) lastNavigatedHighlightIndex = searchResultHighlights.size() - 1;
+        else lastNavigatedHighlightIndex--;
+        navigateToHighlight(lastNavigatedHighlightIndex);
+        return true;
+    }
+
+    private void navigateToHighlight(int highlightListIndex) {
+        if (highlightListIndex < 0 || highlightListIndex >= searchResultHighlights.size()) return;
+        DLRichTextEditBox.TextRange targetRange = searchResultHighlights.get(highlightListIndex);
+        context.getEditBox().select(targetRange.start(), targetRange.end());
+    }
+
+    private boolean isWholeWordMatch(String text, int matchCharIndex, int matchCharLength) {
+        if (matchCharIndex > 0 && Character.isLetterOrDigit(text.codePointBefore(matchCharIndex))) return false;
+        return matchCharIndex + matchCharLength >= text.length() || !Character.isLetterOrDigit(text.codePointAt(matchCharIndex + matchCharLength));
+    }
+
+    public void onTextChanged() {
+        if (!searchResultHighlights.isEmpty()) {
+            searchResultHighlights.clear();
+            lastNavigatedHighlightIndex = -1;
+        }
+    }
+
+    public void onRenderBackground(Graphics graphics, int mouseX, int mouseY) {
+        float textContentScreenX = context.getEditBox().getLayoutContentX();
+        float textContentScreenY = context.getEditBox().getLayoutContentY();
+        float textContentW = context.getEditBox().getLayoutContentWidth();
+        float textContentH = context.getEditBox().getLayoutContentHeight();
+
+        if (!searchResultHighlights.isEmpty()) {
+            context.getEditBox().renderTextRangeHighlights(graphics, searchResultHighlights, SEARCH_HIGHLIGHT_COLOR, textContentScreenX, textContentScreenY, textContentW, textContentH);
+        }
+    }
+}

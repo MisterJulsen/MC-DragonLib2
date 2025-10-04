@@ -18,6 +18,9 @@
   "entrypoints": {
     "main": [
       "${maven_group}.fabric.${display_name}Fabric"
+    ],
+    "client": [
+      "${maven_group}.fabric.client.ClientEventsFabric"
     ]
   },
   "mixins": [
