@@ -2,10 +2,10 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.components;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.events.IEvent;
@@ -70,8 +70,8 @@ public class DLProgressBar extends DLGuiComponent {
 
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        GuiUtils.fill(graphics, 0, 0, width(), height(), borderColor.get().getAsARGB());
-        GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, backgroundColor.get().getAsARGB());
+        GuiUtils.fill(graphics, 0, 0, width(), height(), borderColor.get());
+        GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, backgroundColor.get());
 
         switch (style.get()) {
             case INDETERMINATE -> {
@@ -86,12 +86,12 @@ public class DLProgressBar extends DLGuiComponent {
                 int visibleWidth = visibleEndX - visibleX;
 
                 if (visibleWidth > 0) {
-                    GuiUtils.fill(graphics, visibleX, 2, visibleWidth, height() - 4, color.get().getAsARGB());
+                    GuiUtils.fill(graphics, visibleX, 2, visibleWidth, height() - 4, color.get());
                 }
             }
             default -> {                
                 int fillWidth = (int)((width() - 4) / max.get() * value.get());
-                GuiUtils.fill(graphics, 2, 2, fillWidth, height() - 4, color.get().getAsARGB());
+                GuiUtils.fill(graphics, 2, 2, fillWidth, height() - 4, color.get());
             }
         }
 

@@ -30,6 +30,7 @@ public enum CursorType {
 
         if (type == null) {
             GLFW.glfwSetCursor(window, MemoryUtil.NULL);
+            currentCursor = 0L;
             return;
         }
 

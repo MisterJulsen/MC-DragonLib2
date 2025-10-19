@@ -1,38 +1,67 @@
 package de.mrjulsen.mcdragonlib.core;
 
-public interface ITranslatableEnum {
-    /**
-     * Name of the enum class.
-     */
-    String getEnumName();
+import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.StringRepresentable;
+
+/**
+ * A small extension for enums that allows for easy translation without developing a lot of code.
+ * Especially useful for cases where the user has contact to the values of this enum to represent
+ * them ​​in human-readable text.
+ */
+public interface ITranslatableEnum extends StringRepresentable {
 
     /**
-     * Name of each enum value.
+     * A collection of required data for the enum translation keys.
+     * @param modid The id of the mod that translates this enum.
+     * @param enumName The name key of this enum.
+     * @param valueName The name key of this enum value.
      */
-    String getEnumValueName();
+    public static record Data(String modid, String enumName, String valueName) {}
 
     /**
-     * Format: enum.examplemod.<myenum>
+     * General information about the enum to create the translation keys.
      */
-    default String getEnumTranslationKey(String modid) {
-        return String.format("enum.%s.%s", modid, this.getEnumName());
+    Data getTranslationData();
+
+    @Override
+    default String getSerializedName() {
+        return getTranslationData().valueName();
     }
+
     /**
-     * Format: enum.examplemod.<myenum>.<examplevalue>
+     * @return The translation for the name of the enum.
+     * <p>Format: {@code enum.<modid>.<enumname>}</p>
      */
-    default String getValueTranslationKey(String modid) {
-        return String.format("enum.%s.%s.%s", modid, this.getEnumName(), this.getEnumValueName());
+    default MutableComponent getEnumTranslation() {
+        Data data = getTranslationData();
+        return TextUtils.translate("enum.%s.%s", data.modid(), data.enumName());
     }
+    
     /**
-     * Format: enum.examplemod.<myenum>.description
+     * @return The translation for the value name of the enum.
+     * <p>Format: {@code enum.<modid>.<enumname>.<valuename>}</p>
      */
-    default String getEnumDescriptionTranslationKey(String modid) {
-        return String.format("enum.%s.%s.description", modid, this.getEnumName());
+    default MutableComponent getValueTranslation() {
+        Data data = getTranslationData();
+        return TextUtils.translate("enum.%s.%s.%s", data.modid(), data.enumName(), data.valueName());
     }
+    
     /**
-     * Format: enum.examplemod.<myenum>.info.<examplevalue>
+     * @return The translation for the description of the enum.
+     * <p>Format: {@code enum.<modid>.<enumname>.description}</p>
      */
-    default String getValueInfoTranslationKey(String modid) {
-        return String.format("enum.%s.%s.info.%s", modid, this.getEnumName(), this.getEnumValueName());
+    default MutableComponent getEnumDescriptionTranslation() {
+        Data data = getTranslationData();
+        return TextUtils.translate("enum.%s.%s.description", data.modid(), data.enumName());
+    }
+    
+    /**
+     * @return The translation for the description of the value of the enum.
+     * <p>Format: {@code enum.<modid>.<enumname>.description.<valuename>}</p>
+     */
+    default MutableComponent getValueDescriptionTranslation() {
+        Data data = getTranslationData();
+        return TextUtils.translate("enum.%s.%s.description.%s", data.modid(), data.enumName(), data.valueName());
     }
 }

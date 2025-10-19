@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-public class BERGraphics<B extends BlockEntity> extends RenderGraphics { 
+public class BERGraphics<B extends BlockEntity> extends WorldGraphics { 
     
     protected final B blockEntity;
     protected final BlockEntityRendererProvider.Context berProviderContext;

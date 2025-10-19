@@ -8,9 +8,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
+import de.mrjulsen.mcdragonlib.util.Holder.MutableHolder;
 import dev.architectury.platform.Platform;
 
 import java.util.UUID;
@@ -126,11 +126,11 @@ public class DataAccessor {
      */
     public static <I, C, O> void getFromServer(I param, DataAccessorType<I, C, O> type, Consumer<O> output) {
         BasicDataAccessorPacket<I, C, O> instance = new BasicDataAccessorPacket<>();
-        MutableSingle<C> chunks = new MutableSingle<C>(null);
+        MutableHolder<C> chunks = new MutableHolder<C>(null);
         UUID id = addCallback((hasMore, iteration, nbt) -> {           
-            chunks.setFirst(instance.receiveChunk(hasMore, chunks.getFirst(), iteration, nbt));
+            chunks.set(instance.receiveChunk(hasMore, chunks.get(), iteration, nbt));
             if (!hasMore) {
-                output.accept(instance.processClient(chunks.getFirst()));
+                output.accept(instance.processClient(chunks.get()));
             }
         }, type);
         instance.setData(id, param, type, true);
@@ -161,11 +161,11 @@ public class DataAccessor {
      */
     public static <I, C, O> void getFromClient(ServerPlayer player, I param, DataAccessorType<I, C, O> type, Consumer<O> output) {    
         BasicDataAccessorPacket<I, C, O> instance = new BasicDataAccessorPacket<>();
-        MutableSingle<C> chunks = new MutableSingle<C>(null);
+        MutableHolder<C> chunks = new MutableHolder<C>(null);
         UUID id = addCallback((hasMore, iteration, nbt) -> {
-            chunks.setFirst(instance.receiveChunk(hasMore, chunks.getFirst(), iteration, nbt));
+            chunks.set(instance.receiveChunk(hasMore, chunks.get(), iteration, nbt));
             if (!hasMore) {
-                output.accept(instance.processClient(chunks.getFirst()));
+                output.accept(instance.processClient(chunks.get()));
             }
         }, type);
 

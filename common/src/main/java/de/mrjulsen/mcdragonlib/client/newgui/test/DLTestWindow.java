@@ -3,7 +3,7 @@ package de.mrjulsen.mcdragonlib.client.newgui.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joml.Vector2f;
+import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
@@ -18,28 +18,23 @@ import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLItemSelectionB
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLPanel;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLProgressBar;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLScrollBar;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLSlider;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLToggleButton;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLProgressBar.ProgressBarStyle;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLScrollBar.Orientation;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaListScrollBarRenderer;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.client.util.PolygonRenderUtil;
-import de.mrjulsen.mcdragonlib.client.util.ShapeRenderer;
-import de.mrjulsen.mcdragonlib.client.util.Triangulator;
-import de.mrjulsen.mcdragonlib.client.util.PolygonRenderUtil.OutlineMode;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 
 public class DLTestWindow extends DLWindow {
 
@@ -55,21 +50,38 @@ public class DLTestWindow extends DLWindow {
     public DLTestWindow(DLWindowManager manager) {
         super(manager);
         anchor.set(EAlign.values());
+        
+        addEventListener(DLGuiStandardEvents.KeyPressEvent.class, (s, e) -> {
+            if (e.keyCode() == GLFW.GLFW_KEY_ESCAPE) {
+                getWindowManager().close();
+            }
+            return false;
+        });
+
+        DLButton closeBtn = new DLButton(100, 0, 80, 20);
+        //closeBtn.anchor.set2(EAlign.TOP, EAlign.RIGHT);
+        closeBtn.text.set(TextUtils.text("Close"));
+        closeBtn.icon.set(new DLSprite(new ItemStack(Blocks.BARRIER), 16, false));
+        closeBtn.addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
+            getWindowManager().close();
+            return false;
+        });
+        addComponent(closeBtn);
 
         DLContextMenu contextMenu = new DLContextMenu((x, y) -> {
             List<DLContextMenu.ItemEntry> entries = new ArrayList<>();
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 1"), Sprite.empty(), true, () -> {}, (pX, pY) -> {
-                return List.of(new DLContextMenu.ItemEntry(TextUtils.text("Testitem 435"), Sprite.empty(), true, () -> {}, null));
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 1"), new DLSprite(new ItemStack(Blocks.RAIL, 27), 16, true), true, () -> {}, (pX, pY) -> {
+                return List.of(new DLContextMenu.ItemEntry(TextUtils.text("Testitem 435"), DLSprite.empty(), true, () -> {}, null));
             }));
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 2"), Sprite.empty(), false, () -> {}, null));
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 2"), DLSprite.empty(), false, () -> {}, null));
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("item 3"), Sprite.empty(), true, () -> {}, (pX, pY) -> entries));
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("item 3"), DLSprite.empty(), true, () -> {}, (pX, pY) -> entries));
             return entries;
         });
 
         btnTest = new DLButton(20, 20);
-        btnTest.textAlignment.set(EAlignment.CENTER);
-        btnTest.iconAlignment.set(EAlignment.CENTER);
+        btnTest.textAlignment.set(ETextAlignment.CENTER);
+        btnTest.iconAlignment.set(ETextAlignment.CENTER);
         btnTest.addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
             contextMenu.open(getWindowManager());
             return false;
@@ -123,7 +135,7 @@ public class DLTestWindow extends DLWindow {
         textbox.showLineHighlight.set(true);
         textbox.contentPadding.set(new Padding(2));
         textbox.decoratedPadding.set(new Padding(1));
-        textbox.enableEnterAcceptKey.set(true);
+        textbox.acceptAndCancelKeysEnabled.set(true);
         textbox.addEventListener(DLGuiCommonEvents.TextAcceptKeyPressedEvent.class, (src, e) -> {
             txt = textbox.text.get().toComponent();
             return false;
@@ -169,9 +181,7 @@ public class DLTestWindow extends DLWindow {
 
     @Override
     public void renderFrontLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        ShapeRenderer renderer = new ShapeRenderer(graphics.graphics());
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 10, 90, txt, 0xFFFFFFFF, EAlignment.LEFT, false);
-
+/*
         PolygonRenderUtil.drawPolygon(graphics, List.of(
             new Vector2f(20, 200),
             new Vector2f(130, 250),
@@ -201,9 +211,10 @@ public class DLTestWindow extends DLWindow {
 
         int segments = Math.max(12, (int)(2 * Math.PI * 50 / 4)); 
 
-        PolygonRenderUtil.drawCircle(graphics, 200, 100, 100, segments, 0xFF0000FF, 0xFFFF0000, 2);
-        PolygonRenderUtil.drawTriangle(graphics, 250, 100, 300, 100, 275, 150, 0xFFFF00FF, 0xFFFF0000, 2);
-        PolygonRenderUtil.drawEllipse(graphics, 200, 200, 20, 10, 20, 0xFFFF00FF, 0xFFFF0000, 2);
+        //PolygonRenderUtil.drawCircle(graphics, 200, 100, 100, segments, 0xFF0000FF, 0xFFFF0000, 2);
+        //PolygonRenderUtil.drawTriangle(graphics, 250, 100, 300, 100, 275, 150, 0xFFFF00FF, 0xFFFF0000, 2);
+        //PolygonRenderUtil.drawEllipse(graphics, 200, 200, 20, 10, 20, 0xFFFF00FF, 0xFFFF0000, 2);
+        */
     }
     
 }

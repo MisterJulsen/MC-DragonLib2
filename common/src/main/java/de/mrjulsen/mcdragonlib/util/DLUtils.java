@@ -8,25 +8,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Scanner;
-import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.Optional;
-
 import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Base64;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -34,67 +26,20 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.Vec3;
 
 public final class DLUtils {
 
-    public static UUID getPlayerUUID(String playername) {
-        try {
-            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + playername);
-            Scanner scan = new Scanner(url.openStream());
-            String str = "";
-            while (scan.hasNext())
-                str += scan.nextLine();
-            scan.close();
-            JsonObject player = new Gson().fromJson(str, JsonObject.class);
-            return UUID.fromString(player.get("id").getAsString());
-        } catch (Exception e) {
-            DragonLib.LOGGER.warn("Could not get UUID for player with username " + playername, e);
-            return new UUID(0, 0);
-        }
+    public static ResourceLocation resourceLocation(String namespace, String path) {
+        return new ResourceLocation(namespace, path);
     }
 
-    public static String getPlayerName(UUID uuid) {
-        try {
-            URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
-            Scanner scan = new Scanner(url.openStream());
-            String str = "";
-            while (scan.hasNext())
-                str += scan.nextLine();
-            scan.close();
-            JsonObject player = new Gson().fromJson(str, JsonObject.class);
-            String username = player.get("name").getAsString();
-            return username;
-        } catch (Exception e) {
-            DragonLib.LOGGER.warn("Could not get username for player with UUID " + uuid, e);
-            return "Unknown User";
-        }
-    }
-    
-    @Deprecated(forRemoval = true)
-    public static String getUUID(String playername) {
-        return getPlayerUUID(playername).toString();
-    }
-
-    @Deprecated(forRemoval = true)
-    public static String getPlayerName(String uuid) {
-        return getPlayerName(UUID.fromString(uuid));
+    public static ResourceLocation resourceLocation(String path) {
+        return new ResourceLocation(path);
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
         Advancement adv = player.getServer().getAdvancements().getAdvancement(new ResourceLocation(modid, name));
         player.getAdvancements().award(adv, criteriaKey);
-    }
-
-    public static int coordsToInt(byte x, byte y) {
-        int coords = ((x & 0xFF) << 16) | (y & 0xFF);
-        return coords;
-    }
-    
-    public static byte[] intToCoords(int coords) {
-        byte x = (byte) ((coords >> 16) & 0xFF);
-        byte y = (byte) (coords & 0xFF);
-        return new byte[] {x, y};
     }
 
     public static String textureToBase64(NativeImage image) {
@@ -121,7 +66,7 @@ public final class DLUtils {
         return new ByteArrayInputStream(imageBytes);
     }
 
-    public static long encodeCoordinates(int x, int y, int z) {
+    public static long encode3DCoordinates(int x, int y, int z) {
         long encodedValue = 0;
 
         encodedValue |= ((long)x & 0xFFFFFFFFL) << 32;
@@ -129,14 +74,28 @@ public final class DLUtils {
         encodedValue |= ((long)z & 0xFFFFFFFFL);
 
         return encodedValue;
+    }    
+
+    @Deprecated
+    public static int coordsToInt(byte x, byte y) {
+        int coords = ((x & 0xFF) << 16) | (y & 0xFF);
+        return coords;
+    }
+    
+    @Deprecated
+    public static byte[] intToCoords(int coords) {
+        byte x = (byte) ((coords >> 16) & 0xFF);
+        byte y = (byte) (coords & 0xFF);
+        return new byte[] {x, y};
     }
 
-    public static int[] decodeCoordinates(long encodedValue) {
+    public static record Point3D(int x, int y, int z) {}
+    public static Point3D decode3DCoordinates(long encodedValue) {
         int x = (int) (encodedValue >> 32);
         int y = (int) ((encodedValue >> 16) & 0xFFFF);
         int z = (int) (encodedValue & 0xFFFF);
 
-        return new int[]{x, y, z};
+        return new Point3D(x, y, z);
     }
 
     /**
@@ -180,65 +139,10 @@ public final class DLUtils {
         }
     }
 
-    public static <T> void doIfNotNull(Optional<T> obj, Consumer<T> action) {
-        if (obj != null && obj.isPresent()) {
-            action.accept(obj.get());
+    public static <T> void doIfNull(T obj, Runnable action) {
+        if (obj == null) {
+            action.run();
         }
-    }
-
-    public static boolean rectanglesIntersecting(double x1, double y1, double w1, double h1, double x2, double y2, double w2, double h2) {
-        return (x1 < x2 + w2 && y1 < y2 + h2) && (x1 + w1 > x2 && y1 + h1 > y2);
-    }
-
-        public static void putNbtBlockPos(CompoundTag compound, String name, BlockPos pos) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.putInt("X", pos.getX());
-        nbt.putInt("Y", pos.getY());
-        nbt.putInt("Z", pos.getZ());
-        compound.put(name, nbt);
-    }
-
-    public static SectionPos getNbtSectionPos(CompoundTag compound, String name) {
-        CompoundTag nbt = compound.getCompound(name);
-        return SectionPos.of(nbt.getInt("X"), nbt.getInt("Y"), nbt.getInt("Z"));
-    }
-    
-    public static void putNbtSectionPos(CompoundTag compound, String name, SectionPos pos) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.putInt("X", pos.getX());
-        nbt.putInt("Y", pos.getY());
-        nbt.putInt("Z", pos.getZ());
-        compound.put(name, nbt);
-    }
-
-    public static ChunkPos getNbtChunkPos(CompoundTag compound, String name) {
-        CompoundTag nbt = compound.getCompound(name);
-        return new ChunkPos(nbt.getInt("X"), nbt.getInt("Z"));
-    }
-    
-    public static void putNbtChunkPos(CompoundTag compound, String name, ChunkPos pos) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.putInt("X", pos.x);
-        nbt.putInt("Z", pos.z);
-        compound.put(name, nbt);
-    }
-
-    public static BlockPos getNbtBlockPos(CompoundTag compound, String name) {
-        CompoundTag nbt = compound.getCompound(name);
-        return new BlockPos(nbt.getInt("X"), nbt.getInt("Y"), nbt.getInt("Z"));
-    }
-    
-    public static void putNbtVec3(CompoundTag compound, String name, Vec3 vec) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.putDouble("X", vec.x());
-        nbt.putDouble("Y", vec.y());
-        nbt.putDouble("Z", vec.z());
-        compound.put(name, nbt);
-    }
-
-    public static Vec3 getNbtVec3(CompoundTag compound, String name) {
-        CompoundTag nbt = compound.getCompound(name);
-        return new Vec3(nbt.getDouble("X"), nbt.getDouble("Y"), nbt.getDouble("Z"));
     }
 
     public boolean isSectionInChunk(SectionPos section, ChunkPos chunk) {

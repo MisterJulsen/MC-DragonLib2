@@ -6,50 +6,58 @@
                 "type": "nine_slice",
                 "uv": [ 0, 0 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ],
+                "tiled_content": true
             },
             "scroller_vertical_disabled": {
                 "type": "nine_slice",
                 "uv": [ 6, 0 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
             "scroller_vertical_selected": {
                 "type": "nine_slice",
                 "uv": [ 0, 0 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
             "scroller_vertical_down_selected": {
                 "type": "nine_slice",
                 "uv": [ 0, 0 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
 
             "scroller_horizontal_normal": {
                 "type": "nine_slice",
                 "uv": [ 0, 6 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
             "scroller_horizontal_disabled": {
                 "type": "nine_slice",
                 "uv": [ 6, 6 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
             "scroller_horizontal_selected": {
                 "type": "nine_slice",
                 "uv": [ 0, 6 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
             "scroller_horizontal_down_selected": {
                 "type": "nine_slice",
                 "uv": [ 0, 6 ],
                 "size": [ 6, 6 ],
-                "border": [ 2, 2, 2, 2 ] 
+                "border": [ 2, 2, 2, 2 ] ,
+                "tiled_content": true
             },
 
             
@@ -57,25 +65,29 @@
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_vertical_disabled": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_vertical_selected": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_vertical_down_selected": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
 
             
@@ -83,25 +95,29 @@
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_horizontal_disabled": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_horizontal_selected": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             },
             "simple_scroller_horizontal_down_selected": {
                 "type": "nine_slice",
                 "uv": [ 12, 0 ],
                 "size": [ 3, 3 ],
-                "border": [ 1, 1, 1, 1 ] 
+                "border": [ 1, 1, 1, 1 ] ,
+                "tiled_content": true
             }
         }
     }

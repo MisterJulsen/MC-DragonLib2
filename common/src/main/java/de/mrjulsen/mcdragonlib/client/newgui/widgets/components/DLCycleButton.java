@@ -1,8 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.newgui.widgets.components;
 
 import java.util.Optional;
-import java.util.function.Function;
-
 import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -10,23 +8,22 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents.ClickEvent;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ListProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ListProperty.ListOperation;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ITextFormatter;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ListProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ListProperty.ListOperation;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 
 @SupportsEvents({
     DLCycleButton.SelectedItemChanged.class
@@ -83,7 +80,7 @@ public class DLCycleButton<T> extends DLButton {
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         RenderSystem.enableBlend();
         DLWindowManager manager = getWindowManager();
-        GuiUtils.setTint(backgroundTint.get().getAsARGB());
+        GuiUtils.setTint(backgroundTint.get());
         if (!enabled.get()) {
             componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.DISABLED);
         } else if (isMouseDown() && (manager != null ? manager.getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT : true)) {
@@ -93,8 +90,8 @@ public class DLCycleButton<T> extends DLButton {
         } else {            
             componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.NORMAL);
         }
-        GuiUtils.setTint(textColor.get().getAsARGB());
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() / 2 + (isMouseDown() ? 1 : 0), height() / 2 + (isMouseDown() ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, textFormat.get().combine(this), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.CENTER, true);
+        GuiUtils.setTint(textColor.get());
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() / 2 + (isMouseDown() ? 1 : 0), height() / 2 + (isMouseDown() ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, textFormat.get().combine(this), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, ETextAlignment.CENTER, true);
         GuiUtils.resetTint();
     }
 

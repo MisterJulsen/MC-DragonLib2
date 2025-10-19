@@ -1,9 +1,9 @@
 package de.mrjulsen.mcdragonlib.client.newgui.widgets.components;
 
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.InheritableProperty;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.util.Color;
@@ -25,7 +25,7 @@ public class DLPanel extends DLGuiComponent {
 
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        GuiUtils.fill(graphics, 0, 0, width(), height(), backgroundTint.get().getAsARGB());
+        GuiUtils.fill(graphics, 0, 0, width(), height(), backgroundTint.get());
     }
     
 }

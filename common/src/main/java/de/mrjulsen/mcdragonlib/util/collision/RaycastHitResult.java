@@ -1,0 +1,40 @@
+package de.mrjulsen.mcdragonlib.util.collision;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+
+public class RaycastHitResult extends HitResult implements Comparable<RaycastHitResult> {
+    private final BlockPos blockPos;
+    private final float distance;
+    private final Object hitData;
+
+    public RaycastHitResult(Vec3 location, BlockPos blockPos, float distance, Object hitData) {
+        super(location);
+        this.blockPos = blockPos;
+        this.distance = distance;
+        this.hitData = hitData;
+    }
+
+    public BlockPos getBlockPos() {
+        return blockPos;
+    }
+
+    public float getDistance() {
+        return distance;
+    }
+
+    public Object getHitData() {
+        return hitData;
+    }
+
+    @Override
+    public int compareTo(RaycastHitResult other) {
+        return Float.compare(getDistance(), other.getDistance());
+    }
+
+    @Override
+    public Type getType() {
+        return Type.BLOCK;
+    }
+}

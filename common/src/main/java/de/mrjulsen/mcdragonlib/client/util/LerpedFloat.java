@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.util;
 
-import de.mrjulsen.mcdragonlib.util.MathUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 

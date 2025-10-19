@@ -3,6 +3,8 @@ package de.mrjulsen.mcdragonlib.client.render;
 import java.util.Arrays;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.util.DLTexture;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +27,7 @@ public enum GuiIcons {
     private int v;
 
     public static final int ICON_SIZE = 16;
-    public static final ResourceLocation ICON_LOCATION = new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png");;
+    public static final DLTexture ICON_TEXTURE = new DLTexture(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256);
 
     GuiIcons(String id, int u, int v) {
         this.id = id;
@@ -58,10 +60,10 @@ public enum GuiIcons {
     }
 
     public void render(Graphics graphics, int x, int y) {
-        GuiUtils.drawTexture(GuiIcons.ICON_LOCATION, graphics, x, y, getU(), getV(), ICON_SIZE, ICON_SIZE);
+        GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, getU(), getV(), ICON_SIZE, ICON_SIZE);
     }
 
-    public Sprite getAsSprite(int renderWidth, int renderHeight) {
-        return new Sprite(ICON_LOCATION, 256, 256, getU(), getV(), ICON_SIZE, ICON_SIZE, renderWidth, renderHeight);
+    public DLSprite getAsSprite(int renderWidth, int renderHeight) {
+        return new DLSprite(ICON_TEXTURE, getU(), getV(), ICON_SIZE, ICON_SIZE, renderWidth, renderHeight);
     }
 }

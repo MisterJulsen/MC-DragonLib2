@@ -8,17 +8,17 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.InheritableProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaButtonRenderer;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.InheritableProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
-import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
 import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -55,9 +55,9 @@ public class DLButton extends DLGuiComponent {
     public final ColorProperty backgroundTint = new ColorProperty(Color.UNDEFINED, Color.WHITE)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLGuiCommonEvents.BackgroundColorChangedEvent(a), true));
     public final Property<IStateRenderer<ButtonState>> componentRenderer = new Property<>(VanillaButtonRenderer.VANILLA_BUTTONS);
-    public final Property<Sprite> icon = new Property<>(Sprite.empty());
-    public final Property<EAlignment> textAlignment = new Property<>(EAlignment.CENTER);
-    public final Property<EAlignment> iconAlignment = new Property<>(EAlignment.CENTER);
+    public final Property<DLSprite> icon = new Property<>(DLSprite.empty());
+    public final Property<ETextAlignment> textAlignment = new Property<>(ETextAlignment.CENTER);
+    public final Property<ETextAlignment> iconAlignment = new Property<>(ETextAlignment.CENTER);
 
 
     public DLButton(int x, int y) {
@@ -82,7 +82,7 @@ public class DLButton extends DLGuiComponent {
         DLWindowManager manager = getWindowManager();
 
         // Hintergrund rendern
-        GuiUtils.setTint(backgroundTint.get().getAsARGB());
+        GuiUtils.setTint(backgroundTint.get());
         if (!enabled.get()) {
             componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.DISABLED);
         } else if (isMouseDown() && (manager != null ? manager.getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT : true)) {
@@ -93,7 +93,7 @@ public class DLButton extends DLGuiComponent {
             componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.NORMAL);
         }
 
-        Sprite iconSprite = icon.get();
+        DLSprite iconSprite = icon.get();
         boolean hasIcon = iconSprite != null && !iconSprite.isEmpty();
         Component buttonText = text.get();
 
@@ -138,7 +138,7 @@ public class DLButton extends DLGuiComponent {
                 }
             }
             case CENTER -> {
-                if (textAlignment.get() == EAlignment.CENTER) {
+                if (textAlignment.get() == ETextAlignment.CENTER) {
                     int totalWidth = iconWidth + spacing + textWidth;
                     int startX = (buttonWidth - totalWidth) / 2;
 
@@ -172,7 +172,7 @@ public class DLButton extends DLGuiComponent {
             }
         }
 
-        GuiUtils.setTint(textColor.get().getAsARGB());
+        GuiUtils.setTint(textColor.get());
 
         if (hasIcon) {
             iconSprite.render(graphics, iconX + offset, iconY + offset);
@@ -185,7 +185,7 @@ public class DLButton extends DLGuiComponent {
             textY + offset,
             buttonText,
             enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED,
-            EAlignment.LEFT,
+            ETextAlignment.LEFT,
             true
         );
 

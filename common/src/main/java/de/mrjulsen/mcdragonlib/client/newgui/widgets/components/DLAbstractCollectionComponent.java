@@ -3,11 +3,11 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.components;
 import java.util.function.Function;
 
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ListProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ListProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
 import de.mrjulsen.mcdragonlib.events.IEventListener;
 
 public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractCollectionComponent.DLCollectionItem<T, ?>> extends DLGuiComponent {

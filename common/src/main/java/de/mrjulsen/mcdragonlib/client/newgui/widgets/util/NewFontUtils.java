@@ -1,10 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.newgui.widgets.util;
 
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
 import de.mrjulsen.mcdragonlib.mixin.StringSplitterAccessor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
@@ -14,8 +12,6 @@ import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
 import org.apache.commons.lang3.mutable.MutableFloat;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;

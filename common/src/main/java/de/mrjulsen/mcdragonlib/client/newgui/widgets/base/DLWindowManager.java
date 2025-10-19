@@ -3,12 +3,14 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.base;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -19,15 +21,17 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.lwjgl.glfw.GLFW;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.platform.InputConstants;
 
+import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent.ConsumptionType;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent.Flags;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult.ComponentHitContext;
@@ -35,14 +39,37 @@ import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult.ComponentSel
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.RenderLayer;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
+import de.mrjulsen.mcdragonlib.events.EventListenerWrapper;
+import de.mrjulsen.mcdragonlib.events.IEvent;
+import de.mrjulsen.mcdragonlib.events.IEventDispatcher;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
-public class DLWindowManager {
-    public static final int DRAG_THRESHOLD = 5;
+@SupportsEvents({
+    DLGuiStandardEvents.ClickEvent.class,
+    DLGuiStandardEvents.RightClickEvent.class,
+    DLGuiStandardEvents.MousePressedEvent.class,
+    DLGuiStandardEvents.MouseUpEvent.class,
+    DLGuiStandardEvents.MouseMoveEvent.class,
+    DLGuiStandardEvents.ScrollEvent.class,
+    DLGuiStandardEvents.TickEvent.class,
+    DLGuiStandardEvents.KeyPressEvent.class,
+    DLGuiStandardEvents.KeyReleaseEvent.class,
+    DLGuiStandardEvents.CharTypeEvent.class
+})
+public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
+    public static final int DRAG_THRESHOLD = 5;    
+
+    private final Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> eventListeners = new HashMap<>();
+
+    @Override
+    public Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> getEventListeners() {
+        return eventListeners;
+    }
 
     public static class ModalWindowStack extends ConcurrentLinkedDeque<DLWindow> {
         private final ModalId id;
@@ -147,6 +174,7 @@ public class DLWindowManager {
     private double mouseDownX;
     private double mouseDownY;
     private boolean specialDragAction = false;
+    private boolean updatingLayout = false;
 
     private DLWindow focusedWindow;
 
@@ -158,10 +186,12 @@ public class DLWindowManager {
         createWindow(windowBuilder);
     }
 
-    public void setSize(double width, double height) {
+    public void updateLayout(double width, double height) {
+        updatingLayout = true;
         setWidth(width);
         setHeight(height);
         init();
+        updatingLayout = false;
     }
 
     protected void setWidth(double width) {
@@ -171,7 +201,7 @@ public class DLWindowManager {
 
         iterateAll(false, (win, i) -> {
             double k = win.dWidth() / 2D;
-            if (win.anchor.has(EAlign.RIGHT)) {                
+            if (win.anchor.has(EAlign.RIGHT)) {
                 if (win.anchor.has(EAlign.LEFT)) {
                     win.setWidth(win.dWidth() + diff);
                 } else {
@@ -227,7 +257,7 @@ public class DLWindowManager {
                 iterateAll(false, (win, i) -> {
                     graphics.poseStack().pushPose();
                     graphics.poseStack().translate(win.x(), win.y(), i);
-                    win.renderEvent(graphics, mouseX, mouseY, layer, win.x(), win.y(), 0, 0, win.getPositionBox());
+                    win.renderEvent(graphics, mouseX - win.x(), mouseY - win.y(), layer, win.x(), win.y(), 0, 0, win.getPositionBox());
                     graphics.poseStack().popPose();
                     return true;
                 });
@@ -242,10 +272,11 @@ public class DLWindowManager {
             graphics.poseStack().popPose();
         }
 
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 1, 1, Minecraft.getInstance().fpsString, 0xFFFFFFFF, EAlignment.LEFT, true);
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 1, 1, Minecraft.getInstance().fpsString, Color.WHITE, ETextAlignment.LEFT, true);
     }
 
     public void tick() {
+        invokeEvent(this, new DLGuiStandardEvents.TickEvent());
         iterateAll(false, (win, i) -> {
             win.tick();
             return true;
@@ -453,7 +484,7 @@ public class DLWindowManager {
         ModalWindowStack stack = getModalById(id);
         T window = windowBuilder.build(this);
         stack.add(window);
-        window.invokeEvent(window, new DLGuiCommonEvents.WindowCreatedEvent(this, (int)width, (int)height));
+        window.invokeEvent(window, new DLGuiCommonEvents.WindowCreatedEvent(this, id, (int)width, (int)height));
         updateWindowFocus(false);
         return stack.id();
     }
@@ -602,7 +633,7 @@ public class DLWindowManager {
             }
         }
         DLUtils.doIfNotNull(andThen, x -> x.accept(consumed.getValue()));
-        return consumed.getValue();
+        return false;//consumed.getValue();
     }
 
     public void prepareMouseClick(double mouseX, double mouseY, int button) {
@@ -615,6 +646,20 @@ public class DLWindowManager {
     }
 
     public boolean mouseClicked(DLWindow window, boolean consumed, double mouseX, double mouseY, int button) {
+        if (!hasWindows()) {
+            return false;
+        }
+
+        switch (button) {
+            case GLFW.GLFW_MOUSE_BUTTON_LEFT -> invokeEvent(this, new DLGuiStandardEvents.ClickEvent(mouseX, mouseY));
+            case GLFW.GLFW_MOUSE_BUTTON_RIGHT -> invokeEvent(this, new DLGuiStandardEvents.RightClickEvent(mouseX, mouseY));
+        }
+        
+        if (!hasWindows()) {
+            return false;
+        }
+        invokeEvent(this, new DLGuiStandardEvents.MousePressedEvent(mouseX, mouseY, button));
+
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
         HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.CLICK);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
@@ -629,7 +674,11 @@ public class DLWindowManager {
                 }
             }
         }
-        boolean b = result.consumed();
+        boolean b = result.consumed();        
+        if (!hasWindows()) {
+            return b;
+        }
+
         if (b && !consumed) {
             bringWindowToFront(window);
         }
@@ -637,6 +686,10 @@ public class DLWindowManager {
     }
 
     public boolean mouseMoved(DLWindow window, boolean consumed, double mouseX, double mouseY) {
+        if (!hasWindows()) {
+            return false;
+        }
+        invokeEvent(this, new DLGuiStandardEvents.MouseMoveEvent(mouseX, mouseY));
         if (isDragging) {
             return false;
         }
@@ -658,6 +711,11 @@ public class DLWindowManager {
     }
 
     public boolean mouseReleased(DLWindow window, boolean consumed, double mouseX, double mouseY, int button) {
+        if (!hasWindows()) {
+            return false;
+        }
+        invokeEvent(this, new DLGuiStandardEvents.MouseUpEvent(mouseX, mouseY, button));
+
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
         HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.CLICK);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
@@ -671,14 +729,22 @@ public class DLWindowManager {
                 }
             }
         };
-        return result.consumed();
+        return false;//result.consumed();
     }
 
     public boolean mouseScrolled(DLWindow window, boolean consumed, double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (!hasWindows()) {
+            return false;
+        }
+        invokeEvent(this, new DLGuiStandardEvents.ScrollEvent(mouseX, mouseY, scrollX, scrollY));
+
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
         HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.SCROLL);  
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
+                if (!hasWindows()) {
+                    return result.consumed();
+                }
                 if (e.getKey().isHit()) {
                     c.component().invokeEvent(c.component(), new DLGuiStandardEvents.ScrollEvent(c.mouseX(), c.mouseY(), -scrollX, -scrollY), true);
                 }
@@ -728,6 +794,7 @@ public class DLWindowManager {
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        invokeEvent(this, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers), true);
             return true;
@@ -736,6 +803,7 @@ public class DLWindowManager {
     }
 
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        invokeEvent(this, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers), true);
             return true;
@@ -744,6 +812,7 @@ public class DLWindowManager {
     }
 
     public boolean charTyped(char codePoint, int modifiers) {
+        invokeEvent(this, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers), true);
             return true;
@@ -771,6 +840,7 @@ public class DLWindowManager {
     }
 
     public void onClose() {
+        CursorType.set(null);
         iterateAll(false, (win, i) -> {
             try {
                 win.close();
@@ -815,5 +885,9 @@ public class DLWindowManager {
 
     public double getScreenHeight() {
         return height;
+    }
+
+    public boolean isUpdatingLayout() {
+        return updatingLayout;
     }
 }

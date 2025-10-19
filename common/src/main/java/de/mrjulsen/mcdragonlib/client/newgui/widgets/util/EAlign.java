@@ -6,15 +6,20 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
 
-public enum EAlign implements BitflagEnum {
-    TOP("top", 0b0001, AffectedTransformtion.POSITION),
-    LEFT("left", 0b0010, AffectedTransformtion.POSITION),
-    RIGHT("right", 0b0100, AffectedTransformtion.SIZE),
-    BOTTOM("bottom", 0b1000, AffectedTransformtion.SIZE);
+import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.core.IIterableEnum;
+import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
+
+public enum EAlign implements BitflagEnum, ITranslatableEnum, IIterableEnum<EAlign> {
+    TOP("top", 0b0001, AffectedTransformtion.POSITION, true),
+    LEFT("left", 0b0010, AffectedTransformtion.POSITION, false),
+    RIGHT("right", 0b0100, AffectedTransformtion.SIZE, false),
+    BOTTOM("bottom", 0b1000, AffectedTransformtion.SIZE, true);
 
     private final String name;
     private final int bit;
     private final AffectedTransformtion transform;
+    private final boolean isVertical;
 
     private static final ImmutableMap<Long, EAlign> valueMap;
     static {
@@ -25,10 +30,11 @@ public enum EAlign implements BitflagEnum {
         valueMap = ImmutableMap.copyOf(map);
     }
 
-    private EAlign(String name, int bit, AffectedTransformtion transform) {
+    private EAlign(String name, int bit, AffectedTransformtion transform, boolean isVertical) {
         this.name = name;
         this.bit = bit;
         this.transform = transform;
+        this.isVertical = isVertical;
     }
 
     public String getName() {
@@ -52,9 +58,27 @@ public enum EAlign implements BitflagEnum {
         return Optional.ofNullable(valueMap.containsKey(bit) ? valueMap.get(bit) : null);
     }
 
+    public boolean isVertical() {
+        return isVertical;
+    }
+
+    public boolean isHorizontal() {
+        return !isVertical();
+    }
+
     public static enum AffectedTransformtion {
         NONE,
         POSITION,
         SIZE;
+    }
+
+    @Override
+    public Data getTranslationData() {
+        return new Data(DragonLib.MODID, "align", getName());
+    }
+
+    @Override
+    public EAlign[] getValues() {
+        return values();
     }
 }

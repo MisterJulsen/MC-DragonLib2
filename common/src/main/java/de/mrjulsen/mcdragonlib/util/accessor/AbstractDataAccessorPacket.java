@@ -9,9 +9,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
 import de.mrjulsen.mcdragonlib.net.IPacketBase;
 import de.mrjulsen.mcdragonlib.util.WorkerAsync;
+import de.mrjulsen.mcdragonlib.util.Holder.MutableHolder;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -68,7 +68,7 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
             worker.queueTask(() -> {
                 debug_activeTasksTracker.merge(packet.type.getId(), 1, Integer::sum);
                 CompoundTag nbt;
-                MutableSingle<Object> tempData = new MutableSingle<>(null);
+                MutableHolder<Object> tempData = new MutableHolder<>(null);
                 boolean hasMore = true;
                 int iteration = 0;
                 do {
@@ -89,7 +89,7 @@ public abstract class AbstractDataAccessorPacket<T extends AbstractDataAccessorP
 
     public abstract void encodeParam(I param, CompoundTag nbt);
     public abstract I decodeParam(CompoundTag nbt, DataAccessorType<I, C, O> type);
-    public abstract boolean processServer(Player player, I param, DataAccessorType<I, C, O> type, MutableSingle<Object> temp, CompoundTag nbt, int iteration);
+    public abstract boolean processServer(Player player, I param, DataAccessorType<I, C, O> type, MutableHolder<Object> temp, CompoundTag nbt, int iteration);
     public abstract C receiveChunk(boolean hasMore, C previous, int iteration, CompoundTag nbt);
     public abstract O processClient(C chunks);
 

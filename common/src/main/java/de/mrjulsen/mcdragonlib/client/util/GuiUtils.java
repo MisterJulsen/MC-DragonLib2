@@ -1,15 +1,14 @@
 package de.mrjulsen.mcdragonlib.client.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -17,24 +16,29 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Axis;
 
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCycleButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
-import de.mrjulsen.mcdragonlib.core.ColorObject;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.client.model.ModelContext;
+import de.mrjulsen.mcdragonlib.client.model.mesh.BasicMesh;
+import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
+import de.mrjulsen.mcdragonlib.client.model.mesh.Mesh;
+import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
-import de.mrjulsen.mcdragonlib.util.ColorUtils;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -43,12 +47,41 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class GuiUtils {
 
+    public static enum TextureFillMode {
+        STRETCH,
+        TILE
+    }
+    
+
+    public static double mouseXOnScreen() {
+        return Minecraft.getInstance().mouseHandler.xpos() * (double)Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double)Minecraft.getInstance().getWindow().getScreenWidth();
+    }
+
+    public static double mouseYOnScreen() {
+        return Minecraft.getInstance().mouseHandler.ypos() * (double)Minecraft.getInstance().getWindow().getGuiScaledHeight() / (double)Minecraft.getInstance().getWindow().getScreenHeight();
+    }
+
+    public static double getScreenWidth() {
+        return Minecraft.getInstance().getWindow().getGuiScaledWidth();
+    }
+
+    public static double getScreenHeight() {
+        return Minecraft.getInstance().getWindow().getGuiScaledHeight();
+    }
+
+    public static void enableScissor(Graphics graphics, Rectangle area) {
+        enableScissor(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height());
+    }
+
     public static void enableScissor(Graphics graphics, int x, int y, int w, int h) {
-        int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();
-        //RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
+        int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();    
         RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);   
     }
 
@@ -61,127 +94,47 @@ public class GuiUtils {
     }
 
     public static FormattedCharSequence toFormattedCharSequence(FormattedText text) {
-        return text instanceof Component ? ((Component) text).getVisualOrderText() : Language.getInstance().getVisualOrder(text);
-    }
-
-    @SuppressWarnings("resource")
-    public static <T extends FormattedText> boolean renderTooltipAt(Screen screen, GuiAreaDefinition area, List<T> lines, int maxWidth, Graphics graphics, int xPos, int yPos, int mouseX, int mouseY, int xOffset, int yOffset) {
-        if (area.isInBounds((double) (mouseX + xOffset), (double) (mouseY + yOffset))) {
-            graphics.graphics().renderTooltip(Minecraft.getInstance().font, GuiUtils.getTooltipData(screen, lines, maxWidth), xPos - 8, yPos + 16);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static <W extends AbstractWidget, T extends FormattedText> boolean renderTooltip(Screen screen, W widget, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY) {
-        return renderTooltipWithOffset(screen, widget, lines, maxWidth, graphics, mouseX, mouseY, 0, 0);
-    }
-
-    public static <T extends FormattedText> boolean renderTooltip(Screen screen, GuiAreaDefinition area, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY) {
-        return renderTooltipWithOffset(screen, area, lines, maxWidth, graphics, mouseX, mouseY, 0, 0);
-    }
-
-    @SuppressWarnings("resource")
-    public static <W extends AbstractWidget, T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, W widget, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
-        if ((widget instanceof IDragonLibWidget dlw && dlw.isMouseSelected()) || (!(widget instanceof IDragonLibWidget) && widget.isMouseOver(mouseX + xOffset, mouseY + yOffset))) {
-            graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
-            return true;
-        }
-        return false;
-    }
-
-    @SuppressWarnings("resource")
-    public static <T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, GuiAreaDefinition area, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
-        if (area.isInBounds(mouseX + xOffset, mouseY + yOffset)) {
-            graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
-            return true;
-        }
-        return false;
-    }
-
-    @SuppressWarnings("resource")
-    public static <T extends Enum<T> & ITranslatableEnum> List<FormattedCharSequence> getEnumTooltipData(String modid, Screen screen, Class<T> enumClass, int maxWidth) {
-        List<FormattedCharSequence> c = new ArrayList<>();
-        T enumValue = enumClass.getEnumConstants()[0];
-        c.addAll(((FontAccessor) Minecraft.getInstance().font).dragonlib$getSplitter()
-                .splitLines(TextUtils.translate(enumValue.getEnumDescriptionTranslationKey(modid)), maxWidth, Style.EMPTY)
-                .stream().map(x -> toFormattedCharSequence(x)).toList());
-        c.add(TextUtils.text(" ").getVisualOrderText());
-        c.addAll(Arrays.stream(enumClass.getEnumConstants()).map((tr) -> {
-            return TextUtils.text(String.format("§l> %s§r§7\n%s", TextUtils.translate(tr.getValueTranslationKey(modid)).getString(), TextUtils.translate(tr.getValueInfoTranslationKey(modid)).getString()));
-        }).map((x) -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(x, maxWidth, Style.EMPTY)
-                .stream().map(a -> toFormattedCharSequence(a)).toList()).flatMap(List::stream).collect(Collectors.toList()));
-
-        return c;
-    }
-
-    public static <T extends Enum<T> & ITranslatableEnum> List<Component> getEnumTooltipData(String modid, Class<T> enumClass) {
-        List<Component> c = new ArrayList<>();
-        T enumValue = enumClass.getEnumConstants()[0];
-        c.add(TextUtils.translate(enumValue.getEnumDescriptionTranslationKey(modid)));
-        c.add(TextUtils.text(" "));
-        c.addAll(Arrays.stream(enumClass.getEnumConstants()).map((tr) -> {
-            return TextUtils.text(
-                    String.format("§l> %s§r§7\n%s", TextUtils.translate(tr.getValueTranslationKey(modid)).getString(),
-                            TextUtils.translate(tr.getValueInfoTranslationKey(modid)).getString()));
-        }).toList());
-        return c;
-    }
-
-    public static <T extends FormattedText> List<FormattedCharSequence> getTooltipData(Screen screen, T component, int maxWidth) {
-        return getTooltipData(screen, List.of(component), maxWidth);
-    }
-
-    public static <T extends FormattedText> List<FormattedCharSequence> getTooltipData(Screen screen, Collection<T> components, int maxWidth) {
-        return components.stream().flatMap(a -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).map(x -> toFormattedCharSequence(x)).toList();
+        return text instanceof Component ? ((Component)text).getVisualOrderText() : Language.getInstance().getVisualOrder(text);
     }
     
-    public static <T extends FormattedText> List<FormattedText> getTooltipDataFormatted(Screen screen, Collection<T> components, int maxWidth) {
-        return components.stream().flatMap(a -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).toList();
-    }
-
-    public static boolean editBoxNumberFilter(String input) {
-        if (input.isEmpty())
-            return true;
-
-        String i = input;
-        if (input.equals("-"))
-            i = "-0";
-
-        try {
-            Integer.parseInt(i);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
+    
+    public static <T extends FormattedText> List<FormattedCharSequence> splitToFormattedCharSequences(Font font, Collection<T> components, int maxWidth) {
+        List<FormattedCharSequence> lines = new ArrayList<>(components.size());
+        for (T component : components) {
+            lines.addAll(font.split(component, maxWidth));
         }
+        return lines;
+    }
+    
+    public static <T extends FormattedText> List<FormattedText> splitText(Font font, Collection<T> components, int maxWidth) {
+        List<FormattedText> lines = new ArrayList<>(components.size());
+        for (T component : components) {
+            lines.addAll(font.getSplitter().splitLines(component, maxWidth, Style.EMPTY));
+        }
+        return lines;
     }
 
-    public static boolean editBoxPositiveNumberFilter(String input) {
-        if (input.isEmpty()) {
-            return true;
-        } else {
-            try {
-                int i = Integer.parseInt(input);
-                return i > 0;
-            } catch (NumberFormatException var3) {
-                return false;
-            }
-        }
+    public static void drawTooltip(Graphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
+        graphics.graphics().renderTooltip(font, splitToFormattedCharSequences(font, lines, maxWidth), x, y);
     }
 
-    public static boolean editBoxNonNegativeNumberFilter(String input) {
-        if (input.isEmpty()) {
-            return true;
-        } else {
-            try {
-                int i = Integer.parseInt(input);
-                return i >= 0;
-            } catch (NumberFormatException var3) {
-                return false;
-            }
-        }
+    public static void drawTooltipDirectlyAt(Graphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
+        drawTooltip(graphics, font, x - 8, y - 16, lines, maxWidth);
     }
+
+    public static <T extends Enum<T> & ITranslatableEnum> List<Component> getEnumTooltipData(Class<T> enumClass, int maxWidth) {
+        List<Component> c = new ArrayList<>();
+        T enumValue = enumClass.getEnumConstants()[0];
+        c.add(enumValue.getEnumDescriptionTranslation());
+        c.add(TextUtils.text(" "));
+        for (T t : enumClass.getEnumConstants()) {
+            c.add(TextUtils.text("> ").withStyle(ChatFormatting.BOLD).append(t.getValueTranslation()).withStyle(ChatFormatting.BOLD));
+            c.add(t.getValueDescriptionTranslation().withStyle(ChatFormatting.GRAY));
+        }
+        return c;
+    }
+
+
 
     public static void setTexture(ResourceLocation texture) {
         RenderSystem.setShaderTexture(0, texture);
@@ -191,35 +144,72 @@ public class GuiUtils {
         RenderSystem.setShaderTexture(0, textureId);
     }
 
-    public static void setTint(float r, float g, float b, float a) {
+    public static void setTint(Color color) {
+        float a = color.getAlphaF();
+        float r = color.getRedF();
+        float g = color.getGreenF();
+        float b = color.getBlueF();
         RenderSystem.setShaderColor(r, g, b, a);
-    }
-    
-    public static void setTint(int color) {
-        short[] argb = ColorUtils.decodeARGB(color);
-        setTint(ColorObject.colorIntToFloat(argb[1]), ColorObject.colorIntToFloat(argb[2]), ColorObject.colorIntToFloat(argb[3]), ColorObject.colorIntToFloat(argb[0]));
     }
 
     public static void resetTint() {
-        setTint(0xFFFFFFFF);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {
-        graphics.graphics().blit(texture, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
+        drawTexture(texture, graphics, x, y, w, h, u, v, uW, vH, mode, 256, 256);
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int textureWidth, int textureHeight) {
-        graphics.graphics().blit(texture, x, y, w, h, u, v, w, h, textureWidth, textureHeight);
+    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
+        switch (mode) {
+            case TILE -> {
+                int i = (int)Math.ceil((float)w / (float)uW);
+                int k = (int)Math.ceil((float)h / (float)vH);
+                for (int a = 0; a < i; a++) {
+                    for (int b = 0; b < k; b++) {
+                        int mW = Math.min((a + 1) * uW, w) - (a * uW);
+                        int mH = Math.min((b + 1) * vH, h) - (b * vH);
+                        graphics.graphics().blit(texture, x + (uW * a), y + (vH * b), mW, mH, u, v, mW, mH, textureWidth, textureHeight);
+                    }
+                }
+            }
+            default -> graphics.graphics().blit(texture, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+        }
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int u, int v, int w, int h) {
-        graphics.graphics().blit(texture, x, y, w, h, u, v, w, h, 256, 256);
+    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
+        switch (mode) {
+            case TILE -> {
+                int i = (int)Math.ceil((float)w / (float)uW);
+                int k = (int)Math.ceil((float)h / (float)vH);
+                for (int a = 0; a < i; a++) {
+                    for (int b = 0; b < k; b++) {
+                        int mW = Math.min((a + 1) * uW, w) - (a * uW);
+                        int mH = Math.min((b + 1) * vH, h) - (b * vH);
+                        blit(graphics.graphics(), textureId, x + (uW * a), y + (vH * b), mW, mH, u, v, mW, mH, textureWidth, textureHeight);
+                    }
+                }
+            }
+            default -> blit(graphics.graphics(), textureId, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+        }
+        
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h) {
-        graphics.graphics().blit(texture, x, y, w, h, 0, 0, w, h, w, h);
+    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
+        if (texture.usesTextureId() || texture.getTexture().isEmpty()) {
+            drawTexture(texture.getTextureId(), graphics, x, y, w, h, u, v, uW, vH, mode, texture.width(), texture.height());
+        } else {            
+            drawTexture(texture.getTexture().get(), graphics, x, y, w, h, u, v, uW, vH, mode, texture.width(), texture.height());
+        }
     }
-
+    
+    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h, int u, int v) {
+        drawTexture(texture, graphics, x, y, w, h, u, v, w, h, TextureFillMode.STRETCH);
+    }
+    
+    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h) {
+        drawTexture(texture, graphics, x, y, w, h, 0, 0, w, h, TextureFillMode.STRETCH);
+    }
 
 
     /* COPY OF: GuiGraphics */
@@ -245,38 +235,29 @@ public class GuiUtils {
     }
     /* END */
 
-    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, int textureWidth, int textureHeight) {
-        blit(graphics.graphics(), textureId, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
+
+
+    public static void fill(Graphics graphics, Rectangle area, Color color) {
+        fill(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), color);
     }
 
-    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int textureWidth, int textureHeight) {
-        blit(graphics.graphics(), textureId, x, y, w, h, u, v, w, h, textureWidth, textureHeight);
+    public static void fill(Graphics graphics, int x, int y, int w, int h, Color color) {
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.graphics().fill(x, y, x + w, y + h, color.getAsARGB());
+        RenderSystem.disableBlend();
     }
 
-    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int textureWidth, int textureHeight) {
-        blit(graphics.graphics(), textureId, x, y, w, h, 0, 0, w, h, textureWidth, textureHeight);
+    public static void fillGradient(Graphics graphics, Rectangle area, Color colorA, Color colorB, EAlign align) {
+        fillGradient(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), colorA, colorB, align);
     }
 
-    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h) {
-        blit(graphics.graphics(), textureId, x, y, w, h, 0, 0, w, h, w, h);
-    }
-
-
-
-
-    public static void fill(Graphics graphics, int x, int y, int w, int h, int color) {
-        graphics.graphics().fill(x, y, x + w, y + h, color);
-    }
-
-    public static void fillGradient(Graphics graphics, int x, int y, int z, int w, int h, int colorA, int colorB) {
-        float startAlpha = (float) (colorA >> 24 & 255) / 255.0F;
-        float startRed = (float) (colorA >> 16 & 255) / 255.0F;
-        float startGreen = (float) (colorA >> 8 & 255) / 255.0F;
-        float startBlue = (float) (colorA & 255) / 255.0F;
-        float endAlpha = (float) (colorB >> 24 & 255) / 255.0F;
-        float endRed = (float) (colorB >> 16 & 255) / 255.0F;
-        float endGreen = (float) (colorB >> 8 & 255) / 255.0F;
-        float endBlue = (float) (colorB & 255) / 255.0F;
+    public static void fillGradient(Graphics graphics, int x, int y, int w, int h, Color colorA, Color colorB, EAlign align) {
+        Color[] vertexColors = new Color[4];
+        for (int i = 0; i < vertexColors.length; i++) {
+            vertexColors[(align.ordinal() + i) % vertexColors.length] = (i < 2 ? colorA : colorB);
+        }
 
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
@@ -286,29 +267,32 @@ public class GuiUtils {
         Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder buffer = tessellator.getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y, z).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, z).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, 0).color(vertexColors[0].getAsARGB()).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x, y, 0).color(vertexColors[1].getAsARGB()).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, 0).color(vertexColors[2].getAsARGB()).endVertex();
+        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, 0).color(vertexColors[3].getAsARGB()).endVertex();
         tessellator.end();
 
         RenderSystem.disableBlend();
     }
 
-    public static void drawBox(Graphics graphics, GuiAreaDefinition area, int fillColor, int borderColor) {
-        fill(graphics, area.getLeft(), area.getTop(), area.getWidth(), area.getHeight(), fillColor);
-
-        fill(graphics, area.getLeft(), area.getTop(), area.getWidth(), 1, borderColor);
-        fill(graphics, area.getLeft(), area.getBottom() - 1, area.getWidth(), 1, borderColor);
-        fill(graphics, area.getLeft(), area.getTop() + 1, 1, area.getHeight() - 2, borderColor);
-        fill(graphics, area.getRight() - 1, area.getTop() + 1, 1, area.getHeight() - 2, borderColor);
+    public static void drawBox(Graphics graphics, Rectangle area, Color fillColor, Color borderColor) {
+        drawBox(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), fillColor, borderColor);
     }
 
-    public static void drawString(Graphics graphics, Font font, int x, int y, String text, int color, EAlignment alignment, boolean shadow) {
-        drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, shadow);
+    public static void drawBox(Graphics graphics, int x, int y, int w, int h, Color fillColor, Color borderColor) {
+        fill(graphics, x, y, w, h, fillColor);
+        fill(graphics, x, y, w, 1, borderColor);
+        fill(graphics, x, y + h - 1, w, 1, borderColor);
+        fill(graphics, x, y + 1, 1, h - 2, borderColor);
+        fill(graphics, x + w - 1, y + 1, 1, h - 2, borderColor);
     }
 
-    public static void drawString(Graphics graphics, Font font, int x, int y, FormattedText text, int color, EAlignment alignment, boolean shadow) {
+    public static void drawString(Graphics graphics, Font font, int x, int y, String text, Color color, ETextAlignment alignment, boolean dropShadow) {
+        drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, dropShadow);
+    }
+
+    public static void drawString(Graphics graphics, Font font, int x, int y, FormattedText text, Color color, ETextAlignment alignment, boolean dropShadow) {
         int width = font.width(text);
         int offset = 0;
         switch (alignment) {
@@ -323,117 +307,137 @@ public class GuiUtils {
                 break;
         }
 
-        graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color, shadow);
+        graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color.getAsARGB(), dropShadow);
     }
 
-    public static DLButton createButton(int x, int y, int width, int height, Component text, Consumer<DLButton> onClick) {
-        return new DLButton(x, y, width, height, text, onClick);
+    public static void renderItem(Graphics graphics, ItemStack stack, int x, int y) {
+        renderItem(graphics, stack, x, y, 1, true);
     }
 
-    public static <T extends Enum<T> & ITranslatableEnum> DLCycleButton<T> createCycleButton(String modid, Class<T> clazz, int x, int y, int width, int height, Component text, T initialValue, BiConsumer<DLCycleButton<?>, T> onValueChanged) {
-        DLCycleButton<T> btn = DLCycleButton.<T>builder((p) -> {
-            return TextUtils.translate(clazz.cast(p).getValueTranslationKey(modid));
-        })
-            .withValues(clazz.getEnumConstants()).withInitialValue(initialValue)
-            .create(x, y, width, height, text, (b, v) -> onValueChanged.accept(b, v));
-        return btn;
+    public static void renderItem(Graphics graphics, ItemStack stack, int x, int y, float scale, boolean drawDecorations) {
+        graphics.poseStack().pushPose();
+        graphics.poseStack().translate(x, y, 0);
+        graphics.poseStack().scale(scale, scale, 1);
+        graphics.graphics().renderItem(stack, 0, 0);
+        if (drawDecorations) {
+            graphics.graphics().renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0);
+        }
+        graphics.poseStack().popPose();
     }
 
-    public static DLCycleButton<Boolean> createOnOffButton(int x, int y, int width, int height, Component text, boolean initialValue, BiConsumer<DLCycleButton<?>, Boolean> onValueChanged) {
-        DLCycleButton<Boolean> btn = DLCycleButton.onOffBuilder(initialValue).create(x, y, width, height, text, (b, v) -> onValueChanged.accept(b, v));
-        return btn;
+    public static void renderEntity(Graphics graphics, int x, int y, LivingEntity entity) {
+        renderEntity(graphics, x, y, 1, entity, LightTexture.FULL_BRIGHT);
     }
 
-    public static DLEditBox createEditBox(int x, int h, int width, int height, Font font, String text, Component hint, boolean drawBg, Consumer<String> onValueChanged, BiConsumer<DLEditBox, Boolean> onFocusChanged) {
-        DLEditBox box = new DLEditBox(font, x, h, width, height, TextUtils.text(text))
-            .withHint(hint)
-            .withOnFocusChanged(onFocusChanged);
-        box.setResponder(onValueChanged);
-        box.setValue(text);
-        box.setBordered(drawBg);
-
-        return box;
+    public static void renderEntity(Graphics graphics, int x, int y, float scale, LivingEntity entity, int light) {
+        renderEntity(graphics, x, y, scale, entity, new Matrix4f(), new Quaternionf(), light);
     }
 
-    public static DLSlider createSlider(int x, int y, int width, int height, Component prefix, Component suffix, double min, double max, double step, double initialValue, boolean drawLabel, BiConsumer<DLSlider, Double> onValueChanged, Consumer<DLSlider> onUpdateMessage) {
-        DLSlider slider = new DLSlider(x, y, width, height, prefix, suffix, min, max, initialValue, step, 1, drawLabel);
-        slider.setOnUpdateMessage(onUpdateMessage);
-        slider.setOnValueChanged(onValueChanged);
-        return slider;
-    }
-
-    public static final String ELLIPSIS_STRING = "...";
-	public static Component ellipsisString(Font font, Component text, int maxWidth) {
-		int lineWidth = font.width(text);
-		return lineWidth < maxWidth ? text : TextUtils.text(font.substrByWidth(text, maxWidth - font.width(ELLIPSIS_STRING)).getString()).withStyle(text.getStyle()).append(ELLIPSIS_STRING);
-	}
-
-    
-
-    
-    // einfache Linie zwischen zwei Punkten
-    public static void drawLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, int color) {
-        float a = (color >> 24 & 255) / 255.0F;
-        float r = (color >> 16 & 255) / 255.0F;
-        float g = (color >> 8 & 255) / 255.0F;
-        float b = (color & 255) / 255.0F;
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
-        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
-        BufferUploader.drawWithShader(buffer.end());
-
-        RenderSystem.disableBlend();
-    }
-
-    // Dreieck füllen
-    public static void drawTriangle(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float x3, float y3, int color) {
-        float a = (color >> 24 & 255) / 255.0F;
-        float r = (color >> 16 & 255) / 255.0F;
-        float g = (color >> 8 & 255) / 255.0F;
-        float b = (color & 255) / 255.0F;
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
-        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
-        buffer.vertex(x3, y3, 0).color(r, g, b, a).endVertex();
-        BufferUploader.drawWithShader(buffer.end());
-
-        RenderSystem.disableBlend();
-    }
-
-    // Kreis füllen (approximiert durch viele Dreiecke)
-    public static void drawCircle(GuiGraphics guiGraphics, float cx, float cy, float radius, int segments, int color) {
-        float a = (color >> 24 & 255) / 255.0F;
-        float r = (color >> 16 & 255) / 255.0F;
-        float g = (color >> 8 & 255) / 255.0F;
-        float b = (color & 255) / 255.0F;
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
-
-        for (int i = 0; i <= segments; i++) {
-            double angle = 2 * Math.PI * i / segments;
-            float x = cx + (float)Math.cos(angle) * radius;
-            float y = cy + (float)Math.sin(angle) * radius;
-            buffer.vertex(x, y, 0).color(r, g, b, a).endVertex();
+    @SuppressWarnings("deprecation")
+    public static void renderEntity(Graphics graphics, int x, int y, float scale, LivingEntity entity, Matrix4f transformation, @Nullable Quaternionf cameraOrientation, int light) {
+        float s = 16 * scale;
+        graphics.poseStack().pushPose();
+        graphics.poseStack().translate((double)x, (double)y, 16 * (scale + 1));
+        graphics.poseStack().mulPoseMatrix((new Matrix4f()).scaling(s, s, -s));
+        graphics.poseStack().mulPoseMatrix(transformation);
+        Lighting.setupForEntityInInventory();
+        EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        if (cameraOrientation != null) {
+            cameraOrientation.conjugate();
+            entityRenderDispatcher.overrideCameraOrientation(cameraOrientation);
         }
 
-        BufferUploader.drawWithShader(buffer.end());
+        entityRenderDispatcher.setRenderShadow(false);
+        RenderSystem.runAsFancy(() -> {
+            entityRenderDispatcher.render(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F, graphics.poseStack(), graphics.graphics().bufferSource(), light);
+        });
+        graphics.graphics().flush();
+        entityRenderDispatcher.setRenderShadow(true);
+        graphics.poseStack().popPose();
+        Lighting.setupFor3DItems();
+    }
+    
 
-        RenderSystem.disableBlend();
+    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, LivingEntity entity) {
+        renderEntityFollowingMouse(graphics, x, y, 1, entity);
     }
 
+    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, float scale, LivingEntity entity) {
+        renderEntityFollowingMouse(graphics, x, y, scale, (float)Minecraft.getInstance().mouseHandler.xpos(), (float)Minecraft.getInstance().mouseHandler.ypos(), entity, LightTexture.FULL_BRIGHT);
+    }
+
+    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, float scale, float screenMouseX, float screenMouseY, LivingEntity entity, int light) {
+        Matrix4f transformation = graphics.poseStack().last().pose();
+        float aX = (float)Math.atan((double)((transformation.m30() + x - screenMouseX) / 40.0F));
+        float aY = (float)Math.atan((double)((transformation.m31() + y - (screenMouseY + entity.getEyeHeight() * (16 * scale))) / 40.0F));
+        renderEntityFollowingAngle(graphics, x, y, scale, aX, aY, entity, light);
+    }
+
+    public static void renderEntityFollowingAngle(Graphics graphics, int x, int y, float scale, float angleXComponent, float angleYComponent, LivingEntity entity, int light) {
+        Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
+        Quaternionf quaternionf1 = (new Quaternionf()).rotateX(angleYComponent * 20.0F * 0.017453292F);
+        quaternionf.mul(quaternionf1);
+        float f2 = entity.yBodyRot;
+        float f3 = entity.getYRot();
+        float f4 = entity.getXRot();
+        float f5 = entity.yHeadRotO;
+        float f6 = entity.yHeadRot;
+        entity.yBodyRot = 180.0F + angleXComponent * 20.0F;
+        entity.setYRot(180.0F + angleXComponent * 40.0F);
+        entity.setXRot(-angleYComponent * 20.0F);
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();        
+        Matrix4f matrix = new Matrix4f().rotate(quaternionf);
+        renderEntity(graphics, x, y, scale, entity, matrix, quaternionf1, light);
+        entity.yBodyRot = f2;
+        entity.setYRot(f3);
+        entity.setXRot(f4);
+        entity.yHeadRotO = f5;
+        entity.yHeadRot = f6;
+    }
+    
+
+    public static void renderBlockState(Graphics graphics, int x, int y, BlockState state, RenderType renderType) {
+        renderBlockState(graphics, x, y, 1, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
+    }
+
+    public static void renderBlockState(Graphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, int light) {
+        renderBlockState(graphics, x, y, scale, state, renderType, new Matrix4f(), light);
+    }
+
+    public static void renderBlockState(Graphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
+        DLModel model = new DLModel() {
+            @Override
+            protected Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context) {
+                Mesh mesh = BasicMesh.fromBlock(state, random);
+                mesh.rotate(Axis.ZP.rotationDegrees(180), new Vector3f(0.5f));
+                return mesh;
+            }
+        };
+        renderModel(graphics, x, y, scale, model, state, renderType, transformation, light);
+    }
+    
+
+    public static void renderModel(Graphics graphics, int x, int y, DLModel model, BlockState state, RenderType renderType) {
+        renderModel(graphics, x, y, 1, model, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
+    }
+
+    public static void renderModel(Graphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, int light) {
+        renderModel(graphics, x, y, scale, model, state, renderType, new Matrix4f(), light);
+    }
+
+    public static void renderModel(Graphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
+        float s = scale * 16;
+        Lighting.setupForFlatItems();
+        PoseStack stack = graphics.poseStack();
+        stack.pushPose();
+        stack.translate((double)x, (double)y, 16 * (scale + 1));
+        stack.mulPoseMatrix((new Matrix4f()).scaling((float)s, (float)s, (float)(s)));
+        stack.mulPoseMatrix(transformation);
+        MultiBufferSource.BufferSource buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
+        model.render(graphics.poseStack().last(), buffersource.getBuffer(renderType), ModelType.BLOCK, state, ModelContext.EMPTY, Color.WHITE, LightTexture.FULL_BRIGHT, 0);
+        buffersource.endBatch();
+        stack.popPose();
+        Lighting.setupFor3DItems();
+    }
 }

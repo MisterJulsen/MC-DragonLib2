@@ -6,22 +6,22 @@ import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents.MouseDownEvent;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLRichTextLabel;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.action.InteractiveElement;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.CursorType;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.TextCursorPosition;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.windows.DLPopupWindow;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
@@ -38,13 +38,13 @@ import java.util.*;
 @SupportsEvents({
     DLGuiCommonEvents.TextReadOnlyChangedEvent.class,
     DLGuiCommonEvents.TextAcceptKeyPressedEvent.class,
+    DLGuiCommonEvents.TextCancelKeyPressedEvent.class
 })
 public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
 
     private static final int CURSOR_BLINK_RATE = 20;
     private static final long DOUBLE_CLICK_TIME_MS = 300;
     private static final float LINE_SCROLL_MULTIPLIER = 12.0f;
-    private static final int CURSOR_SCROLL_X_OFFSET_PIXELS = 5;
     private static final int CURSOR_SCROLL_Y_OFFSET_PIXELS = 5;
     private static final int SCROLL_X_ADVANCE_PIXELS = 10;
     private static final int SCROLL_Y_ADVANCE_PIXELS = 10;
@@ -58,8 +58,9 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
     public final Property<Component> placeholderText = new Property<>(TextUtils.empty());
     public final NumberProperty<Byte> cursorWidth = new NumberProperty<>((byte)1, (byte)1, Byte.MAX_VALUE);
     public final Property<Padding> decoratedPadding = new Property<>(Padding.ZERO);
-    public final BooleanProperty enableEnterAcceptKey = new BooleanProperty(false, false);
+    public final BooleanProperty acceptAndCancelKeysEnabled = new BooleanProperty(false, false);
     public final BooleanProperty hideSelection = new BooleanProperty(true, false); // TODO
+    public final NumberProperty<Integer> cursorXOffset = new NumberProperty<>(5);
 
 
     // Cursor
@@ -87,11 +88,11 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
 
         // TEST
         setTextCursor(0, true);
-        cursor.set(CursorType.IBEAM);
+        cursor.set(CursorType.IBEAM);        
+    }
 
-
-
-        
+    private int getCursorXOffsetWrapper() {
+        return cursorXOffset == null ? 5 : cursorXOffset.get();
     }
 
     @Override
@@ -305,7 +306,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
                 int realY = (int)MathUtils.clamp(targetY, getLayoutContentY(), height() - getLayoutContentY());
                 int diffY = Math.max(0, realY - targetY);
                 int realH = (int)MathUtils.clamp(targetH - diffY, 0, height() - realY - contentPadding.get().bottom() - decoratedPadding.get().bottom());
-                GuiUtils.fill(graphics, decoratedPadding.get().left(), realY, width() - decoratedPadding.get().left() - decoratedPadding.get().right(), realH, lineHighlightColor.get().getAsARGB());
+                GuiUtils.fill(graphics, decoratedPadding.get().left(), realY, width() - decoratedPadding.get().left() - decoratedPadding.get().right(), realH, lineHighlightColor.get());
             }
         }
 
@@ -313,7 +314,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         super.renderMainLayer(graphics, mouseX, mouseY, renderBounds);
 
         if (text.get() != null && text.get().getPlainText().isEmpty() && placeholderText.get() != null && !isFocused()) {
-            GuiUtils.drawString(graphics, font, (int)getLayoutContentX(), (int)(getLayoutContentY() + (lineSpacing.get() / 2f)), placeholderText.get(), 0xFF808080, EAlignment.LEFT, false);
+            GuiUtils.drawString(graphics, font, (int)getLayoutContentX(), (int)(getLayoutContentY() + (lineSpacing.get() / 2f)), placeholderText.get(), Color.fromInt(0xFF808080), ETextAlignment.LEFT, false);
         }
         
         GuiUtils.enableScissor(graphics, (int)(renderBounds.x() + getLayoutContentX()), (int)(renderBounds.y() + getLayoutContentY()), (int)getLayoutContentWidth(), (int)getLayoutContentHeight());
@@ -336,7 +337,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         graphics.poseStack().popPose();
     }
 
-    public void renderTextRangeHighlights(de.mrjulsen.mcdragonlib.client.util.Graphics mcGraphics, List<TextRange> ranges, int color) {
+    public void renderTextRangeHighlights(de.mrjulsen.mcdragonlib.client.util.Graphics mcGraphics, List<TextRange> ranges, Color color) {
         if (getLinesOrdered().isEmpty() || ranges.isEmpty() || text.get() == null) return;
 
         mcGraphics.poseStack().pushPose();
@@ -378,7 +379,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
     }
 
     private void renderSelection(de.mrjulsen.mcdragonlib.client.util.Graphics mcGraphics) {
-        renderTextRangeHighlights(mcGraphics, List.of(new TextRange(getSelectionStart(), getSelectionEnd())), selectionColor.get().getAsARGB());
+        renderTextRangeHighlights(mcGraphics, List.of(new TextRange(getSelectionStart(), getSelectionEnd())), selectionColor.get());
     }
 
     @Override
@@ -497,7 +498,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
                     case GLFW.GLFW_KEY_ENTER:
                     case GLFW.GLFW_KEY_KP_ENTER:
                         if (canModify) {
-                            if (enableEnterAcceptKey.get() && !controlDown && !shiftDown) {
+                            if (acceptAndCancelKeysEnabled.get() && !controlDown && !shiftDown) {
                                 invokeEvent(this, new DLGuiCommonEvents.TextAcceptKeyPressedEvent());
                             } else if (multiline.get()) {
                                 deleteSelection();
@@ -569,10 +570,15 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
                 }
             } else {
                 switch (keyCode) {
+                    case GLFW.GLFW_KEY_ESCAPE:
+                        if (canModify && acceptAndCancelKeysEnabled.get()) {
+                            invokeEvent(this, new DLGuiCommonEvents.TextCancelKeyPressedEvent());
+                        }
+                        break;
                     case GLFW.GLFW_KEY_ENTER:
                     case GLFW.GLFW_KEY_KP_ENTER:
                         if (canModify) {
-                            if (enableEnterAcceptKey.get() && !shiftDown) {
+                            if (acceptAndCancelKeysEnabled.get() && !shiftDown) {
                                 invokeEvent(this, new DLGuiCommonEvents.TextAcceptKeyPressedEvent());
                             } else if (multiline.get()) {
                                 deleteSelection();
@@ -674,10 +680,10 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         }
 
         float x = (float)getScrollOffsetX();
-        if (textCursorPosition.x() - CURSOR_SCROLL_X_OFFSET_PIXELS < getScrollOffsetX()) {
-            x = textCursorPosition.x() - CURSOR_SCROLL_X_OFFSET_PIXELS;
-        } else if (textCursorPosition.x() + cursorWidth.get() + CURSOR_SCROLL_X_OFFSET_PIXELS > getScrollOffsetX() + getLayoutContentWidth()) {
-            x = textCursorPosition.x() - getLayoutContentWidth() + cursorWidth.get() + CURSOR_SCROLL_X_OFFSET_PIXELS;
+        if (textCursorPosition.x() - getCursorXOffsetWrapper() < getScrollOffsetX()) {
+            x = textCursorPosition.x() - getCursorXOffsetWrapper();
+        } else if (textCursorPosition.x() + cursorWidth.get() + getCursorXOffsetWrapper() > getScrollOffsetX() + getLayoutContentWidth()) {
+            x = textCursorPosition.x() - getLayoutContentWidth() + cursorWidth.get() + getCursorXOffsetWrapper();
         }
         if (getScrollOffsetX() != x) {
             setScrollOffsetX(MathUtils.clamp(x, 0, getMaxScrollX()));

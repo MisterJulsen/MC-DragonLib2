@@ -22,7 +22,6 @@ public class FontUtils {
     protected static record UVData(float u0, float v0, float u1, float v1) {}
     protected static final Map<Integer, Deque<UVData>> uvStack = new HashMap<>();
 
-    @SuppressWarnings("resource")
     public FontUtils(ResourceLocation fontStyle) {
         this.font = Minecraft.getInstance().font;
         this.fontSet = ((FontAccessor)this.font).dragonlib$invokeGetFontSet(fontStyle);

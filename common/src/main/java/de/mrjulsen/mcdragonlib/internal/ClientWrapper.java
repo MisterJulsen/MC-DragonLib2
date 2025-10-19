@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLScreenWrapper;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;

@@ -7,6 +7,8 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
@@ -100,13 +102,17 @@ public class GLGuiTextureData {
 
         @Override
         public void render(Graphics graphics, int x, int y, int w, int h) {
-            graphics.graphics().blitRepeating(
+            GuiUtils.drawTexture(
                 metadata().location(),
+                graphics,
                 x, y, w, h,
                 u(),
                 v(),
                 width(),
-                height()
+                height(),
+                TextureFillMode.TILE,
+                metadata().textureSize[0],
+                metadata().textureSize[1]
             );
         }
     }
@@ -116,11 +122,15 @@ public class GLGuiTextureData {
         private final int[] uv;
         private final int[] size;
         private final int[] borderSize;
+        private final boolean tiledContent;
+        private final boolean tiledBorder;
 
-        public NineSlicedSprite(int[] uv, int[] size, int[] borderSize) {
+        public NineSlicedSprite(int[] uv, int[] size, int[] borderSize, boolean tiledBorder, boolean tiledContent) {
             this.uv = uv;
             this.size = size;
             this.borderSize = borderSize;
+            this.tiledContent = tiledContent;
+            this.tiledBorder = tiledBorder;
         }
 
         public int u() {
@@ -155,20 +165,29 @@ public class GLGuiTextureData {
             return borderSize[3];
         }
 
+        public boolean tiledContent() {
+            return tiledContent;
+        }
+
+        public boolean tiledBorder() {
+            return tiledBorder;
+        }
+
         @Override
         public void render(Graphics graphics, int x, int y, int w, int h) {
-            graphics.graphics().blitNineSliced(
-                metadata().location(),
-                x, y, w, h,
-                leftBorder(),
-                topBorder(),
-                rightBorder(),
-                bottomBorder(),
-                width(),
-                height(),
-                u(),
-                v()
-            );
+
+            GuiUtils.drawTexture(metadata().location(), graphics, x, y, leftBorder(), topBorder(), u(), v(), leftBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Left
+            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y, rightBorder(), topBorder(), u() + width() - rightBorder(), v(), rightBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Right
+            GuiUtils.drawTexture(metadata().location(), graphics, x, y + h - bottomBorder(), leftBorder(), bottomBorder(), u(), v() + height() - bottomBorder(), leftBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom Left
+            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y + h - bottomBorder(), rightBorder(), bottomBorder(), u() + width() - rightBorder(), v() + height() - bottomBorder(), rightBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom Right
+
+            GuiUtils.drawTexture(metadata().location(), graphics, x + leftBorder(), y, w - leftBorder() - rightBorder(), topBorder(), u() + leftBorder(), v(), width() - leftBorder() - rightBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top
+            GuiUtils.drawTexture(metadata().location(), graphics, x + leftBorder(), y + h - bottomBorder(), w - leftBorder() - rightBorder(), bottomBorder(), u() + leftBorder(), v() + height() - bottomBorder(), width() - leftBorder() - rightBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom
+            GuiUtils.drawTexture(metadata().location(), graphics, x, y + topBorder(), leftBorder(), h - topBorder() - bottomBorder(), u(), v() + topBorder(), leftBorder(), height() - topBorder() - bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Left
+            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y + topBorder(), rightBorder(), h - topBorder() - bottomBorder(), u() + width() - rightBorder(), v() + topBorder(), rightBorder(), height() - topBorder() - bottomBorder(),  tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Right
+            
+            GuiUtils.drawTexture(metadata().location(), graphics, x + rightBorder(), y + rightBorder(), w - rightBorder() - leftBorder(), h - topBorder() - bottomBorder(), u() + rightBorder(), v() + topBorder(), width() - rightBorder() - leftBorder(), height() - topBorder() - bottomBorder(), tiledContent() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]);
+
         }
     }
 

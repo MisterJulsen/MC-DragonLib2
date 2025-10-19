@@ -45,9 +45,7 @@
     "text.dragonlib.reload": "Reload",
     
     "gui.dragonlib.colorpicker.title": "Color Picker",
-    "gui.dragonlib.colorpicker.hsv": "HSV",
-    "gui.dragonlib.colorpicker.rgb": "RGB",
-    "gui.dragonlib.colorpicker.hex": "HEX",
+    "gui.dragonlib.colorpicker.opacity": "Opacity",
 
     "gui.dragonlib.menu.cut": "Cut",
     "gui.dragonlib.menu.copy": "Copy",

@@ -5,7 +5,6 @@ import java.time.Duration;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 
 public final class TimeUtils {
@@ -184,7 +183,7 @@ public final class TimeUtils {
         return base + scaleTicks(diff);
     }
 
-    public static enum TimeFormat implements StringRepresentable, ITranslatableEnum {
+    public static enum TimeFormat implements ITranslatableEnum {
         TICKS((byte)0, "ticks"),
         HOURS_24((byte)1, "hours_24"),
         HOURS_12((byte)2, "hours_12");
@@ -205,8 +204,9 @@ public final class TimeUtils {
             return this.index;
         }
 
-        public String getTranslationKey() {
-            return String.format("%s.time_format.%s", DragonLib.MODID, format);
+        @Override
+        public Data getTranslationData() {
+            return new Data(DragonLib.MODID, "time_format", getFormat());
         }
 
         public static TimeFormat getFormatByIndex(byte index) {
@@ -221,16 +221,6 @@ public final class TimeUtils {
         @Override
         public String getSerializedName() {
             return this.format;
-        }
-
-        @Override
-        public String getEnumName() {
-            return "time_format";
-        }
-
-        @Override
-        public String getEnumValueName() {
-            return getFormat();
         }
     }    
 }

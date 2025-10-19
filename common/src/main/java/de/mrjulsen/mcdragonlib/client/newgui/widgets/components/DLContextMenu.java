@@ -11,13 +11,14 @@ import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager.ModalId;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager.WindowBuilder;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -29,8 +30,8 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         List<ItemEntry> buildContextMenuContents(int x, int y);
     }
 
-    public static record ItemEntry(Component text, Sprite icon, boolean enabled, Runnable action, MenuBuilder subMenu) {
-        public static final ItemEntry SEPARATOR = new ItemEntry(TextUtils.empty(), Sprite.empty(), false, () -> {}, null);
+    public static record ItemEntry(Component text, DLSprite icon, boolean enabled, Runnable action, MenuBuilder subMenu) {
+        public static final ItemEntry SEPARATOR = new ItemEntry(TextUtils.empty(), DLSprite.empty(), false, () -> {}, null);
     }
 
     public static class DLContextMenuWindow extends DLWindow {
@@ -52,7 +53,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
 
         @Override
         public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-            GuiUtils.fill(graphics, 0, 0, width(), height(), 0x22FFFFFF);
+            GuiUtils.fill(graphics, 0, 0, width(), height(), Color.fromInt(0x22FFFFFF));
         }
     }
 
@@ -182,7 +183,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         GuiUtils.fill(graphics, 0, 0, width(), height(), DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED);
-        GuiUtils.fill(graphics, BORDER_SIZE, BORDER_SIZE, width() - BORDER_SIZE * 2, height() - BORDER_SIZE * 2, 0xFF000000);
+        GuiUtils.fill(graphics, BORDER_SIZE, BORDER_SIZE, width() - BORDER_SIZE * 2, height() - BORDER_SIZE * 2, Color.BLACK);
     }
 
     public static class DLContextMenuItem extends DLAbstractCollectionComponent.DLCollectionItem<ItemEntry, DLContextMenu> {
@@ -190,7 +191,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         protected static final int DEFAULT_HEIGHT = 12;
         protected static final int SUB_MENU_ARROW = 10;
         protected static final int ICON_MARGIN = 2;
-        protected static final int TEXT_TO_ICON_MARGIN = 2;
+        protected static final int TEXT_TO_ICON_MARGIN = 4;
         protected static final int RIGHT_MARGIN = 2;
 
         protected DLContextMenuItem(DLContextMenu collectionComponentRef, ItemEntry item) {
@@ -205,13 +206,16 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
 
         @Override
         public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-            if (isSelected()) {
-                GuiUtils.fill(graphics, 0, 0, width(), height(), 0x44FFFFFF);
+            if (!item.icon.isEmpty()) {
+                item.icon.render(graphics, ICON_MARGIN, ITEM_TOP_MARGIN);
             }
-            GuiUtils.drawString(graphics, Minecraft.getInstance().font, ICON_MARGIN + item.icon().getWidth() + TEXT_TO_ICON_MARGIN, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, item.text(), isSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : (enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED), EAlignment.LEFT, false);
+            if (isSelected()) {
+                GuiUtils.fill(graphics, 0, 0, width(), height(), Color.fromInt(0x44FFFFFF));
+            }
+            GuiUtils.drawString(graphics, Minecraft.getInstance().font, ICON_MARGIN + item.icon().getWidth() + TEXT_TO_ICON_MARGIN, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, item.text(), isSelected() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : (enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED), ETextAlignment.LEFT, false);
 
             if (item.subMenu() != null) {
-                GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - RIGHT_MARGIN, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, ">", DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.RIGHT, false);
+                GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - RIGHT_MARGIN, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, ">", DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, ETextAlignment.RIGHT, false);
             }
         }
 
@@ -220,7 +224,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         }
 
         public int requiredHeight() {
-            return Math.max(DEFAULT_HEIGHT, Math.max(item.icon().getHeight(), Minecraft.getInstance().font.lineHeight + 2));
+            return Math.max(DEFAULT_HEIGHT, Math.max(item.icon().getHeight() + ITEM_TOP_MARGIN + ITEM_BOTTOM_MARGIN, Minecraft.getInstance().font.lineHeight + 2));
         }
     }
 

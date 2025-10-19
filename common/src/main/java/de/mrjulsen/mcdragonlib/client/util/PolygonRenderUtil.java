@@ -2,8 +2,8 @@ package de.mrjulsen.mcdragonlib.client.util;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import de.mrjulsen.mcdragonlib.util.Color;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.util.FastColor.ARGB32;
 
 import org.joml.Vector2f;
 import org.joml.Matrix4f;
@@ -18,12 +18,12 @@ public final class PolygonRenderUtil {
         INWARD, CENTER, OUTWARD;
     }
 
-    public static void drawPolygon(Graphics graphics, List<Vector2f> points, int z, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawPolygon(Graphics graphics, List<Vector2f> points, int z, Color fillColor, Color outlineColor, float outlineWidth) {
         fillPolygon(graphics, points, z, fillColor);
         drawPolygonOutline(graphics, points, outlineWidth, outlineColor);
     }
 
-    public static void drawLine(Graphics graphics, float x1, float y1, float x2, float y2, float width, int color) {
+    public static void drawLine(Graphics graphics, float x1, float y1, float x2, float y2, float width, Color color) {
         Vector2f p1 = new Vector2f(x1, y1);
         Vector2f p2 = new Vector2f(x2, y2);
         Vector2f dir = new Vector2f(p2).sub(p1).normalize();
@@ -39,7 +39,7 @@ public final class PolygonRenderUtil {
         fillPolygon(graphics, quad, 0, color);
     }
 
-    public static void drawRectangle(Graphics graphics, float x, float y, float width, float height, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawRectangle(Graphics graphics, float x, float y, float width, float height, Color fillColor, Color outlineColor, float outlineWidth) {
         List<Vector2f> rect = List.of(
                 new Vector2f(x, y),
                 new Vector2f(x + width, y),
@@ -49,7 +49,7 @@ public final class PolygonRenderUtil {
         drawPolygon(graphics, rect, 0, fillColor, outlineColor, outlineWidth);
     }
 
-    public static void drawTriangle(Graphics graphics, float x1, float y1, float x2, float y2, float x3, float y3, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawTriangle(Graphics graphics, float x1, float y1, float x2, float y2, float x3, float y3, Color fillColor, Color outlineColor, float outlineWidth) {
         List<Vector2f> tri = List.of(
                 new Vector2f(x1, y1),
                 new Vector2f(x2, y2),
@@ -58,7 +58,7 @@ public final class PolygonRenderUtil {
         drawPolygon(graphics, tri, 0, fillColor, outlineColor, outlineWidth);
     }
 
-    public static void drawCircle(Graphics graphics, float cx, float cy, float radius, int segments, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawCircle(Graphics graphics, float cx, float cy, float radius, int segments, Color fillColor, Color outlineColor, float outlineWidth) {
         List<Vector2f> circle = new ArrayList<>();
         for (int i = 0; i < segments; i++) {
             double angle = 2 * Math.PI * i / segments;
@@ -69,7 +69,7 @@ public final class PolygonRenderUtil {
         drawPolygon(graphics, circle, 0, fillColor, outlineColor, outlineWidth);
     }
 
-    public static void drawEllipse(Graphics graphics, float cx, float cy, float rx, float ry, int segments, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawEllipse(Graphics graphics, float cx, float cy, float rx, float ry, int segments, Color fillColor, Color outlineColor, float outlineWidth) {
         List<Vector2f> ellipse = new ArrayList<>();
         for (int i = 0; i < segments; i++) {
             double angle = 2 * Math.PI * i / segments;
@@ -80,7 +80,7 @@ public final class PolygonRenderUtil {
         drawPolygon(graphics, ellipse, 0, fillColor, outlineColor, outlineWidth);
     }
 
-    public static void drawRegularPolygon(Graphics graphics, float cx, float cy, float radius, int sides, int fillColor, int outlineColor, float outlineWidth) {
+    public static void drawRegularPolygon(Graphics graphics, float cx, float cy, float radius, int sides, Color fillColor, Color outlineColor, float outlineWidth) {
         List<Vector2f> poly = new ArrayList<>();
         for (int i = 0; i < sides; i++) {
             double angle = 2 * Math.PI * i / sides;
@@ -92,16 +92,16 @@ public final class PolygonRenderUtil {
     }
 
 
-    public static void drawPolygonOutline(Graphics graphics, List<Vector2f> points, float lineWidth, int color) {
+    public static void drawPolygonOutline(Graphics graphics, List<Vector2f> points, float lineWidth, Color color) {
         if (points.size() < 2) return;
 
         Matrix4f matrix = graphics.poseStack().last().pose();
         VertexConsumer vertexConsumer = graphics.graphics().bufferSource().getBuffer(RenderType.gui());
 
-        float alpha = (float)((color >> 24) & 0xFF) / 255f;
-        float red   = (float)((color >> 16) & 0xFF) / 255f;
-        float green = (float)((color >> 8) & 0xFF) / 255f;
-        float blue  = (float)(color & 0xFF) / 255f;
+        float alpha = color.getAlphaF();
+        float red   = color.getRedF();
+        float green = color.getGreenF();
+        float blue  = color.getBlueF();
 
         int n = points.size();
         boolean ccw = polygonArea(points) > 0; // true = CCW
@@ -158,22 +158,22 @@ public final class PolygonRenderUtil {
 
         graphics.graphics().flush();
     }
-private static boolean isCCW(Vector2f a, Vector2f b, Vector2f c) {
-    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
-}
 
+    private static boolean isCCW(Vector2f a, Vector2f b, Vector2f c) {
+        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
+    }
 
-    public static void fillPolygon(Graphics graphics, List<Vector2f> points, int z, int color) {
+    public static void fillPolygon(Graphics graphics, List<Vector2f> points, int z, Color color) {
         if (points.size() < 3)
             return;
 
         Matrix4f matrix = graphics.poseStack().last().pose();
         VertexConsumer vertexConsumer = graphics.graphics().bufferSource().getBuffer(RenderType.gui());
 
-        float a = (float) ARGB32.alpha(color) / 255.0F;
-        float r = (float) ARGB32.red(color) / 255.0F;
-        float g = (float) ARGB32.green(color) / 255.0F;
-        float b = (float) ARGB32.blue(color) / 255.0F;
+        float a = color.getAlphaF();
+        float r = color.getRedF();
+        float g = color.getGreenF();
+        float b = color.getBlueF();
 
         List<Vector2f> poly = new ArrayList<>(points);
 

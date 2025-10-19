@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 
+@Deprecated(forRemoval = true)
 public class Wikipedia {
 
     protected static final String WIKIPEDIA_BASE_URL = "https://www.wikipedia.org/";

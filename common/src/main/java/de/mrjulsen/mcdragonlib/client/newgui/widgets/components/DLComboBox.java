@@ -9,7 +9,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents.ClickEvent;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLPopupWindow;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager.ModalId;
@@ -17,14 +19,12 @@ import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLScrollBar.Orie
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ITextFormatter;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.windows.DLPopupWindow;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 
@@ -34,7 +34,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         DLComboBoxDropDownList<T> build(ModalId id, int winWidth, int winHeight);
     }
 
-    public static final int DROP_DOWN_BUTTON_WIDTH = 16;
+    public static final int DROP_DOWN_BUTTON_WIDTH = 14;
 
     public final Property<ITextFormatter<DLComboBox<T>>> textFormat = new Property<>((src) -> TextUtils.text(src.selectedItem.get().map(x -> x.toString()).orElse(text.get().getString())).withStyle(src.text.get().getStyle()));
     /**
@@ -76,7 +76,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         RenderSystem.enableBlend();
         DLWindowManager manager = getWindowManager();
-        GuiUtils.setTint(backgroundTint.get().getAsARGB());
+        GuiUtils.setTint(backgroundTint.get());
         ButtonState backgroundState = ButtonState.DISABLED;
         if (isSelected()) {
             backgroundState = ButtonState.DISABLED_SELECTED;
@@ -93,9 +93,9 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         }
         componentRenderer.get().renderSprite(graphics, width() - DROP_DOWN_BUTTON_WIDTH, 0, DROP_DOWN_BUTTON_WIDTH, height(), this, state);
 
-        GuiUtils.setTint(textColor.get().getAsARGB());
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, textFormat.get().combine(this), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.LEFT, false);
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - DROP_DOWN_BUTTON_WIDTH + (DROP_DOWN_BUTTON_WIDTH / 2) + (isMouseDown() ? 1 : 0), height() / 2 + (isMouseDown() ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, TextUtils.text("▼"), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.CENTER, true);
+        GuiUtils.setTint(textColor.get());
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, textFormat.get().combine(this), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, ETextAlignment.LEFT, false);
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - DROP_DOWN_BUTTON_WIDTH + (DROP_DOWN_BUTTON_WIDTH / 2) + (isMouseDown() ? 1 : 0), height() / 2 + (isMouseDown() ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, TextUtils.text("▼"), enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, ETextAlignment.CENTER, true);
         GuiUtils.resetTint();
     }
 
@@ -147,11 +147,11 @@ public class DLComboBox<T> extends DLCycleButton<T> {
             @Override
             public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
                 if (isSelected()) {
-                    GuiUtils.fill(graphics, 0, 0, width(), height(), 0x22FFFFFF);
+                    GuiUtils.fill(graphics, 0, 0, width(), height(), Color.fromInt(0x22FFFFFF));
                 } else if (selected) {
-                    GuiUtils.drawBox(graphics, new GuiAreaDefinition(0, 0, width(), height()), 0, DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE);
+                    GuiUtils.drawBox(graphics, Rectangle.withSize(0, 0, width(), height()), Color.TRANSPARENT, DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE);
                 }
-                GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, String.valueOf(item), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+                GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, String.valueOf(item), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, ETextAlignment.LEFT, false);
             }
 
         }
@@ -189,8 +189,8 @@ public class DLComboBox<T> extends DLCycleButton<T> {
 
         @Override
         public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-            GuiUtils.fill(graphics, 0, 0, width(), height(), 0xFF666666);
-            GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, 0xFF444444);
+            GuiUtils.fill(graphics, 0, 0, width(), height(), Color.fromInt(0xFF666666));
+            GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, Color.fromInt(0xFF444444));
         }
     }
     

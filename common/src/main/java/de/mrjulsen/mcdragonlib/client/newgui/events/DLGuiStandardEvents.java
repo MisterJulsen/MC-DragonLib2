@@ -68,8 +68,8 @@ public final class DLGuiStandardEvents {
     public record ComponentRemovedEvent(DLGuiComponent child) implements IEvent {}
     public record FocusChangedEvent(boolean focus) implements IEvent {}
     public record DragBeginEvent(double mouseX, double mouseY, int button) implements IEvent {}
-    public record DragEvent(double mouseX, double mouseY, int button, double mouseOriginX, double mouseOriginY, double dragX, double dragY) implements IEvent {}
-    public record DragEndEvent(double mouseX, double mouseY, int button, double mouseOriginX, double mouseOriginY) implements IEvent {}
+    public record DragEvent(double mouseX, double mouseY, int button, double screenMouseOriginX, double screenMouseOriginY, double localMouseOriginX, double localMouseOriginY, double dragX, double dragY) implements IEvent {}
+    public record DragEndEvent(double mouseX, double mouseY, int button, double screenMouseOriginX, double screenMouseOriginY, double localMouseOriginX, double localMouseOriginY) implements IEvent {}
     public record KeyPressEvent(int keyCode, int scanCode, int modifiers) implements IEvent {}
     public record KeyReleaseEvent(int keyCode, int scanCode, int modifiers) implements IEvent {}
     public record CharTypeEvent(char codePoint, int modifiers) implements IEvent {}

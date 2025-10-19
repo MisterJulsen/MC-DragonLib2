@@ -19,6 +19,8 @@ import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +29,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 /**
  * Register custom {@link BakedModel}s for {@link Block}s and their {@link BlockItem}s. 
  */
-public class CustomBlockModelRegistry {
+public class CustomBlockModelRegistry implements ResourceManagerReloadListener {
 
     private static final Map<BlockState, BakedModel> originalModels = new ConcurrentHashMap<>();
 
@@ -190,5 +192,9 @@ public class CustomBlockModelRegistry {
             return originalModels.get(state);
         }
         return Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(state);
+    }
+
+    @Override
+    public void onResourceManagerReload(ResourceManager resourceManager) {
     }
 }

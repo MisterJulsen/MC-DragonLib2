@@ -3,8 +3,7 @@ package de.mrjulsen.mcdragonlib;
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 
-import de.mrjulsen.mcdragonlib.client.OverlayManager;
-import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
@@ -13,7 +12,7 @@ import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
-import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
@@ -39,7 +38,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -82,10 +80,10 @@ public class DragonLib {
     public static final ResourceLocation UI = new ResourceLocation(MODID, "textures/gui/ui.png");
     public static final ResourceLocation NATIVE_WIDGETS = new ResourceLocation("minecraft:textures/gui/widgets.png"); 
 
-    public static final int NATIVE_UI_FONT_COLOR = 0xFF404040;
-    public static final int NATIVE_BUTTON_FONT_COLOR_ACTIVE = 0xFFFFFFFF;
-    public static final int NATIVE_BUTTON_FONT_COLOR_DISABLED = 0xFF9E9E9E;
-    public static final int NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = 0xFFFFFFA0;
+    public static final Color NATIVE_UI_FONT_COLOR = Color.fromInt(0xFF404040);
+    public static final Color NATIVE_BUTTON_FONT_COLOR_ACTIVE = Color.WHITE;
+    public static final Color NATIVE_BUTTON_FONT_COLOR_DISABLED = Color.fromInt(0xFF9E9E9E);
+    public static final Color NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = Color.fromInt(0xFFFFFFA0);
     public static final int DARK_WINDOW_COLOR = 0xFF303030;
     public static final int DEFAULT_BUTTON_COLOR = 0xFF484848;
     public static final int LIGHT_BUTTON_COLOR = 0xFF888888;
@@ -164,7 +162,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
 
         dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
             IdentifiableResponsePacketBase.class, 
-            WritableSignPacket.class,
+            //WritableSignPacket.class,
             DataAccessorResponsePacket.class
         ));
         registerCustom(BasicDataAccessorPacket.class);
@@ -172,7 +170,6 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
-                OverlayManager.tickAll();
             });
 
             ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
@@ -183,40 +180,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
                 DataAccessor.stopClientWorker();
             });
 
-            // Overlay Renderer
-            ClientGuiEvent.RENDER_HUD.register((poseStack, partialTicks) -> {
-                if (Minecraft.getInstance().font == null) {
-                    return;
-                }
-                OverlayManager.renderAll(poseStack, partialTicks);
-            });
-
-            ClientRawInputEvent.KEY_PRESSED.register((mc, keyCode, scanCode, action, modifiers) -> {
-                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
-                    if (overlay.keyPressed(keyCode, scanCode, modifiers)) {
-                        return EventResult.interruptTrue();
-                    }
-                }
-                return EventResult.pass();
-            });
-
-            ClientRawInputEvent.MOUSE_CLICKED_POST.register((mc, mouseX, mouseY, button) -> {
-                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
-                    if (overlay.mouseClicked(mouseX, mouseY, button)) {
-                        return EventResult.interruptTrue();
-                    }
-                }
-                return EventResult.pass();
-            });
-
-            ClientRawInputEvent.MOUSE_SCROLLED.register((mc, scrollDelta) -> {
-                for (DLOverlayScreen overlay : OverlayManager.getAllOverlays()) {
-                    if (overlay.mouseScrolled((int)Minecraft.getInstance().mouseHandler.xpos(), (int)Minecraft.getInstance().mouseHandler.ypos(), scrollDelta)) {
-                        return EventResult.interruptTrue();
-                    }
-                }
-                return EventResult.pass();
-            });
+            DLOverlayManager.init();
         }
 
         // On server tick

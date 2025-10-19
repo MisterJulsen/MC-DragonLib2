@@ -1,9 +1,9 @@
 package de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext;
 
 import com.google.common.collect.Maps;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
-import de.mrjulsen.mcdragonlib.data.Cache;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
+import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.richtext.action.InteractiveElement;
@@ -59,12 +59,12 @@ public class RichTextComponent {
     private static final String NBT_ALIGNMENTS = "alignments";
     private static final String NBT_INTERACTIVE_ELEMENTS = "actions";
 
-    private static final EAlignment DEFAULT_ALIGNMENT = EAlignment.LEFT;
+    private static final ETextAlignment DEFAULT_ALIGNMENT = ETextAlignment.LEFT;
     public static final TextStyle DEFAULT_LINK_STYLE = new TextStyle.Builder().underlined(true).color(0xFF5555FF).build();
     public static final ITextValidator DEFAULT_TEXT_VALIDATOR = (current, newText, input) -> input;
 
     private final List<TextSegment> segments = new LinkedList<>();
-    private final TreeMap<Integer, EAlignment> paragraphAlignments = new TreeMap<>();
+    private final TreeMap<Integer, ETextAlignment> paragraphAlignments = new TreeMap<>();
     private final List<InteractiveElement> interactiveElements = new LinkedList<>();
 
     private boolean multiline = false;
@@ -248,7 +248,7 @@ public class RichTextComponent {
         return set(text, style, null);
     }
 
-    public int set(String text, TextStyle style, EAlignment alignment) {
+    public int set(String text, TextStyle style, ETextAlignment alignment) {
         clear();
         return insert(length(), text, style, alignment);
     }
@@ -261,7 +261,7 @@ public class RichTextComponent {
         return append(text, style, null);
     }
 
-    public int append(String text, TextStyle style, EAlignment alignment) {
+    public int append(String text, TextStyle style, ETextAlignment alignment) {
         return insert(length(), text, style, alignment);
     }
 
@@ -273,7 +273,7 @@ public class RichTextComponent {
         return insert(index, text, style, null);
     }
 
-    public int insert(int index, String text, TextStyle style, EAlignment alignment) {
+    public int insert(int index, String text, TextStyle style, ETextAlignment alignment) {
         checkIndex(index);
         if (text == null || text.isEmpty()) return 0;
 
@@ -290,7 +290,7 @@ public class RichTextComponent {
         String plainTextBeforeInsert = getPlainText();
 
         if (alignment != null) {
-            EAlignment currentAlignment = getParagraphAlignment(index);
+            ETextAlignment currentAlignment = getParagraphAlignment(index);
             if (alignment != currentAlignment) {
                 if (index > 0) {
                     int prevCharIdx = toCharIndex(plainTextBeforeInsert, index - 1);
@@ -303,7 +303,7 @@ public class RichTextComponent {
 
         return insertInternal(index, filteredText, actualStyle, alignment, true);
     }
-    private int insertInternal(int codePointInsertIndex, String textToInsert, TextStyle style, EAlignment alignment, boolean performUpdate) {
+    private int insertInternal(int codePointInsertIndex, String textToInsert, TextStyle style, ETextAlignment alignment, boolean performUpdate) {
 
         StringBuilder futureText = new StringBuilder(getPlainText());
         futureText.insert(codePointInsertIndex, textToInsert);
@@ -505,7 +505,7 @@ public class RichTextComponent {
         return replace(start, end, text, style, null);
     }
 
-    public RichTextComponent replace(int start, int end, String text, TextStyle style, EAlignment alignment) {
+    public RichTextComponent replace(int start, int end, String text, TextStyle style, ETextAlignment alignment) {
         checkRange(start, end);
         String replacementText = (text == null) ? "" : text;
         if (!multiline) {
@@ -539,7 +539,7 @@ public class RichTextComponent {
         return replace(searchText, replacementText, style, null);
     }
 
-    public RichTextComponent replace(String searchText, String replacementText, TextStyle style, EAlignment alignment) {
+    public RichTextComponent replace(String searchText, String replacementText, TextStyle style, ETextAlignment alignment) {
         if (searchText == null || searchText.isEmpty()) {
             return this;
         }
@@ -574,11 +574,11 @@ public class RichTextComponent {
         if (insertedText == null || insertedText.isEmpty()) return;
 
         int cpl = getFullCodepointCount(insertedText);//insertedText.codePointCount(0, insertedText.length());
-        TreeMap<Integer, EAlignment> newAlignments = new TreeMap<>();
+        TreeMap<Integer, ETextAlignment> newAlignments = new TreeMap<>();
 
-        for (Map.Entry<Integer, EAlignment> entry : paragraphAlignments.entrySet()) {
+        for (Map.Entry<Integer, ETextAlignment> entry : paragraphAlignments.entrySet()) {
             int oldKey = entry.getKey();
-            EAlignment value = entry.getValue();
+            ETextAlignment value = entry.getValue();
             if (oldKey < index) {
                 newAlignments.put(oldKey, value);
             } else {
@@ -588,7 +588,7 @@ public class RichTextComponent {
         paragraphAlignments.clear();
         paragraphAlignments.putAll(newAlignments);
 
-        EAlignment alignmentForNewParagraphs = getParagraphAlignment(index > 0 ? index -1 : 0);
+        ETextAlignment alignmentForNewParagraphs = getParagraphAlignment(index > 0 ? index -1 : 0);
 
         int charIdx = 0;
         for (int cpIdx = 0; cpIdx < cpl; ++cpIdx) {
@@ -608,12 +608,12 @@ public class RichTextComponent {
         if (start == end) return;
         int removedCodePointLength = end - start;
 
-        TreeMap<Integer, EAlignment> newAlignments = new TreeMap<>();
-        EAlignment alignmentBeforeRemovalStart = getParagraphAlignment(start > 0 ? start -1 : 0);
+        TreeMap<Integer, ETextAlignment> newAlignments = new TreeMap<>();
+        ETextAlignment alignmentBeforeRemovalStart = getParagraphAlignment(start > 0 ? start -1 : 0);
 
-        for (Map.Entry<Integer, EAlignment> entry : paragraphAlignments.entrySet()) {
+        for (Map.Entry<Integer, ETextAlignment> entry : paragraphAlignments.entrySet()) {
             int oldKey = entry.getKey();
-            EAlignment value = entry.getValue();
+            ETextAlignment value = entry.getValue();
 
             if (oldKey < start) {
                 newAlignments.put(oldKey, value);
@@ -818,7 +818,7 @@ public class RichTextComponent {
     }
 
 
-    List<TextSegment> getSegmentsRaw() {
+    public List<TextSegment> getSegmentsRaw() {
         return segments;
     }
 
@@ -993,7 +993,7 @@ public class RichTextComponent {
             }
 
             float actualRenderedWidth = lineBreak.lineWidth();
-            EAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
+            ETextAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
 
             calculatedMarkers.put(lastCodePointIndex.intValue(),
                     new LineMarker(lastCodePointIndex.intValue(),
@@ -1019,13 +1019,13 @@ public class RichTextComponent {
 
         if (lastCodePointIndex.intValue() < currentTotalCpLength || calculatedMarkers.isEmpty()) {
             float finalLineWidth = splitter.widthSinceLastBreak();
-            EAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
+            ETextAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
             calculatedMarkers.put(lastCodePointIndex.intValue(), new LineMarker(lastCodePointIndex.intValue(), currentTotalCpLength, finalLineWidth, splitter.highestScale(), splitter.lineHeight(), currentY.floatValue(), lineAlignment));
         } else if (currentTotalCpLength > 0 && lastCodePointIndex.intValue() == currentTotalCpLength) {
             if (textCodePointLength > 0 &&
                     fullPlainTextCodePoints[textCodePointLength - 1] == '\n' &&
                     !calculatedMarkers.containsKey(lastCodePointIndex.intValue())) {
-                EAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
+                ETextAlignment lineAlignment = getParagraphAlignment(lastCodePointIndex.intValue());
                 float defaultLineHeight = Minecraft.getInstance().font.lineHeight;
                 calculatedMarkers.put(lastCodePointIndex.intValue(), new LineMarker(lastCodePointIndex.intValue(), currentTotalCpLength, 0, 1f, defaultLineHeight, currentY.floatValue(), lineAlignment));
             }
@@ -1033,11 +1033,11 @@ public class RichTextComponent {
         return calculatedMarkers;
     }
 
-    public void setParagraphAlignment(int charIndex, EAlignment alignment) {
+    public void setParagraphAlignment(int charIndex, ETextAlignment alignment) {
         setParagraphAlignment(charIndex, alignment, true);
     }
 
-    private void setParagraphAlignment(int charIndex, EAlignment alignment, boolean performUpdate) {
+    private void setParagraphAlignment(int charIndex, ETextAlignment alignment, boolean performUpdate) {
         checkIndex(charIndex);
 
         String text = getPlainText();
@@ -1081,14 +1081,14 @@ public class RichTextComponent {
         }
     }
 
-    public EAlignment getParagraphAlignment(int charIndex) {
+    public ETextAlignment getParagraphAlignment(int charIndex) {
         if (charIndex < 0) charIndex = 0;
         int currentTotalCodePoints = length();
         if (charIndex > currentTotalCodePoints) charIndex = currentTotalCodePoints;
 
         if (paragraphAlignments.isEmpty()) return DEFAULT_ALIGNMENT;
 
-        Map.Entry<Integer, EAlignment> entry = paragraphAlignments.floorEntry(charIndex);
+        Map.Entry<Integer, ETextAlignment> entry = paragraphAlignments.floorEntry(charIndex);
 
         if (entry == null) {
             return paragraphAlignments.getOrDefault(0, DEFAULT_ALIGNMENT);

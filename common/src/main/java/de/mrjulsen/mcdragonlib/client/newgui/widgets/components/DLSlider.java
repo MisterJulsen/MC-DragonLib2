@@ -6,21 +6,21 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.InheritableProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLButton.ButtonState;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaButtonRenderer;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ITextFormatter;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.InheritableProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.Color;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -105,7 +105,7 @@ public class DLSlider extends DLGuiComponent {
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         super.renderMainLayer(graphics, mouseX, mouseY, renderBounds);
-        GuiUtils.setTint(backgroundTint.get().getAsARGB());
+        GuiUtils.setTint(backgroundTint.get());
 
         componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.DISABLED);
         int sliderX = (int)((double)(width() - sliderWidth.get()) / (max.get() - min.get()) * value.get());
@@ -119,8 +119,8 @@ public class DLSlider extends DLGuiComponent {
             componentRenderer.get().renderSprite(graphics, sliderX, 0, sliderWidth.get(), height(), this, ButtonState.NORMAL);
         }
 
-        GuiUtils.setTint(textColor.get().getAsARGB());
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() / 2, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, displayText, enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, EAlignment.CENTER, true);
+        GuiUtils.setTint(textColor.get());
+        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() / 2, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, displayText, enabled.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE : DragonLib.NATIVE_BUTTON_FONT_COLOR_DISABLED, ETextAlignment.CENTER, true);
         GuiUtils.resetTint();
     }
     

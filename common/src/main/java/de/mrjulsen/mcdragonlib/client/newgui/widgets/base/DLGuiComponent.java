@@ -3,27 +3,27 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.base;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BitflagProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.IProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.InheritableProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Align;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BitflagProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.IProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.InheritableProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.RenderLayer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult.ComponentHitContext;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.HitResult.ComponentSelectionState;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.data.Cache;
 import de.mrjulsen.mcdragonlib.events.EventListenerWrapper;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.events.IEventDispatcher;
 import de.mrjulsen.mcdragonlib.events.IEvent.Phase;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
+import de.mrjulsen.mcdragonlib.util.Cache;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.math.Size;
 import net.minecraft.client.Minecraft;
@@ -102,7 +102,7 @@ import com.google.common.collect.ImmutableSet;
     DLGuiStandardEvents.WindowManagerChangeEvent.class,
     DLGuiStandardEvents.CloseEvent.class,
 })
-public abstract class DLGuiComponent implements IDragonLibWidget, IEventDispatcher<DLGuiComponent>, AutoCloseable {
+public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>, AutoCloseable {
 
     private final Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> eventListeners = new HashMap<>();
 
@@ -116,7 +116,7 @@ public abstract class DLGuiComponent implements IDragonLibWidget, IEventDispatch
     }
 
     public static final int getResizeCornerSize() {
-        return getResizeBorderSize() * 4;
+        return getResizeBorderSize() * 8;
     }
 
     public static final int MOUSE_DRAG_THRESHOLD = 5;
@@ -178,7 +178,7 @@ public abstract class DLGuiComponent implements IDragonLibWidget, IEventDispatch
     public final BooleanProperty movable = new BooleanProperty(false, true)
         .withAfterPropertyChangedCallback((o, v) -> invokeEvent(this, new DLGuiStandardEvents.MovableChangedEvent(v), true));
     public final NumberProperty<Byte> multiClickable = new NumberProperty<>((byte)1, (byte)1, Byte.MAX_VALUE);
-    public final Property<CursorType> cursor = new Property<>(CursorType.ARROW);
+    public final Property<CursorType> cursor = new Property<>(null);
     public final Property<Predicate<ConsumptionType>> inputConsumptionPolicy = new Property<>((context) -> context != ConsumptionType.SCROLL);
     public final BitflagProperty<EAlign> anchor = new BitflagProperty<>(EAlign.class, EAlign.LEFT, EAlign.TOP);
     public final Property<Size> minSize = new Property<Size>(Size.of(5, 5));
@@ -842,10 +842,10 @@ public abstract class DLGuiComponent implements IDragonLibWidget, IEventDispatch
                 if (b) {
                     invokeEvent(this, new DLGuiStandardEvents.DragBeginEvent(mouseX, mouseY, button), true);
                 } else {
-                    invokeEvent(this, new DLGuiStandardEvents.DragEndEvent(mouseX, mouseY, button, mouseOriginX, mouseOriginY), true);
+                    invokeEvent(this, new DLGuiStandardEvents.DragEndEvent(mouseX, mouseY, button, mouseOriginX, mouseOriginY, this.mouseDownX, this.mouseDownY), true);
                 }
             } else if (b) {
-                invokeEvent(this, new DLGuiStandardEvents.DragEvent(mouseX, mouseY, button, mouseOriginX, mouseOriginY, dragX, dragY), true);
+                invokeEvent(this, new DLGuiStandardEvents.DragEvent(mouseX, mouseY, button, mouseOriginX, mouseOriginY, this.mouseDownX, this.mouseDownY, dragX, dragY), true);
             }
         }
         return false;

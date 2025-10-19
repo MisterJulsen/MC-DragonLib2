@@ -9,18 +9,18 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.VirtualProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLScrollBar.Orientation;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaListScrollBarRenderer;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.VirtualProperty;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.core.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.IEvent;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 
@@ -51,11 +51,11 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
             if (selected.get()) {
                 GuiUtils.fill(graphics, 0, 0, width(), height(), DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE);
-                GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, 0xFF000000);
+                GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, Color.BLACK);
             } else if (isSelected()) {
-                GuiUtils.fill(graphics, 0, 0, width(), height(), 0x22FFFFFF);
+                GuiUtils.fill(graphics, 0, 0, width(), height(), Color.fromInt(0x22FFFFFF));
             }
-            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, String.valueOf(item), selected.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, EAlignment.LEFT, false);
+            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, String.valueOf(item), selected.get() ? DragonLib.NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT : DragonLib.NATIVE_BUTTON_FONT_COLOR_ACTIVE, ETextAlignment.LEFT, false);
         }
 
     }
@@ -198,6 +198,6 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
 
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        GuiUtils.drawBox(graphics, new GuiAreaDefinition(0, 0, width(), height()), 0x66000000, 0xFFFFFFFF);
+        GuiUtils.drawBox(graphics, Rectangle.withSize(0, 0, width(), height()), Color.fromInt(0x66000000), Color.WHITE);
     }  
 }

@@ -20,7 +20,8 @@ import de.mrjulsen.mcdragonlib.client.model.CustomBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelCacheKey;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
-import de.mrjulsen.mcdragonlib.data.Cache;
+import de.mrjulsen.mcdragonlib.util.Cache;
+import de.mrjulsen.mcdragonlib.util.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -75,8 +76,7 @@ public abstract class DLModel {
         return null;
     }
 
-    protected abstract Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random,
-            ModelContext context);
+    protected abstract Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context);
 
     private final Cache<List<RenderType>> renderTypesCache = new Cache<>(() -> {
         Set<RenderType> types = new HashSet<>(RenderType.chunkBufferLayers().size());
@@ -185,29 +185,29 @@ public abstract class DLModel {
         of(state).ifPresent(x -> x.render(pose, consumer, state, context));
     }
 
-    public static void renderModel(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, float red, float green, float blue, int packedLight, int packedOverlay) {
-        of(state).ifPresent(x -> x.render(pose, consumer, type, state, context, red, green, blue, packedLight, packedOverlay));
+    public static void renderModel(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, Color color, int packedLight, int packedOverlay) {
+        of(state).ifPresent(x -> x.render(pose, consumer, type, state, context, color, packedLight, packedOverlay));
     }
 
     public void render(PoseStack.Pose pose, VertexConsumer consumer, @Nullable BlockState state, ModelContext context) {
-        render(pose, consumer, ModelType.BLOCK, state, context, 1, 1, 1, 0, 0);
+        render(pose, consumer, ModelType.BLOCK, state, context, Color.WHITE, 0, 0);
     }
 
-    public void render(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, float red, float green, float blue, int packedLight, int packedOverlay) {
+    public void render(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, Color color, int packedLight, int packedOverlay) {
         RandomSource randomSource = RandomSource.create();
         long seed = 42L;
         for (RenderType renderType : getSupportedRenderTypes()) {
             for (Direction direction : Direction.values()) {
                 randomSource.setSeed(seed);
-                renderQuadList(pose, consumer, red, green, blue, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, direction, context), packedLight, packedOverlay);
+                renderQuadList(pose, consumer, color, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, direction, context), packedLight, packedOverlay);
             }
             randomSource.setSeed(seed);
-            renderQuadList(pose, consumer, red, green, blue, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, null, context), packedLight, packedOverlay);
+            renderQuadList(pose, consumer, color, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, null, context), packedLight, packedOverlay);
         }
         
     }
 
-    private static void renderQuadList(PoseStack.Pose pose, VertexConsumer consumer, float red, float green, float blue, List<BakedQuad> quads, int packedLight, int packedOverlay) {
+    private static void renderQuadList(PoseStack.Pose pose, VertexConsumer consumer, Color color, List<BakedQuad> quads, int packedLight, int packedOverlay) {
         BakedQuad bakedQuad;
         float r;
         float g;
@@ -215,9 +215,9 @@ public abstract class DLModel {
         for (Iterator<BakedQuad> iterator = quads.iterator(); iterator.hasNext(); consumer.putBulkData(pose, bakedQuad, r, g, b, packedLight, packedOverlay)) {
             bakedQuad = (BakedQuad)iterator.next();
             if (bakedQuad.isTinted()) {
-                r = Mth.clamp(red, 0.0F, 1.0F);
-                g = Mth.clamp(green, 0.0F, 1.0F);
-                b = Mth.clamp(blue, 0.0F, 1.0F);
+                r = Mth.clamp(color.getRedF(), 0.0F, 1.0F);
+                g = Mth.clamp(color.getGreenF(), 0.0F, 1.0F);
+                b = Mth.clamp(color.getBlueF(), 0.0F, 1.0F);
             } else {
                 r = 1.0F;
                 g = 1.0F;

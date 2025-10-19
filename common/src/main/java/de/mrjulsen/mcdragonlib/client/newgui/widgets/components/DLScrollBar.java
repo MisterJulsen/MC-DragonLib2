@@ -5,21 +5,20 @@ import java.util.List;
 
 import org.lwjgl.glfw.GLFW;
 
-import de.mrjulsen.mcdragonlib.DLTranslate;
-import de.mrjulsen.mcdragonlib.DLTranslate.Type;
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.InheritableProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.newgui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaContainerScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.render.VanillaSimpleButtonRenderer;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.InheritableProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.Property;
-import de.mrjulsen.mcdragonlib.client.render.Sprite;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.events.IEvent;
@@ -165,28 +164,28 @@ public class DLScrollBar extends DLGuiComponent {
 
         DLContextMenu contextMenu = new DLContextMenu((pX, pY) -> {
             List<DLContextMenu.ItemEntry> entries = new ArrayList<>();
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar.here")), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar.here"), DLSprite.empty(), true, () -> {
                 scrollTo(pY - getYOnScreen());
             }, null));
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "top" : "left"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "top" : "left")), DLSprite.empty(), true, () -> {
                 this.value.set(0D);
             }, null));
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "bottom" : "right"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "bottom" : "right")), DLSprite.empty(), true, () -> {
                 this.value.set(this.max.get().doubleValue());
             }, null));
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "page_up" : "page_left"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "page_up" : "page_left")), DLSprite.empty(), true, () -> {
                 this.value.set(this.value.get() - this.screenSize.get());
             }, null));
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "page_down" : "page_right"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "page_down" : "page_right")), DLSprite.empty(), true, () -> {
                 this.value.set(this.value.get() + this.screenSize.get());
             }, null));
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "step_up" : "step_left"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "step_up" : "step_left")), DLSprite.empty(), true, () -> {
                 this.value.set(this.value.get() - this.scrollSteps.get());
             }, null));
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(DLTranslate.key(Type.GUI, "scrollbar." + (orientation == Orientation.VERTICAL ? "step_down" : "step_right"))), Sprite.empty(), true, () -> {
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".scrollbar." + (orientation == Orientation.VERTICAL ? "step_down" : "step_right")), DLSprite.empty(), true, () -> {
                 this.value.set(this.value.get() + this.scrollSteps.get());
             }, null));
             return entries;
@@ -352,7 +351,7 @@ public class DLScrollBar extends DLGuiComponent {
 
     @Override
     public void renderMainLayer(Graphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        GuiUtils.setTint(backgroundTint.get().getAsARGB());
+        GuiUtils.setTint(backgroundTint.get());
         componentRenderer.get().renderSprite(
             graphics,
             (orientation == Orientation.HORIZONTAL && showButtons.get()) ? BUTTON_SIZE : 0,

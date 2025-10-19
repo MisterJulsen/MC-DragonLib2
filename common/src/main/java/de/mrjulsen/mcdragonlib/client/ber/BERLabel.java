@@ -3,15 +3,18 @@ package de.mrjulsen.mcdragonlib.client.ber;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joml.Vector3f;
+
 import com.mojang.blaze3d.font.GlyphInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import de.mrjulsen.mcdragonlib.client.util.BERUtils;
+import de.mrjulsen.mcdragonlib.client.util.WorldRenderUtils;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
-import de.mrjulsen.mcdragonlib.data.Cache;
 import de.mrjulsen.mcdragonlib.mixin.BakedGlyphAccessor;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
+import de.mrjulsen.mcdragonlib.util.Cache;
+import de.mrjulsen.mcdragonlib.util.Color;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -62,8 +65,8 @@ public class BERLabel {
     private float scrollingSpeed = DEFAULT_SCROLL_SPEED;
     private boolean forceScrolling = false;
     private boolean center = false;
-    private int color = 0xFFFFFFFF;
-    private int backgroundColor = 0;
+    private Color color = Color.WHITE;
+    private Color backgroundColor = Color.TRANSPARENT;
     private boolean backgroundColorFullLabel = false;
 
     // Caching 
@@ -195,7 +198,7 @@ public class BERLabel {
      * @param fullSize whether the full label should use this background color or only the text.
      * @return this
      */
-    public BERLabel setBackground(int color, boolean fullSize) {
+    public BERLabel setBackground(Color color, boolean fullSize) {
         this.backgroundColor = color;
         this.backgroundColorFullLabel = fullSize;
         return this;
@@ -206,7 +209,7 @@ public class BERLabel {
      * @param color The color.
      * @return this
      */
-    public BERLabel setColor(int color) {
+    public BERLabel setColor(Color color) {
         this.color = color;
         return this;
     }
@@ -266,7 +269,7 @@ public class BERLabel {
         return center;
     }
 
-    public int getBackgroundColor() {
+    public Color getBackgroundColor() {
         return backgroundColor;
     }
 
@@ -274,7 +277,7 @@ public class BERLabel {
         return backgroundColorFullLabel;
     }
 
-    public int getColor() {
+    public Color getColor() {
         return color;
     }
 
@@ -323,12 +326,12 @@ public class BERLabel {
         }
     }
 
-    public void render(RenderGraphics graphics) {
+    public void render(WorldGraphics graphics) {
         render(graphics, graphics.packedLight());
     }
 
     @SuppressWarnings("resource")
-    public void render(RenderGraphics graphics, int light) {
+    public void render(WorldGraphics graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
@@ -339,11 +342,11 @@ public class BERLabel {
                 graphics.poseStack().scale(textData.get().scale(), getYScale(), 1);
                 float txtX = textData.get().shouldScroll() ? xScrollOffset : (center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0);
 
-                if (getBackgroundColor() != 0 && !getText().getString().isEmpty()) {
+                if (getBackgroundColor().getAlphaF() > 0f && !getText().getString().isEmpty()) {
                     if (isBackgroundColorFullSize()) {
-                        BERUtils.fillColor(graphics, -1, -1, 0, scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light);
+                        WorldRenderUtils.fillColor(graphics, new Vector3f(-1, -1, 0), scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
                     } else {
-                        BERUtils.fillColor(graphics, (center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0, Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light);
+                        WorldRenderUtils.fillColor(graphics, new Vector3f((center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0), Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
                     }
                     graphics.poseStack().translate(0, 0, 0.01f);
                 }
@@ -367,7 +370,7 @@ public class BERLabel {
 
         poseStack.pushPose();
         poseStack.translate(xLeft + (xOffset > 0 ? xOffset : 0), 0, 0);
-        Font.StringRenderOutput sro = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
+        Font.StringRenderOutput sro = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
         
         float newX = xOffset;
         float glyphTranslation = 0;
@@ -396,7 +399,7 @@ public class BERLabel {
                 poseStack.pushPose();
                 float invScale = 1.0f - scale;
                 poseStack.scale(invScale, 1, 1);
-                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
+                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
                 StringDecomposer.iterateFormatted(String.valueOf((char)charCode), text.getStyle(), sro2);
                 poseStack.popPose();
                 fontUtils.popUV(charCode);
@@ -416,7 +419,7 @@ public class BERLabel {
                 float invScale = 1.0f - scale;
                 poseStack.scale(invScale, 1, 1);
                 poseStack.translate(glyphTranslation / invScale, 0, 0);
-                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
+                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
                 StringDecomposer.iterateFormatted(String.valueOf((char)charCode), text.getStyle(), sro2);
                 poseStack.popPose();
                 fontUtils.popUV(charCode);

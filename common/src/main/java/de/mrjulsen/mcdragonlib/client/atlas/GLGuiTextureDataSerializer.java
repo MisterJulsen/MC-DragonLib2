@@ -34,13 +34,13 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 			AbstractSprite sprite = GLGuiTextureData.EMPTY_SPRITE;
 			switch (type) {
 				case STRETCH -> {
-					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv");
+					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
 					int[] uvArray = new int[2];
 					for (int i = 0; i < uvArray.length; i++) {
 						uvArray[i] = GsonHelper.convertToInt(uvArrayJson.get(i), "uv[" + i + "]");
 					}
 
-					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size");
+					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size", new JsonArray(2));
 					int[] sizeArray = new int[2];
 					for (int i = 0; i < sizeArray.length; i++) {
 						sizeArray[i] = GsonHelper.convertToInt(sizeArrayJson.get(i), "size[" + i + "]");
@@ -48,13 +48,13 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 					sprite = new GLGuiTextureData.StretchedSprite(uvArray, sizeArray);
 				}
 				case TILE -> {
-					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv");
+					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
 					int[] uvArray = new int[2];
 					for (int i = 0; i < uvArray.length; i++) {
 						uvArray[i] = GsonHelper.convertToInt(uvArrayJson.get(i), "uv[" + i + "]");
 					}
 
-					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size");
+					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size", new JsonArray(2));
 					int[] sizeArray = new int[2];
 					for (int i = 0; i < sizeArray.length; i++) {
 						sizeArray[i] = GsonHelper.convertToInt(sizeArrayJson.get(i), "size[" + i + "]");
@@ -62,24 +62,27 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 					sprite = new GLGuiTextureData.TiledSprite(uvArray, sizeArray);
 				}
 				case NINE_SLICE -> {
-					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv");
+					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
 					int[] uvArray = new int[2];
 					for (int i = 0; i < uvArray.length; i++) {
 						uvArray[i] = GsonHelper.convertToInt(uvArrayJson.get(i), "uv[" + i + "]");
 					}
 
-					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size");
+					JsonArray sizeArrayJson = GsonHelper.getAsJsonArray(innerObject, "size", new JsonArray(2));
 					int[] sizeArray = new int[2];
 					for (int i = 0; i < sizeArray.length; i++) {
 						sizeArray[i] = GsonHelper.convertToInt(sizeArrayJson.get(i), "size[" + i + "]");
 					}
 
-					JsonArray borderArrayJson = GsonHelper.getAsJsonArray(innerObject, "border");
+					JsonArray borderArrayJson = GsonHelper.getAsJsonArray(innerObject, "border", new JsonArray(4));
 					int[] borderArray = new int[4];
 					for (int i = 0; i < borderArray.length; i++) {
 						borderArray[i] = GsonHelper.convertToInt(borderArrayJson.get(i), "border[" + i + "]");
 					}
-					sprite = new GLGuiTextureData.NineSlicedSprite(uvArray, sizeArray, borderArray);
+					
+					boolean tiledContent = GsonHelper.getAsBoolean(innerObject, "tiled_content", false);
+					boolean tiledBorder = GsonHelper.getAsBoolean(innerObject, "tiled_border", false);
+					sprite = new GLGuiTextureData.NineSlicedSprite(uvArray, sizeArray, borderArray, tiledBorder, tiledContent);
 				}
 			};
 			result.put(key, sprite);

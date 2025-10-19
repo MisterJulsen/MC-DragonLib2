@@ -12,15 +12,15 @@ import com.mojang.math.Axis;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
-import de.mrjulsen.mcdragonlib.client.gui.DLScreen;
 import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
-import de.mrjulsen.mcdragonlib.util.MathUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.font.TextFieldHelper;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -29,7 +29,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec2;
 
-public class WritableSignScreen extends DLScreen {
+public class WritableSignScreen extends Screen {
 
     public static final int DEFAULT_LINE_HEIGHT = 10;
 
@@ -71,9 +71,9 @@ public class WritableSignScreen extends DLScreen {
     }
 
     protected void init() {
-        this.btnDone = addButton(this.width / 2 - 100, this.height / 4 + 120, 200, 20, CommonComponents.GUI_DONE, (p_169820_) -> {
+        this.btnDone = Button.builder(CommonComponents.GUI_DONE, (p_169820_) -> {
             this.onDone();
-        }, null);
+        }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build();
 
         this.signTextField = new TextFieldHelper(() -> {
             return this.messages[this.selectedLine].text;
@@ -97,7 +97,6 @@ public class WritableSignScreen extends DLScreen {
 
     }
 
-    @Override
     protected void onDone() {
         DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
         this.minecraft.setScreen(null);

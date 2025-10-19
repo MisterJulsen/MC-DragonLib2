@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.util.accessor;
 
-import de.mrjulsen.mcdragonlib.data.Single.MutableSingle;
+import de.mrjulsen.mcdragonlib.util.Holder.MutableHolder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 
@@ -19,7 +19,7 @@ public class BasicDataAccessorPacket<I, C, O> extends AbstractDataAccessorPacket
     }
 
     @Override
-    public boolean processServer(Player player, I param, DataAccessorType<I, C, O> type, MutableSingle<Object> temp, CompoundTag nbt, int iteration) {
+    public boolean processServer(Player player, I param, DataAccessorType<I, C, O> type, MutableHolder<Object> temp, CompoundTag nbt, int iteration) {
         return type.serverProcessor.run(player, param, temp, nbt, iteration);
     }
 
@@ -35,7 +35,7 @@ public class BasicDataAccessorPacket<I, C, O> extends AbstractDataAccessorPacket
 
     @FunctionalInterface
     public static interface IServerProcessor<I> {
-        boolean run(Player player, I param, MutableSingle<Object> temp, CompoundTag nbt, int iteration);
+        boolean run(Player player, I param, MutableHolder<Object> temp, CompoundTag nbt, int iteration);
     }
 
     @FunctionalInterface

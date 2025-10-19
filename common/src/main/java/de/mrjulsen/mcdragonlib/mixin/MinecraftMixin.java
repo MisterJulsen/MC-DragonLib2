@@ -2,8 +2,10 @@ package de.mrjulsen.mcdragonlib.mixin;
 
 import com.mojang.realmsclient.client.RealmsClient;
 
+import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.newgui.test.DLTestWindow;
-import de.mrjulsen.mcdragonlib.internal.DLScreenWrapper;
+import de.mrjulsen.mcdragonlib.client.newgui.test.RedWindow;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLScreenWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.server.packs.resources.ReloadInstance;
@@ -18,7 +20,14 @@ public class MinecraftMixin {
     @Inject(method = "setInitialScreen", at = @At(value = "HEAD"), cancellable = true)
     public void onShowScreen(RealmsClient realmsClient, ReloadInstance reloadInstance, GameConfig.QuickPlayData quickPlayData, CallbackInfo ci) {
         
-        //Minecraft.getInstance().setScreen(new DLScreenWrapper(root -> new DLTestWindow(root)));
-        //ci.cancel();
+        DLScreenWrapper wrapper = new DLScreenWrapper(root -> new DLTestWindow(root));
+        wrapper.getWindowManager().createWindow(RedWindow::new);
+        Minecraft.getInstance().setScreen(wrapper);
+        ci.cancel();
+    }
+
+    @Inject(method = "resizeDisplay", at = @At(value = "TAIL"))
+    public void dragonlib$resizeDisplay(CallbackInfo ci) {
+        DLOverlayManager.resizeDisplay();
     }
 }

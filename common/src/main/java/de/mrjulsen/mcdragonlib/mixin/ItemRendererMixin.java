@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.ber.RenderGraphics;
+import de.mrjulsen.mcdragonlib.client.ber.WorldGraphics;
 import de.mrjulsen.mcdragonlib.client.render.ICustomItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -24,7 +24,7 @@ public class ItemRendererMixin {
     public void dragonlib$render(ItemStack itemStack, ItemDisplayContext context, boolean leftHand, PoseStack poseStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
 		if (itemStack.getItem() instanceof ICustomItemRenderer renderer) {
             poseStack.pushPose();
-            RenderGraphics graphics = new RenderGraphics(poseStack, buffer, combinedLight, combinedOverlay);
+            WorldGraphics graphics = new WorldGraphics(poseStack, buffer, combinedLight, combinedOverlay);
             poseStack.scale(DragonLib.PIXEL, DragonLib.PIXEL, DragonLib.PIXEL);
             poseStack.pushPose();
             renderer.renderAdditional(graphics, itemStack, context, leftHand, poseStack, buffer, combinedLight, combinedOverlay, model);

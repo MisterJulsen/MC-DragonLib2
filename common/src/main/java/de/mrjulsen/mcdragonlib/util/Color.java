@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.util;
 
+import de.mrjulsen.mcdragonlib.util.math.MathUtils;
+
 /**
  * A versatile, immutable class for representing and manipulating ARGB colors.
  * Instances are created via static factory methods (e.g., DLColor.of,
@@ -31,7 +33,7 @@ public final class Color {
     public static final Color YELLOW = Color.of(255, 255, 0);
     public static final Color CYAN = Color.of(0, 255, 255);
     public static final Color MAGENTA = Color.of(255, 0, 255);
-    /** A fully transparent black color (ARGB: 0x00000000). */
+    /** A fully transparent black color (ARGB: {@code 0x00000000} or {@code 0}). */
     public static final Color TRANSPARENT = Color.of(0, 0, 0, 0);
     /** A special constant representing an undefined or invalid color. */
     public static final Color UNDEFINED = new Color();

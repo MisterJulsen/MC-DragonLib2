@@ -3,8 +3,8 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.render;
 import de.mrjulsen.mcdragonlib.client.atlas.GLGuiTextureData.AbstractSprite;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.newgui.widgets.components.DLButton.ButtonState;
+import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiTexture;
 
 public class VanillaSimpleButtonRenderer implements IStateRenderer<ButtonState> {
 
@@ -37,12 +37,12 @@ public class VanillaSimpleButtonRenderer implements IStateRenderer<ButtonState> 
     @Override
     public void renderSprite(Graphics graphics, int x, int y, int w, int h, DLGuiComponent component, ButtonState state) {
         AbstractSprite sprite = switch (state) {
-            case SELECTED -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_selected");
-            case DOWN -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_down");
-            case DISABLED -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_disabled");
-            case DOWN_SELECTED -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_down_selected");
-            case DISABLED_SELECTED -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_disabled");
-            default -> GuiTexture.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_normal");
+            case SELECTED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_selected");
+            case DOWN -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_down");
+            case DISABLED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_disabled");
+            case DOWN_SELECTED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_down_selected");
+            case DISABLED_SELECTED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_disabled");
+            default -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("button_" + variant.getName() + "_normal");
         };
         sprite.render(graphics, x, y, w, h);
     }
