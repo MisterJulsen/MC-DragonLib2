@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
@@ -161,7 +162,7 @@ public class CustomBlockModelRegistry implements ResourceManagerReloadListener {
     }
 
     public static Queue<ICustomModelFactory> getCustomRegisteredModels(Map<ResourceLocation, BakedModel> registry) {
-        return customModels;
+        return new ConcurrentLinkedQueue<>(customModels);
     }
 
     public static ImmutableMap<ResourceLocation, ModelRegistryData> getCustomRegisteredModelsMapped() {
