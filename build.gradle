@@ -29,7 +29,12 @@ subprojects {
         maven { url = "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven" } // Local
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
         maven { url = "https://maven.parchmentmc.org" } // ParchmentMC
-
+        maven {
+            url "https://cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
         // Test
         maven { url 'https://maven.isxander.dev/releases' }
     }
