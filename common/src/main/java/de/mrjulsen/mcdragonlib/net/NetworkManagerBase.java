@@ -3,24 +3,16 @@ package de.mrjulsen.mcdragonlib.net;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import dev.architectury.networking.NetworkChannel;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 public class NetworkManagerBase {
 
-    public static final int NETWORK_CALLBACK_TIMEOUT = 30000;
     public final NetworkChannel CHANNEL;
 
-    @SuppressWarnings("unchecked")
-    public <T extends IPacketBase<T>> NetworkManagerBase(String modid, String networkChannel, Collection<Class<? extends IPacketBase<?>>> classes) {
-        CHANNEL = NetworkChannel.create(new ResourceLocation(modid, networkChannel));
+    public <T extends IPacketBase<T>> NetworkManagerBase(ResourceLocation channelId, Collection<Class<? extends IPacketBase<?>>> classes) {
+        CHANNEL = NetworkChannel.create(channelId);
         classes.forEach(c -> {
             try {
                 Class<T> clazz = (Class<T>)c;
@@ -30,38 +22,5 @@ public class NetworkManagerBase {
                 DragonLib.LOGGER.error("Unable to register packet.", e);
             }
         });
-    }
-
-
-    @Deprecated(forRemoval = true) private static record NetworkCallback(long creationTime, BiConsumer<CompoundTag, Long> callback) {}
-    @Deprecated(forRemoval = true) private static final Map<UUID, NetworkCallback> networkCallbacks = new HashMap<>();
-
-    @Deprecated(forRemoval = true)
-    public <T extends AbstractIdentifiableRequestPacket<T>>void sendAndAwait(T requestPacket, BiConsumer<CompoundTag, Long> callback) {
-        UUID id;
-        do {
-            id = UUID.randomUUID();
-        } while (networkCallbacks.containsKey(id));
-
-        networkCallbacks.put(id, new NetworkCallback(System.currentTimeMillis(), callback));
-        requestPacket.id = id;
-        CHANNEL.sendToServer(requestPacket);
-    }
-
-    @Deprecated(forRemoval = true)
-    public static void executeCallback(UUID id, CompoundTag nbt, long time) {
-        if (networkCallbacks.containsKey(id)) {
-            networkCallbacks.remove(id).callback().accept(nbt, time);
-        }
-    }
-
-    @Deprecated(forRemoval = true)
-    public void clearCallbacks() {
-        networkCallbacks.clear();
-    }
-
-    @Deprecated(forRemoval = true)
-    public static void callbackListenerTick() {
-        networkCallbacks.entrySet().removeIf(t -> t.getValue().creationTime() < System.currentTimeMillis() - NETWORK_CALLBACK_TIMEOUT);
     }
 }

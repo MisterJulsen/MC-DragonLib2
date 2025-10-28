@@ -4,7 +4,6 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.net.IPacketBase;
-import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -38,7 +37,7 @@ public class IdentifiableResponsePacketBase implements IPacketBase<IdentifiableR
 
     @Override
     public void handle(IdentifiableResponsePacketBase packet, Supplier<PacketContext> contextSupplier) {
-        NetworkManagerBase.executeCallback(packet.id, packet.nbt, packet.gameTime);
+        //NetworkManagerBase.executeCallback(packet.id, packet.nbt, packet.gameTime);
     }
     
 }
