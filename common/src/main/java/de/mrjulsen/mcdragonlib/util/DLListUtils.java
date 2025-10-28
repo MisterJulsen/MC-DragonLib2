@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
-public final class ListUtils {
+public final class DLListUtils {
     
     /**
      * Compares two lists and checks whether all elements are equal and in the same order.
