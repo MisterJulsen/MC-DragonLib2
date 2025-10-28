@@ -8,6 +8,7 @@ import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ICustomModelFactory;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.forge.client.model.DynamicBakedModel;
+import de.mrjulsen.mcdragonlib.forge.client.model.loaders.MultipartObjLoader;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -15,12 +16,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.ModelEvent.RegisterGeometryLoaders;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = DragonLib.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientEvents {
     private ClientEvents() {}
+    
+
+    @SubscribeEvent
+    public static void registerGeometryLoaders(RegisterGeometryLoaders event) {
+        event.register("multipart_obj", MultipartObjLoader.INSTANCE);
+    }
     
     @SubscribeEvent
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
