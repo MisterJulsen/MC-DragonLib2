@@ -5,7 +5,7 @@ import java.util.Arrays;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.util.DLTexture;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
-import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.resources.ResourceLocation;
 
@@ -59,7 +59,7 @@ public enum GuiIcons {
         return Arrays.stream(values()).filter(x -> x.getId().equals(id)).findFirst().orElse(GuiIcons.EMPTY);
     }
 
-    public void render(Graphics graphics, int x, int y) {
+    public void render(DLGuiGraphics graphics, int x, int y) {
         GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, getU(), getV(), ICON_SIZE, ICON_SIZE);
     }
 

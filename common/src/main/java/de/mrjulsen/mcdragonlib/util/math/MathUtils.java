@@ -26,6 +26,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class MathUtils {
+    private MathUtils() {}
 
     public static double proportion(double val, double max) {
         return (1D / max) * val;

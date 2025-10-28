@@ -18,15 +18,15 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
 import de.mrjulsen.mcdragonlib.client.model.mesh.BasicMesh;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
 import de.mrjulsen.mcdragonlib.client.model.mesh.Mesh;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.core.ETextAlignment;
-import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
-import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.data.ITranslatableEnum;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.ChatFormatting;
@@ -76,16 +76,16 @@ public class GuiUtils {
         return Minecraft.getInstance().getWindow().getGuiScaledHeight();
     }
 
-    public static void enableScissor(Graphics graphics, Rectangle area) {
+    public static void enableScissor(DLGuiGraphics graphics, Rectangle area) {
         enableScissor(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height());
     }
 
-    public static void enableScissor(Graphics graphics, int x, int y, int w, int h) {
+    public static void enableScissor(DLGuiGraphics graphics, int x, int y, int w, int h) {
         int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();    
         RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);   
     }
 
-    public static void disableScissor(Graphics graphics) {
+    public static void disableScissor(DLGuiGraphics graphics) {
         RenderSystem.disableScissor();
     }
 
@@ -114,11 +114,11 @@ public class GuiUtils {
         return lines;
     }
 
-    public static void drawTooltip(Graphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
+    public static void drawTooltip(DLGuiGraphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
         graphics.graphics().renderTooltip(font, splitToFormattedCharSequences(font, lines, maxWidth), x, y);
     }
 
-    public static void drawTooltipDirectlyAt(Graphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
+    public static void drawTooltipDirectlyAt(DLGuiGraphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
         drawTooltip(graphics, font, x - 8, y - 16, lines, maxWidth);
     }
 
@@ -144,7 +144,7 @@ public class GuiUtils {
         RenderSystem.setShaderTexture(0, textureId);
     }
 
-    public static void setTint(Color color) {
+    public static void setTint(DLColor color) {
         float a = color.getAlphaF();
         float r = color.getRedF();
         float g = color.getGreenF();
@@ -156,11 +156,11 @@ public class GuiUtils {
         RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
+    public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
         drawTexture(texture, graphics, x, y, w, h, u, v, uW, vH, mode, 256, 256);
     }
 
-    public static void drawTexture(ResourceLocation texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
+    public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
             case TILE -> {
                 int i = (int)Math.ceil((float)w / (float)uW);
@@ -177,7 +177,7 @@ public class GuiUtils {
         }
     }
 
-    public static void drawTexture(int textureId, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
+    public static void drawTexture(int textureId, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
             case TILE -> {
                 int i = (int)Math.ceil((float)w / (float)uW);
@@ -195,7 +195,7 @@ public class GuiUtils {
         
     }
 
-    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
+    public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
         if (texture.usesTextureId() || texture.getTexture().isEmpty()) {
             drawTexture(texture.getTextureId(), graphics, x, y, w, h, u, v, uW, vH, mode, texture.width(), texture.height());
         } else {            
@@ -203,11 +203,11 @@ public class GuiUtils {
         }
     }
     
-    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h, int u, int v) {
+    public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v) {
         drawTexture(texture, graphics, x, y, w, h, u, v, w, h, TextureFillMode.STRETCH);
     }
     
-    public static void drawTexture(DLTexture texture, Graphics graphics, int x, int y, int w, int h) {
+    public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h) {
         drawTexture(texture, graphics, x, y, w, h, 0, 0, w, h, TextureFillMode.STRETCH);
     }
 
@@ -237,11 +237,11 @@ public class GuiUtils {
 
 
 
-    public static void fill(Graphics graphics, Rectangle area, Color color) {
+    public static void fill(DLGuiGraphics graphics, Rectangle area, DLColor color) {
         fill(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), color);
     }
 
-    public static void fill(Graphics graphics, int x, int y, int w, int h, Color color) {
+    public static void fill(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor color) {
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -249,12 +249,12 @@ public class GuiUtils {
         RenderSystem.disableBlend();
     }
 
-    public static void fillGradient(Graphics graphics, Rectangle area, Color colorA, Color colorB, EAlign align) {
+    public static void fillGradient(DLGuiGraphics graphics, Rectangle area, DLColor colorA, DLColor colorB, EAlign align) {
         fillGradient(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), colorA, colorB, align);
     }
 
-    public static void fillGradient(Graphics graphics, int x, int y, int w, int h, Color colorA, Color colorB, EAlign align) {
-        Color[] vertexColors = new Color[4];
+    public static void fillGradient(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor colorA, DLColor colorB, EAlign align) {
+        DLColor[] vertexColors = new DLColor[4];
         for (int i = 0; i < vertexColors.length; i++) {
             vertexColors[(align.ordinal() + i) % vertexColors.length] = (i < 2 ? colorA : colorB);
         }
@@ -276,11 +276,11 @@ public class GuiUtils {
         RenderSystem.disableBlend();
     }
 
-    public static void drawBox(Graphics graphics, Rectangle area, Color fillColor, Color borderColor) {
+    public static void drawBox(DLGuiGraphics graphics, Rectangle area, DLColor fillColor, DLColor borderColor) {
         drawBox(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), fillColor, borderColor);
     }
 
-    public static void drawBox(Graphics graphics, int x, int y, int w, int h, Color fillColor, Color borderColor) {
+    public static void drawBox(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor fillColor, DLColor borderColor) {
         fill(graphics, x, y, w, h, fillColor);
         fill(graphics, x, y, w, 1, borderColor);
         fill(graphics, x, y + h - 1, w, 1, borderColor);
@@ -288,11 +288,11 @@ public class GuiUtils {
         fill(graphics, x + w - 1, y + 1, 1, h - 2, borderColor);
     }
 
-    public static void drawString(Graphics graphics, Font font, int x, int y, String text, Color color, ETextAlignment alignment, boolean dropShadow) {
+    public static void drawString(DLGuiGraphics graphics, Font font, int x, int y, String text, DLColor color, ETextAlignment alignment, boolean dropShadow) {
         drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, dropShadow);
     }
 
-    public static void drawString(Graphics graphics, Font font, int x, int y, FormattedText text, Color color, ETextAlignment alignment, boolean dropShadow) {
+    public static void drawString(DLGuiGraphics graphics, Font font, int x, int y, FormattedText text, DLColor color, ETextAlignment alignment, boolean dropShadow) {
         int width = font.width(text);
         int offset = 0;
         switch (alignment) {
@@ -310,11 +310,11 @@ public class GuiUtils {
         graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color.getAsARGB(), dropShadow);
     }
 
-    public static void renderItem(Graphics graphics, ItemStack stack, int x, int y) {
+    public static void renderItem(DLGuiGraphics graphics, ItemStack stack, int x, int y) {
         renderItem(graphics, stack, x, y, 1, true);
     }
 
-    public static void renderItem(Graphics graphics, ItemStack stack, int x, int y, float scale, boolean drawDecorations) {
+    public static void renderItem(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, boolean drawDecorations) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(x, y, 0);
         graphics.poseStack().scale(scale, scale, 1);
@@ -325,16 +325,16 @@ public class GuiUtils {
         graphics.poseStack().popPose();
     }
 
-    public static void renderEntity(Graphics graphics, int x, int y, LivingEntity entity) {
+    public static void renderEntity(DLGuiGraphics graphics, int x, int y, LivingEntity entity) {
         renderEntity(graphics, x, y, 1, entity, LightTexture.FULL_BRIGHT);
     }
 
-    public static void renderEntity(Graphics graphics, int x, int y, float scale, LivingEntity entity, int light) {
+    public static void renderEntity(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity, int light) {
         renderEntity(graphics, x, y, scale, entity, new Matrix4f(), new Quaternionf(), light);
     }
 
     @SuppressWarnings("deprecation")
-    public static void renderEntity(Graphics graphics, int x, int y, float scale, LivingEntity entity, Matrix4f transformation, @Nullable Quaternionf cameraOrientation, int light) {
+    public static void renderEntity(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity, Matrix4f transformation, @Nullable Quaternionf cameraOrientation, int light) {
         float s = 16 * scale;
         graphics.poseStack().pushPose();
         graphics.poseStack().translate((double)x, (double)y, 16 * (scale + 1));
@@ -358,22 +358,22 @@ public class GuiUtils {
     }
     
 
-    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, LivingEntity entity) {
+    public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, LivingEntity entity) {
         renderEntityFollowingMouse(graphics, x, y, 1, entity);
     }
 
-    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, float scale, LivingEntity entity) {
+    public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity) {
         renderEntityFollowingMouse(graphics, x, y, scale, (float)Minecraft.getInstance().mouseHandler.xpos(), (float)Minecraft.getInstance().mouseHandler.ypos(), entity, LightTexture.FULL_BRIGHT);
     }
 
-    public static void renderEntityFollowingMouse(Graphics graphics, int x, int y, float scale, float screenMouseX, float screenMouseY, LivingEntity entity, int light) {
+    public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, float scale, float screenMouseX, float screenMouseY, LivingEntity entity, int light) {
         Matrix4f transformation = graphics.poseStack().last().pose();
         float aX = (float)Math.atan((double)((transformation.m30() + x - screenMouseX) / 40.0F));
         float aY = (float)Math.atan((double)((transformation.m31() + y - (screenMouseY + entity.getEyeHeight() * (16 * scale))) / 40.0F));
         renderEntityFollowingAngle(graphics, x, y, scale, aX, aY, entity, light);
     }
 
-    public static void renderEntityFollowingAngle(Graphics graphics, int x, int y, float scale, float angleXComponent, float angleYComponent, LivingEntity entity, int light) {
+    public static void renderEntityFollowingAngle(DLGuiGraphics graphics, int x, int y, float scale, float angleXComponent, float angleYComponent, LivingEntity entity, int light) {
         Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
         Quaternionf quaternionf1 = (new Quaternionf()).rotateX(angleYComponent * 20.0F * 0.017453292F);
         quaternionf.mul(quaternionf1);
@@ -397,15 +397,15 @@ public class GuiUtils {
     }
     
 
-    public static void renderBlockState(Graphics graphics, int x, int y, BlockState state, RenderType renderType) {
+    public static void renderBlockState(DLGuiGraphics graphics, int x, int y, BlockState state, RenderType renderType) {
         renderBlockState(graphics, x, y, 1, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
     }
 
-    public static void renderBlockState(Graphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, int light) {
+    public static void renderBlockState(DLGuiGraphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, int light) {
         renderBlockState(graphics, x, y, scale, state, renderType, new Matrix4f(), light);
     }
 
-    public static void renderBlockState(Graphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
+    public static void renderBlockState(DLGuiGraphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
         DLModel model = new DLModel() {
             @Override
             protected Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context) {
@@ -418,15 +418,15 @@ public class GuiUtils {
     }
     
 
-    public static void renderModel(Graphics graphics, int x, int y, DLModel model, BlockState state, RenderType renderType) {
+    public static void renderModel(DLGuiGraphics graphics, int x, int y, DLModel model, BlockState state, RenderType renderType) {
         renderModel(graphics, x, y, 1, model, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
     }
 
-    public static void renderModel(Graphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, int light) {
+    public static void renderModel(DLGuiGraphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, int light) {
         renderModel(graphics, x, y, scale, model, state, renderType, new Matrix4f(), light);
     }
 
-    public static void renderModel(Graphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
+    public static void renderModel(DLGuiGraphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
         float s = scale * 16;
         Lighting.setupForFlatItems();
         PoseStack stack = graphics.poseStack();
@@ -435,7 +435,7 @@ public class GuiUtils {
         stack.mulPoseMatrix((new Matrix4f()).scaling((float)s, (float)s, (float)(s)));
         stack.mulPoseMatrix(transformation);
         MultiBufferSource.BufferSource buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-        model.render(graphics.poseStack().last(), buffersource.getBuffer(renderType), ModelType.BLOCK, state, ModelContext.EMPTY, Color.WHITE, LightTexture.FULL_BRIGHT, 0);
+        model.render(graphics.poseStack().last(), buffersource.getBuffer(renderType), ModelType.BLOCK, state, ModelContext.EMPTY, DLColor.WHITE, LightTexture.FULL_BRIGHT, 0);
         buffersource.endBatch();
         stack.popPose();
         Lighting.setupFor3DItems();

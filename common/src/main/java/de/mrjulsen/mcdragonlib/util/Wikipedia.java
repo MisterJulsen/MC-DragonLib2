@@ -34,6 +34,7 @@ public class Wikipedia {
         return articles.values();
     }
 
+    @Deprecated(forRemoval = true)
     public static class WikipediaArticle {
 
         protected boolean loadingFinished = false;

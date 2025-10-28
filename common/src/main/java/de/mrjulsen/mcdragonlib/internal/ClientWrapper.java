@@ -1,8 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLScreenWrapper;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.util.TextUtils;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 

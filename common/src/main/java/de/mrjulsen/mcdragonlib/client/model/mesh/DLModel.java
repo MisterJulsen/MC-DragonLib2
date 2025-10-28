@@ -16,12 +16,12 @@ import com.google.common.collect.MultimapBuilder.ListMultimapBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import de.mrjulsen.mcdragonlib.client.model.CustomBlockModelRegistry;
+import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelCacheKey;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
 import de.mrjulsen.mcdragonlib.util.Cache;
-import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -185,29 +185,29 @@ public abstract class DLModel {
         of(state).ifPresent(x -> x.render(pose, consumer, state, context));
     }
 
-    public static void renderModel(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, Color color, int packedLight, int packedOverlay) {
+    public static void renderModel(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, DLColor color, int packedLight, int packedOverlay) {
         of(state).ifPresent(x -> x.render(pose, consumer, type, state, context, color, packedLight, packedOverlay));
     }
 
     public void render(PoseStack.Pose pose, VertexConsumer consumer, @Nullable BlockState state, ModelContext context) {
-        render(pose, consumer, ModelType.BLOCK, state, context, Color.WHITE, 0, 0);
+        render(pose, consumer, ModelType.BLOCK, state, context, DLColor.WHITE, 0, 0);
     }
 
-    public void render(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, Color color, int packedLight, int packedOverlay) {
+    public void render(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, DLColor color, int packedLight, int packedOverlay) {
         RandomSource randomSource = RandomSource.create();
         long seed = 42L;
         for (RenderType renderType : getSupportedRenderTypes()) {
             for (Direction direction : Direction.values()) {
                 randomSource.setSeed(seed);
-                renderQuadList(pose, consumer, color, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, direction, context), packedLight, packedOverlay);
+                renderQuadList(pose, consumer, color, getQuads(type, DLBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, direction, context), packedLight, packedOverlay);
             }
             randomSource.setSeed(seed);
-            renderQuadList(pose, consumer, color, getQuads(type, CustomBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, null, context), packedLight, packedOverlay);
+            renderQuadList(pose, consumer, color, getQuads(type, DLBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, null, context), packedLight, packedOverlay);
         }
         
     }
 
-    private static void renderQuadList(PoseStack.Pose pose, VertexConsumer consumer, Color color, List<BakedQuad> quads, int packedLight, int packedOverlay) {
+    private static void renderQuadList(PoseStack.Pose pose, VertexConsumer consumer, DLColor color, List<BakedQuad> quads, int packedLight, int packedOverlay) {
         BakedQuad bakedQuad;
         float r;
         float g;

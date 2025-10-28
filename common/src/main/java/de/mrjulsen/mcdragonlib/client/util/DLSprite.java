@@ -88,7 +88,7 @@ public class DLSprite {
         return (texture == null && item == null) || (width <= 0 && height <= 0);
     }
 
-    public void render(Graphics graphics, int x, int y) {
+    public void render(DLGuiGraphics graphics, int x, int y) {
         if (isEmpty()) {
             return;
         }

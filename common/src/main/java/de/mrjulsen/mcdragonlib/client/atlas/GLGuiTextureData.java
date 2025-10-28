@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
-import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -30,7 +30,7 @@ public class GLGuiTextureData {
         public GLGuiTextureData metadata() {
             return data;
         }
-        public abstract void render(Graphics graphics, int x, int y, int w, int h);
+        public abstract void render(DLGuiGraphics graphics, int x, int y, int w, int h);
     }
 
     public static class StretchedSprite extends AbstractSprite {
@@ -60,7 +60,7 @@ public class GLGuiTextureData {
         }
 
         @Override
-        public void render(Graphics graphics, int x, int y, int w, int h) {
+        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
             graphics.graphics().blit(
                 metadata().location(),
                 x, y, w, h,
@@ -101,7 +101,7 @@ public class GLGuiTextureData {
         }
 
         @Override
-        public void render(Graphics graphics, int x, int y, int w, int h) {
+        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
             GuiUtils.drawTexture(
                 metadata().location(),
                 graphics,
@@ -174,7 +174,7 @@ public class GLGuiTextureData {
         }
 
         @Override
-        public void render(Graphics graphics, int x, int y, int w, int h) {
+        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
 
             GuiUtils.drawTexture(metadata().location(), graphics, x, y, leftBorder(), topBorder(), u(), v(), leftBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Left
             GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y, rightBorder(), topBorder(), u() + width() - rightBorder(), v(), rightBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Right

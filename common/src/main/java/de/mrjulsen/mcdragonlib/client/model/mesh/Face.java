@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.model.ModelUtils;
-import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -27,7 +27,7 @@ public class Face implements ITransformable<Face> {
     private final List<Edge> edges = Arrays.asList(new Edge[EdgeType.values().length]);
 
     private TextureAtlasSprite sprite;
-    private Color color = Color.WHITE;
+    private DLColor color = DLColor.WHITE;
     private int tintIndex = -1;
     private Direction normalDirection;
     private Direction cullface = null;
@@ -42,7 +42,7 @@ public class Face implements ITransformable<Face> {
             throw new IllegalArgumentException("A Face must have exactly " + CornerType.values().length + " vertices!");
         }
         for (int i = 0; i < positions.length; i++) {
-            corners.set(i, new FaceVertex(new Vertex(positions[i], new Vector3f(), Color.WHITE), CornerType.getByIndex(i).uv(), new int[] { 0, 0 }));
+            corners.set(i, new FaceVertex(new Vertex(positions[i], new Vector3f(), DLColor.WHITE), CornerType.getByIndex(i).uv(), new int[] { 0, 0 }));
         }
         this.setTexture(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(DragonLib.MODID, "block/white")));
         createEdges();
@@ -285,7 +285,7 @@ public class Face implements ITransformable<Face> {
         float spriteH = sprite.getV1() - sprite.getV0();
         for (int i = 0; i < specificCorners.length; i++) { 
             FaceVertex corner = specificCorners[i];
-            Color col = Color.mixTint(getColor(), corner.getVertex().getColor());
+            DLColor col = DLColor.mixTint(getColor(), corner.getVertex().getColor());
             int[] colorArray = new int[] { col.getRed(), col.getGreen(), col.getBlue(), col.getAlpha() };
             float[] uv = new float[] { sprite.getU0() + spriteW * corner.getU(), sprite.getV0() + spriteH * corner.getV() };
 
@@ -419,7 +419,7 @@ public class Face implements ITransformable<Face> {
         this.useAlternateSplitLine = b;
     }
 
-    public Color getColor() {
+    public DLColor getColor() {
         return color;
     }
 
@@ -450,7 +450,7 @@ public class Face implements ITransformable<Face> {
         }
     }
 
-    public void setColor(Color color) {
+    public void setColor(DLColor color) {
         this.color = color;
     }
 

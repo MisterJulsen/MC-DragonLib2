@@ -8,7 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import de.mrjulsen.mcdragonlib.client.atlas.GLGuiTextureData.AbstractSprite;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.ScaleType;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.util.ScaleType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.util.GsonHelper;
 

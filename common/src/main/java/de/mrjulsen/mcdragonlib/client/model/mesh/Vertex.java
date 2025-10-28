@@ -4,23 +4,23 @@ import java.util.Objects;
 
 import org.joml.Vector3f;
 
-import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 
 public class Vertex implements IVertexElement {
 
     private Vector3f pos = new Vector3f();
     private Vector3f normal = new Vector3f();
-    private Color vertexColor = Color.WHITE;
+    private DLColor vertexColor = DLColor.WHITE;
 
     private Vertex() {}
 
     public Vertex(float[] pos, float[] normal, int[] color) {
         this.pos = new Vector3f(pos);
         this.normal = new Vector3f(normal);
-        setColor(Color.of(color[3], color[0], color[1], color[2]));
+        setColor(DLColor.of(color[3], color[0], color[1], color[2]));
     }
 
-    public Vertex(Vector3f pos, Vector3f normal, Color color) {
+    public Vertex(Vector3f pos, Vector3f normal, DLColor color) {
         this.pos = pos;
         this.normal = normal;
         this.vertexColor = color;
@@ -63,7 +63,7 @@ public class Vertex implements IVertexElement {
         return new float[] { getNormal().x, getNormal().y, getNormal().z };
     }
 
-    public Color getColor() {
+    public DLColor getColor() {
         return vertexColor;
     }
 
@@ -97,7 +97,7 @@ public class Vertex implements IVertexElement {
         this.normal = normal;
     }
 
-    public void setColor(Color color) {
+    public void setColor(DLColor color) {
         Objects.requireNonNull(color);
         this.vertexColor = color;
     }

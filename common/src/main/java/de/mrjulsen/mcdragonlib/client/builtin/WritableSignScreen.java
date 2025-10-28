@@ -86,7 +86,7 @@ public class WritableSignScreen extends Screen {
     }
 
     public void removed() {
-        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
+        //DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
     }
 
     public void tick() {
@@ -98,7 +98,7 @@ public class WritableSignScreen extends Screen {
     }
 
     protected void onDone() {
-        DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
+        //DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
         this.minecraft.setScreen(null);
     }
 

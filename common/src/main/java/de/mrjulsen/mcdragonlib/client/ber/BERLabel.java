@@ -8,11 +8,12 @@ import org.joml.Vector3f;
 import com.mojang.blaze3d.font.GlyphInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import de.mrjulsen.mcdragonlib.client.util.WorldRenderUtils;
+import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
+import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
 import de.mrjulsen.mcdragonlib.mixin.BakedGlyphAccessor;
 import de.mrjulsen.mcdragonlib.util.Cache;
-import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.client.Minecraft;
@@ -65,8 +66,8 @@ public class BERLabel {
     private float scrollingSpeed = DEFAULT_SCROLL_SPEED;
     private boolean forceScrolling = false;
     private boolean center = false;
-    private Color color = Color.WHITE;
-    private Color backgroundColor = Color.TRANSPARENT;
+    private DLColor color = DLColor.WHITE;
+    private DLColor backgroundColor = DLColor.TRANSPARENT;
     private boolean backgroundColorFullLabel = false;
 
     // Caching 
@@ -198,7 +199,7 @@ public class BERLabel {
      * @param fullSize whether the full label should use this background color or only the text.
      * @return this
      */
-    public BERLabel setBackground(Color color, boolean fullSize) {
+    public BERLabel setBackground(DLColor color, boolean fullSize) {
         this.backgroundColor = color;
         this.backgroundColorFullLabel = fullSize;
         return this;
@@ -209,7 +210,7 @@ public class BERLabel {
      * @param color The color.
      * @return this
      */
-    public BERLabel setColor(Color color) {
+    public BERLabel setColor(DLColor color) {
         this.color = color;
         return this;
     }
@@ -269,7 +270,7 @@ public class BERLabel {
         return center;
     }
 
-    public Color getBackgroundColor() {
+    public DLColor getBackgroundColor() {
         return backgroundColor;
     }
 
@@ -277,7 +278,7 @@ public class BERLabel {
         return backgroundColorFullLabel;
     }
 
-    public Color getColor() {
+    public DLColor getColor() {
         return color;
     }
 
@@ -326,12 +327,12 @@ public class BERLabel {
         }
     }
 
-    public void render(WorldGraphics graphics) {
+    public void render(DLGraphics graphics) {
         render(graphics, graphics.packedLight());
     }
 
     @SuppressWarnings("resource")
-    public void render(WorldGraphics graphics, int light) {
+    public void render(DLGraphics graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
@@ -344,9 +345,9 @@ public class BERLabel {
 
                 if (getBackgroundColor().getAlphaF() > 0f && !getText().getString().isEmpty()) {
                     if (isBackgroundColorFullSize()) {
-                        WorldRenderUtils.fillColor(graphics, new Vector3f(-1, -1, 0), scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
+                        RenderUtils.fillColor(graphics, new Vector3f(-1, -1, 0), scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
                     } else {
-                        WorldRenderUtils.fillColor(graphics, new Vector3f((center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0), Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
+                        RenderUtils.fillColor(graphics, new Vector3f((center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0), Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
                     }
                     graphics.poseStack().translate(0, 0, 0.01f);
                 }

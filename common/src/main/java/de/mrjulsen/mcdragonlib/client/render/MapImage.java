@@ -3,7 +3,7 @@ package de.mrjulsen.mcdragonlib.client.render;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -45,7 +45,7 @@ public class MapImage {
         RenderSystem.setShaderTexture(0, this.texture.getId());
     }
 
-    public void render(Graphics graphics, int x, int y) {
+    public void render(DLGuiGraphics graphics, int x, int y) {
         bindTexture();
         GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth * scale, areaHeight * scale, TextureFillMode.STRETCH, areaWidth, areaHeight);
     }

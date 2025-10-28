@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLScreenWrapper;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;

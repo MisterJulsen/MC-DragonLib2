@@ -1,8 +1,8 @@
 package de.mrjulsen.mcdragonlib.client;
 
-import de.mrjulsen.mcdragonlib.client.newgui.test.RedWindow;
-import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.util.Graphics;
+import de.mrjulsen.mcdragonlib.client.gui.test.RedWindow;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
@@ -42,7 +42,7 @@ public final class DLOverlayManager {
 
         dev.architectury.event.events.client.ClientGuiEvent.RENDER_HUD.register((guiGraphics, partialTick) -> {
             if (!initialized()) return;
-            Graphics graphics = new Graphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, partialTick);
+            DLGuiGraphics graphics = new DLGuiGraphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, partialTick);
             root.render(graphics, (int)GuiUtils.mouseXOnScreen(), (int)GuiUtils.mouseYOnScreen());
         });
 
