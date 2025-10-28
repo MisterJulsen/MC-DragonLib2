@@ -8,14 +8,15 @@
     "BakedGlyphAccessor",
     "AbstractWidgetAccessor",
     "AbstractContainerScreenMixin",
-    "ScreenMixin",
     "TextureManagerMixin",
     "ScreenAccessor",
     "ItemRendererMixin",
     "MinecraftMixin",
     "StringSplitterAccessor",
     "MouseHandlerMixin",
-    "VertexFormatAccessor"
+    "VertexFormatAccessor",
+    "ServerboundCustomPayloadPacketAccessor",
+    "ClientboundCustomPayloadPacketAccessor"
   ],
   "mixins": [
   ],

@@ -5,3 +5,8 @@ accessible class net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientO
 accessible field net/minecraft/client/gui/screens/Screen renderables Ljava/util/List;
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace brightness [F
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace lightmap [I
+
+transitive-accessible method net/minecraft/client/renderer/block/model/ItemModelGenerator processFrames (ILjava/lang/String;Lnet/minecraft/client/renderer/texture/SpriteContents;)Ljava/util/List;
+
+transitive-accessible field net/minecraft/client/renderer/block/model/BlockModel FACE_BAKERY Lnet/minecraft/client/renderer/block/model/FaceBakery;
+transitive-accessible field net/minecraft/client/renderer/block/model/BlockModel parent Lnet/minecraft/client/renderer/block/model/BlockModel;

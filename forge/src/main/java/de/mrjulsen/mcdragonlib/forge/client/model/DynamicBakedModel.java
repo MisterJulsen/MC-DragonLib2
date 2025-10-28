@@ -13,20 +13,16 @@ import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.RenderTypeHelper;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 
@@ -73,6 +69,7 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
         return ChunkRenderTypeSet.of(newModel.getSupportedRenderTypes());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ItemTransforms getTransforms() {
         return src.getTransforms();
@@ -83,6 +80,7 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
         return src.getOverrides();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public TextureAtlasSprite getParticleIcon() {
         return src.getParticleIcon();

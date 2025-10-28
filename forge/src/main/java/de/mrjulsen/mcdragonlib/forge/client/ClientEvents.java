@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.Queue;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.model.CustomBlockModelRegistry;
-import de.mrjulsen.mcdragonlib.client.model.CustomBlockModelRegistry.ICustomModelFactory;
+import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
+import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ICustomModelFactory;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.forge.client.model.DynamicBakedModel;
 import net.minecraft.client.renderer.block.BlockModelShaper;
@@ -26,7 +26,7 @@ public final class ClientEvents {
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> registry = event.getModels();
 
-        Queue<ICustomModelFactory> replacements = CustomBlockModelRegistry.getCustomRegisteredModels(registry);
+        Queue<ICustomModelFactory> replacements = DLBlockModelRegistry.getCustomRegisteredModels(registry);
         while (!replacements.isEmpty()) {
             ICustomModelFactory r = replacements.poll();
 
@@ -37,7 +37,7 @@ public final class ClientEvents {
                         location = new ModelResourceLocation(location, "inventory");
                     }
                     BakedModel originalModel = registry.get(location);
-                    CustomBlockModelRegistry.setOriginalModel(state, originalModel);
+                    DLBlockModelRegistry.setOriginalModel(state, originalModel);
                     DynamicBakedModel newModel = new DynamicBakedModel(originalModel, state, r.getModelFactory().get());
                     registry.put(location, newModel);
                 }

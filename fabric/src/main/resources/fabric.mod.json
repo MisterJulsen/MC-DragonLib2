@@ -24,7 +24,8 @@
     ]
   },
   "mixins": [
-    "${modid}.mixins.json"
+    "${modid}.mixins.json",
+    "${modid}.fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

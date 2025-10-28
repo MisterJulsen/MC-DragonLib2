@@ -35,8 +35,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     
 	private static final Renderer RENDERER = RendererAccess.INSTANCE.getRenderer();
-	private static final RenderMaterial MATERIAL_STANDARD = RENDERER.materialFinder().find();
-	private static final RenderMaterial MATERIAL_NO_AO = RENDERER.materialFinder().ambientOcclusion(TriState.FALSE).find();
+	//private static final RenderMaterial MATERIAL_STANDARD = RENDERER.materialFinder().find();
+	//private static final RenderMaterial MATERIAL_NO_AO = RENDERER.materialFinder().ambientOcclusion(TriState.FALSE).find();
 
     private final BlockState defaultState;
     private final BakedModel src;
