@@ -3,12 +3,38 @@ package de.mrjulsen.mcdragonlib.util;
 import java.util.Collection;
 import java.util.Iterator;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.StringRepresentable;
 
 public final class TextUtils {
+    
+    /** 🐉 */
+    public static final Component TEXT_DRAGON = TextUtils.translate("text." + DragonLib.MODID + ".dragon");
+    public static final Component TEXT_NEXT = TextUtils.translate("text." + DragonLib.MODID + ".next");
+    public static final Component TEXT_PREVIOUS = TextUtils.translate("text." + DragonLib.MODID + ".previous");
+    public static final Component TEXT_GO_BACK = TextUtils.translate("text." + DragonLib.MODID + ".go_back");
+    public static final Component TEXT_GO_FORTH = TextUtils.translate("text." + DragonLib.MODID + ".go_forth");    
+    public static final Component TEXT_GO_UP = TextUtils.translate("text." + DragonLib.MODID + ".go_down");
+    public static final Component TEXT_GO_DOWN = TextUtils.translate("text." + DragonLib.MODID + ".go_up");
+    public static final Component TEXT_GO_RIGHT= TextUtils.translate("text." + DragonLib.MODID + ".go_right");
+    public static final Component TEXT_GO_LEFT = TextUtils.translate("text." + DragonLib.MODID + ".go_left");
+    public static final Component TEXT_GO_TO_TOP = TextUtils.translate("text." + DragonLib.MODID + ".go_to_top");
+    public static final Component TEXT_GO_TO_BOTTOM = TextUtils.translate("text." + DragonLib.MODID + ".go_to_bottom");
+    public static final Component TEXT_RESET_DEFAULTS = TextUtils.translate("text." + DragonLib.MODID + ".reset_defaults");
+    public static final Component TEXT_EXPAND = TextUtils.translate("text." + DragonLib.MODID + ".expand");
+    public static final Component TEXT_COLLAPSE = TextUtils.translate("text." + DragonLib.MODID + ".collapse");
+    public static final Component TEXT_COUNT = TextUtils.translate("text." + DragonLib.MODID + ".count");
+    public static final Component TEXT_TRUE = TextUtils.translate("text." + DragonLib.MODID + ".true");
+    public static final Component TEXT_FALSE = TextUtils.translate("text." + DragonLib.MODID + ".false");
+    public static final Component TEXT_CLOSE = TextUtils.translate("text." + DragonLib.MODID + ".close");
+    public static final Component TEXT_SHOW = TextUtils.translate("text." + DragonLib.MODID + ".show");
+    public static final Component TEXT_HIDE = TextUtils.translate("text." + DragonLib.MODID + ".hide");
+    public static final Component TEXT_SEARCH = TextUtils.translate("text." + DragonLib.MODID + ".search");
+    public static final Component TEXT_REFRESH = TextUtils.translate("text." + DragonLib.MODID + ".refresh");
+    public static final Component TEXT_RELOAD = TextUtils.translate("text." + DragonLib.MODID + ".reload");
 
     public static final Component EMPTY = empty();
     private static final Component TEXT_CONCAT = text("     ***     ");

@@ -4,30 +4,29 @@ import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.model.CustomBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
+import de.mrjulsen.mcdragonlib.internal.NetworkTest;
+import de.mrjulsen.mcdragonlib.internal.TestModel;
 import de.mrjulsen.mcdragonlib.net.builtin.IdentifiableResponsePacketBase;
 import de.mrjulsen.mcdragonlib.net.NetworkManagerBase;
 import de.mrjulsen.mcdragonlib.util.Color;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
-import de.mrjulsen.mcdragonlib.util.accessor.BasicDataAccessorPacket;
-import de.mrjulsen.mcdragonlib.util.accessor.DataAccessor;
-import de.mrjulsen.mcdragonlib.util.accessor.DataAccessorResponsePacket;
-import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
-import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -38,6 +37,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -69,12 +69,6 @@ public class DragonLib {
     public static final Gson GSON = new Gson();
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat();
 
-    @Deprecated(forRemoval = true) public static final int TICKS_PER_DAY = Level.TICKS_PER_DAY;
-    @Deprecated(forRemoval = true) public static final int TICKS_PER_INGAME_HOUR = Level.TICKS_PER_DAY / 24;
-    @Deprecated(forRemoval = true) public static final int DAYTIME_SHIFT = 6000;
-    @Deprecated(forRemoval = true) public static final byte TPS = 1000 / MinecraftServer.MS_PER_TICK;
-    @Deprecated(forRemoval = true) public static final int TICKS_PER_REAL_LIFE_DAY = 86400 * TPS;
-    public static final int MS_PER_REAL_LIFE_DAY = 86400000;
 	/** One block pixel */ public static final float PIXEL = 1.0F / 16.0F;
 
     public static final ResourceLocation UI = new ResourceLocation(MODID, "textures/gui/ui.png");
@@ -84,39 +78,16 @@ public class DragonLib {
     public static final Color NATIVE_BUTTON_FONT_COLOR_ACTIVE = Color.WHITE;
     public static final Color NATIVE_BUTTON_FONT_COLOR_DISABLED = Color.fromInt(0xFF9E9E9E);
     public static final Color NATIVE_BUTTON_FONT_COLOR_HIGHLIGHT = Color.fromInt(0xFFFFFFA0);
-    public static final int DARK_WINDOW_COLOR = 0xFF303030;
-    public static final int DEFAULT_BUTTON_COLOR = 0xFF484848;
-    public static final int LIGHT_BUTTON_COLOR = 0xFF888888;
-    public static final int PRIMARY_BUTTON_COLOR = 0xFF1572E6;//0xFF2190ff;
-    public static final int ACCEPT_BUTTON_COLOR = 0xFF0DB24D;
-    public static final int ERROR_BUTTON_COLOR = 0xFFE83E4D;
-    public static final int WARN_BUTTON_COLOR = 0xFFE8BD3E;
+    public static final Color DARK_WINDOW_COLOR = Color.fromInt(0xFF303030);
+    public static final Color DEFAULT_BUTTON_COLOR = Color.fromInt(0xFF484848);
+    public static final Color LIGHT_BUTTON_COLOR = Color.fromInt(0xFF888888);
+    public static final Color PRIMARY_BUTTON_COLOR = Color.fromInt(0xFF1572E6);//0xFF2190ff;
+    public static final Color ACCEPT_BUTTON_COLOR = Color.fromInt(0xFF0DB24D);
+    public static final Color ERROR_BUTTON_COLOR = Color.fromInt(0xFFE83E4D);
+    public static final Color WARN_BUTTON_COLOR = Color.fromInt(0xFFE8BD3E);
     
-    /** 🐉 */ public static final Component TEXT_DRAGON = TextUtils.translate("text." + MODID + ".dragon");
-    public static final Component TEXT_NEXT = TextUtils.translate("text." + MODID + ".next");
-    public static final Component TEXT_PREVIOUS = TextUtils.translate("text." + MODID + ".previous");
-    public static final Component TEXT_GO_BACK = TextUtils.translate("text." + MODID + ".go_back");
-    public static final Component TEXT_GO_FORTH = TextUtils.translate("text." + MODID + ".go_forth");    
-    public static final Component TEXT_GO_UP = TextUtils.translate("text." + MODID + ".go_down");
-    public static final Component TEXT_GO_DOWN = TextUtils.translate("text." + MODID + ".go_up");
-    public static final Component TEXT_GO_RIGHT= TextUtils.translate("text." + MODID + ".go_right");
-    public static final Component TEXT_GO_LEFT = TextUtils.translate("text." + MODID + ".go_left");
-    public static final Component TEXT_GO_TO_TOP = TextUtils.translate("text." + MODID + ".go_to_top");
-    public static final Component TEXT_GO_TO_BOTTOM = TextUtils.translate("text." + MODID + ".go_to_bottom");
-    public static final Component TEXT_RESET_DEFAULTS = TextUtils.translate("text." + MODID + ".reset_defaults");
-    public static final Component TEXT_EXPAND = TextUtils.translate("text." + MODID + ".expand");
-    public static final Component TEXT_COLLAPSE = TextUtils.translate("text." + MODID + ".collapse");
-    public static final Component TEXT_COUNT = TextUtils.translate("text." + MODID + ".count");
-    public static final Component TEXT_TRUE = TextUtils.translate("text." + MODID + ".true");
-    public static final Component TEXT_FALSE = TextUtils.translate("text." + MODID + ".false");
-    public static final Component TEXT_CLOSE = TextUtils.translate("text." + MODID + ".close");
-    public static final Component TEXT_SHOW = TextUtils.translate("text." + MODID + ".show");
-    public static final Component TEXT_HIDE = TextUtils.translate("text." + MODID + ".hide");
-    public static final Component TEXT_SEARCH = TextUtils.translate("text." + MODID + ".search");
-    public static final Component TEXT_REFRESH = TextUtils.translate("text." + MODID + ".refresh");
-    public static final Component TEXT_RELOAD = TextUtils.translate("text." + MODID + ".reload");
 
-public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() -> RegistrarManager.get(MODID)); 
+    public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() -> RegistrarManager.get(MODID)); 
     private static final Registrar<Item> ITEMS = MANAGER.get().get(Registries.ITEM);        
     private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
     private static final Registrar<BlockEntityType<?>> BLOCK_ENTITIES = MANAGER.get().get(Registries.BLOCK_ENTITY_TYPE);
@@ -160,27 +131,32 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
 
         DragonLibCrossPlatform.registerConfig();
 
-        dragonLibNet = new NetworkManagerBase(MODID, "dragonlib_network", List.of(
-            IdentifiableResponsePacketBase.class, 
+        NetworkTest.init();
+/*
+        dragonLibNet = new NetworkManagerBase(DLUtils.resourceLocation(MODID, "dragonlib_network"), List.of(
+            IdentifiableResponsePacketBase.class
             //WritableSignPacket.class,
-            DataAccessorResponsePacket.class
+            //DataAccessorResponsePacket.class
         ));
-        registerCustom(BasicDataAccessorPacket.class);
+        //registerCustom(BasicDataAccessorPacket.class);
+        */
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
-                NetworkManagerBase.callbackListenerTick();
+                //NetworkManagerBase.callbackListenerTick();
             });
 
             ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
-                DataAccessor.startClientWorker();
+                //DataAccessor.startClientWorker();
             });
             
             ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {
-                DataAccessor.stopClientWorker();
+                //DataAccessor.stopClientWorker();
             });
 
             DLOverlayManager.init();
+
+            CustomBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }
 
         // On server tick
@@ -189,7 +165,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         });
 
         LifecycleEvent.SERVER_STARTING.register((server) -> {
-            DataAccessor.startServerWorker();
+            //DataAccessor.startServerWorker();
         });
 
         LifecycleEvent.SERVER_STARTED.register((server) -> {
@@ -198,7 +174,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         });
 
         LifecycleEvent.SERVER_STOPPED.register((server) -> {
-            DataAccessor.stopServerWorker();
+            //DataAccessor.stopServerWorker();
             DragonLib.currentServer = null;
         });
 
@@ -243,6 +219,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         return level == null ? 0 : level.getDayTime();
     }
     
+    /*
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private static void registerCustom(Class<BasicDataAccessorPacket> c) {
         try {
@@ -252,39 +229,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             DragonLib.LOGGER.error("Unable to register packet.", e);
         }
     }
-
-    public static long ticksPerDay() {
-        return ModCommonConfig.TICKS_PER_DAY.get();
-    }
-
-    public static long daytimeShift() {
-        return ModCommonConfig.DAYTIME_SHIFT.get();
-    }
-
-    /** ticks per second */
-    public static double tps() {
-        return mcTps() * ModCommonConfig.TIME_MULTIPLIER.get();
-    }
-
-    /** Minecraft's ticks per second */
-    public static double mcTps() {
-        return (double)TimeUnit.SECONDS.toMillis(1) / (double)MinecraftServer.MS_PER_TICK;
-    } 
-
-    /** ms per tick */
-    public static double mspt() {
-        return (double)MinecraftServer.MS_PER_TICK * ModCommonConfig.TIME_MULTIPLIER.get();
-    }
-
-    public static long ticksPerRealLifeDay() {
-        long msPerDay = MS_PER_REAL_LIFE_DAY;
-        int msPerTick = 50;
-        return (long)((double)msPerDay / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
-    }
-
-    public static long ticksPerIngameHour() {
-        return ticksPerDay() / 24;
-    }
+        */
 
     /**
      * Why 🐲? Because I can. Let me bee 🐝
