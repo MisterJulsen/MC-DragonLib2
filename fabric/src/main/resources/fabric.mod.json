@@ -39,7 +39,8 @@
       "links": {
         "Discord": "${discord}"
       },
-      "update_checker": true
+      "update_checker": true,
+      "badges": [ "library" ]
     }
   },
   "accessWidener": "${modid}.accesswidener"

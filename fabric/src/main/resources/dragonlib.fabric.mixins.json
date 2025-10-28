@@ -9,10 +9,10 @@
     "client.BlockModelAccessor",
     "client.ItemModelGeneratorAccessor"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  },
   "mixins": [
     "common.TransformationMixin"
-  ]
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
