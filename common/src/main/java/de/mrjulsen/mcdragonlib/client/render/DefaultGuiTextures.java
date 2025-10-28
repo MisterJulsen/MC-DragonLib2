@@ -19,7 +19,6 @@ public class DefaultGuiTextures {
     public static final DefaultGuiTextures VANILLA_SCROLLBAR = new DefaultGuiTextures(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
 
     public static final String SPRITE_NAME_WINDOW_ROUNDED = "window_rounded";
-    public static final String SPRITE_NAME_WINDOW_ = "window_rounded";
     
     private final ResourceLocation location;
     private final Supplier<GLGuiTextureData> metadata = Suppliers.memoize(() -> {

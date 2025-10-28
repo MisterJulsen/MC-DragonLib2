@@ -2,8 +2,6 @@ package de.mrjulsen.mcdragonlib.client.newgui.widgets.components;
 
 import java.util.List;
 
-import org.lwjgl.glfw.GLFW;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.newgui.events.DLGuiCommonEvents;
