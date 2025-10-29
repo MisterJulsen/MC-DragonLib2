@@ -11,7 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
+import de.mrjulsen.mcdragonlib.block.DLWritableSignBlockEntity;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -34,7 +34,7 @@ public class WritableSignScreen extends Screen {
 
     public static final int DEFAULT_LINE_HEIGHT = 10;
 
-    protected final WritableSignBlockEntity sign;
+    protected final DLWritableSignBlockEntity sign;
     protected final BlockState blockState;
     protected final WritableSignConfig config;
     protected final ConfiguredLine[] messages;
@@ -47,11 +47,11 @@ public class WritableSignScreen extends Screen {
     // Controls
     protected Button btnDone;
 
-    public WritableSignScreen(WritableSignBlockEntity pSign) {
+    public WritableSignScreen(DLWritableSignBlockEntity pSign) {
         this(pSign, pSign.getRenderConfig(), pSign.getBlockState().getBlock().defaultBlockState(), getMessages(pSign, pSign.getRenderConfig()));
     }
 
-    protected WritableSignScreen(WritableSignBlockEntity pSign, WritableSignConfig config, BlockState state, ConfiguredLine[] messages) {
+    protected WritableSignScreen(DLWritableSignBlockEntity pSign, WritableSignConfig config, BlockState state, ConfiguredLine[] messages) {
         super(TextUtils.translate("sign.edit"));
 
         this.config = config;
@@ -63,7 +63,7 @@ public class WritableSignScreen extends Screen {
 
     }
 
-    protected static ConfiguredLine[] getMessages(WritableSignBlockEntity pSign, WritableSignConfig config) {
+    protected static ConfiguredLine[] getMessages(DLWritableSignBlockEntity pSign, WritableSignConfig config) {
         return IntStream.range(0, config.lineData.length).mapToObj((i) -> {
             return new ConfiguredLine(pSign.getText(i), config.lineData[i]);
         }).toArray((length) -> {

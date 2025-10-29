@@ -8,10 +8,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class WritableSignBlockEntity extends SyncedBlockEntity {
+public abstract class DLWritableSignBlockEntity extends DLSyncedBlockEntity {
     private String[] lines = null;
 
-    protected WritableSignBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    protected DLWritableSignBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 

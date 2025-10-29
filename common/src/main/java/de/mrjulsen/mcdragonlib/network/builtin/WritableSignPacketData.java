@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.network.builtin;
 
-import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
+import de.mrjulsen.mcdragonlib.block.DLWritableSignBlockEntity;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketContext;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketData;
@@ -50,7 +50,7 @@ public class WritableSignPacketData extends NetworkPacketData {
     public static void handler(WritableSignPacketData packet, NetworkPacketContext context) {
         context.queue(() -> {
             ServerPlayer sender = (ServerPlayer)context.getPlayer();
-            if (sender.level().getBlockEntity(packet.pos) instanceof WritableSignBlockEntity blockEntity) {
+            if (sender.level().getBlockEntity(packet.pos) instanceof DLWritableSignBlockEntity blockEntity) {
                 blockEntity.setTexts(packet.messages);
             }
         });

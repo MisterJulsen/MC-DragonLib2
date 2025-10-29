@@ -9,9 +9,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-public abstract class SyncedBlockEntity extends BlockEntity {
+public abstract class DLSyncedBlockEntity extends BlockEntity {
 
-	public SyncedBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+	public DLSyncedBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 	}
 
