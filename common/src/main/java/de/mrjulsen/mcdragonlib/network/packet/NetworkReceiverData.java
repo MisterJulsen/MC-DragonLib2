@@ -2,7 +2,7 @@ package de.mrjulsen.mcdragonlib.network.packet;
 
 import java.util.concurrent.PriorityBlockingQueue;
 
-import dev.architectury.networking.NetworkManager.Side;
+import de.mrjulsen.mcdragonlib.network.NetworkSide;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
@@ -70,5 +70,5 @@ public class NetworkReceiverData {
         }
     }
     
-    public record Key(PacketHeaderInfo info, Side side) {}
+    public record Key(PacketHeaderInfo info, NetworkSide side) {}
 }

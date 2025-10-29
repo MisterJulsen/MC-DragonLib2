@@ -2,7 +2,7 @@ package de.mrjulsen.mcdragonlib.block;
 
 import java.util.Arrays;
 
-import de.mrjulsen.mcdragonlib.client.builtin.WritableSignScreen;
+import de.mrjulsen.mcdragonlib.client.gui.builtin.WritableSignScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,17 +31,13 @@ public abstract class WritableSignBlockEntity extends SyncedBlockEntity {
         initTextArray();
 
         this.lines[line] = text;
-        BlockEntityUtil.sendUpdatePacket(this);
-        this.setChanged();
-        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 512);
+        this.notifyUpdate();
     }
 
     public void setTexts(String[] messages) {
         initTextArray();
         this.lines = messages;
-        BlockEntityUtil.sendUpdatePacket(this);
-        this.setChanged();
-        getLevel().sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 512);
+        this.notifyUpdate();
     }
 
     public String getText(int line) {

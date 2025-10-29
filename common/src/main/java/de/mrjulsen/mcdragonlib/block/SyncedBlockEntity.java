@@ -37,8 +37,9 @@ public abstract class SyncedBlockEntity extends BlockEntity {
 	}
 
 	public void sendData() {
-		if (level instanceof ServerLevel serverLevel)
+		if (level instanceof ServerLevel serverLevel) {			
 			serverLevel.getChunkSource().blockChanged(getBlockPos());
+		}
 	}
 
 	public void notifyUpdate() {

@@ -3,8 +3,7 @@ package de.mrjulsen.mcdragonlib.network.forge;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketContext;
-import dev.architectury.networking.NetworkManager;
-import dev.architectury.platform.Platform;
+import de.mrjulsen.mcdragonlib.network.NetworkSide;
 import dev.architectury.utils.Env;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -24,16 +23,15 @@ import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = DragonLib.MODID)
 public class DLNetworkManagerImpl {
-    
-    private static final ResourceLocation CHANNEL_ID = new ResourceLocation(DragonLib.MODID, "network");
-    static final EventNetworkChannel CHANNEL = NetworkRegistry.newEventChannel(CHANNEL_ID, () -> Platform.getMod(DragonLib.MODID).getVersion(), version -> true, version -> true);
-    
-    static {
-        CHANNEL.addListener(createPacketHandler(NetworkEvent.ClientCustomPayloadEvent.class));        
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientNetworkingManager::initClient);
+
+    public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
+        EventNetworkChannel channel = NetworkRegistry.newEventChannel(channelId, () -> protocolVersion, version -> true, version -> true);
+        channel.addListener(createPacketHandler(NetworkEvent.ClientCustomPayloadEvent.class, channelId));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientNetworkingManager.initClient(channel, channelId));
     }
     
-    static <T extends NetworkEvent> Consumer<T> createPacketHandler(Class<T> clazz) {
+    static <T extends NetworkEvent> Consumer<T> createPacketHandler(Class<T> clazz, ResourceLocation channelId) {
+        final ResourceLocation id = channelId;
         return event -> {
             if (event.getClass() != clazz) return;
             NetworkEvent.Context context = event.getSource().get();
@@ -41,7 +39,7 @@ public class DLNetworkManagerImpl {
             FriendlyByteBuf buffer = event.getPayload();
             if (buffer == null) return;
             
-            NetworkManager.Side side = context.getDirection().getReceptionSide() == LogicalSide.CLIENT ? NetworkManager.Side.S2C : NetworkManager.Side.C2S;
+            NetworkSide side = context.getDirection().getReceptionSide() == LogicalSide.CLIENT ? NetworkSide.S2C : NetworkSide.C2S;
             NetworkPacketContext packetContext = new NetworkPacketContext() {
                 @Override
                 public Player getPlayer() {
@@ -62,12 +60,12 @@ public class DLNetworkManagerImpl {
                     return DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> ClientNetworkingManager::getClientPlayer);
                 }
             };
-            DLNetworkManager.receiveData(buffer, side, packetContext);            
+            DLNetworkManager.receiveData(id, buffer, side, packetContext);            
             context.setPacketHandled(true);
         };
     }
     
-    public static Packet<?> toPacket(NetworkManager.Side side, FriendlyByteBuf buffer) {
-        return (side == NetworkManager.Side.C2S ? NetworkDirection.PLAY_TO_SERVER : NetworkDirection.PLAY_TO_CLIENT).buildPacket(Pair.of(buffer, 0), CHANNEL_ID).getThis();
+    public static Packet<?> toPacket(ResourceLocation channelId, NetworkSide side, FriendlyByteBuf buffer) {
+        return (side == NetworkSide.C2S ? NetworkDirection.PLAY_TO_SERVER : NetworkDirection.PLAY_TO_CLIENT).buildPacket(Pair.of(buffer, 0), channelId).getThis();
     }
 }

@@ -7,17 +7,17 @@ public final class NetworkProcessor {
     
     @FunctionalInterface
     public interface Send<I extends NetworkPacketData> {
-        void execute(I data);
+        void execute(I data, NetworkPacketContext context);
     }
     
     @FunctionalInterface
     public interface Receive<O extends NetworkPacketData> {
-        O execute();
+        O execute(NetworkPacketContext context);
     }
         
     @FunctionalInterface
     public interface SendAndReceive<I extends NetworkPacketData, O extends NetworkPacketData> {
-        O execute(I data);
+        O execute(I data, NetworkPacketContext context);
     }    
         
     @FunctionalInterface
@@ -27,11 +27,11 @@ public final class NetworkProcessor {
          * @param data is null on the first run
          * @return
          */
-        I execute(Optional<O> data);
+        I execute(boolean initialCall, Optional<O> data, Optional<NetworkPacketContext> context);
     }
 
     @FunctionalInterface
     public interface StreamReceiver<I extends NetworkPacketData, O extends NetworkPacketData> {
-        O execute(I data);
+        O execute(I data, NetworkPacketContext context);
     }
 }

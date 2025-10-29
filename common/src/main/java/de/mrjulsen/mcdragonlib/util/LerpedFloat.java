@@ -1,5 +1,6 @@
-package de.mrjulsen.mcdragonlib.client.util;
+package de.mrjulsen.mcdragonlib.util;
 
+import de.mrjulsen.mcdragonlib.client.util.AngleHelper;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;

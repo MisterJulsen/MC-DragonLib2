@@ -11,13 +11,15 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
 import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.internal.NetworkTest;
+import de.mrjulsen.mcdragonlib.internal.NetworkTest.TestData;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
-import de.mrjulsen.mcdragonlib.util.time.ConfigTimeSystem;
+import de.mrjulsen.mcdragonlib.util.time.ConfiguredTimeSystem;
 import de.mrjulsen.mcdragonlib.util.time.DLTime;
 import de.mrjulsen.mcdragonlib.util.time.ITimeSystem;
 import de.mrjulsen.mcdragonlib.util.time.TimeContext;
@@ -79,9 +81,7 @@ public class RedWindow extends DLWindow {
                     DragonLib.LOGGER.info("FILE SIZE IS: " + res.txt());
                 }, () -> {});
                 */
-                NetworkTest.FILE_TRANSFER.send(NetworkDirection.toServer(), new NetworkTest.FileTransferProvider("C:\\Users\\julia\\OneDrive\\Videos\\Craftattack 8 Zusammenfassungsvideo.mp4"), (status) -> {
-                    System.out.println("COMPLETED: " + status.flag() + ", " + status.message());
-                });
+                NetworkTest.SEND.send(NetworkDirection.toServer(), new TestData(DLStatus.OK, "SALZBUTTERMILCH"));
             }
             return false;
         });
@@ -96,7 +96,7 @@ public class RedWindow extends DLWindow {
 
         Level level = Minecraft.getInstance().level;
         if (level != null) {
-            ITimeSystem provider = new ConfigTimeSystem();
+            ITimeSystem provider = new ConfiguredTimeSystem();
             ITimeSystem v = new ITimeSystem() {                
                 @Override
                 public long getTicksPerDay() {

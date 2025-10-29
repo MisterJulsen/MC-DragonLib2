@@ -6,28 +6,32 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public class ModCommonConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;
-
-    public static final ForgeConfigSpec.ConfigValue<Integer> TICKS_PER_DAY;
-    public static final ForgeConfigSpec.ConfigValue<Integer> DAYTIME_SHIFT;
-    public static final ForgeConfigSpec.ConfigValue<Double> TIME_MULTIPLIER;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> DEBUG_NETWORKING;
     public static final ForgeConfigSpec.ConfigValue<ECachingMode> CACHING;
-
-    public static final ForgeConfigSpec.ConfigValue<Boolean> HIDE_SODIUM_WARNING;
+    
+    public static final ForgeConfigSpec.ConfigValue<Boolean> TIME_AUTO;
+    public static final ForgeConfigSpec.ConfigValue<Long> TIME_TICKS_PER_DAY;
+    public static final ForgeConfigSpec.ConfigValue<Double> TIME_DEFAULT_TPS;
+    public static final ForgeConfigSpec.ConfigValue<Double> TIME_DAYTIME_SHIFT_FACTOR;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");
-        
-        TICKS_PER_DAY = BUILDER.comment("The number of ticks for one Minecraft day. If in doubt, leave it unchanged! (Default: 24000)")
-            .defineInRange("time.ticks_per_day", 24000, 0, Integer.MAX_VALUE);
-        TIME_MULTIPLIER = BUILDER.comment("The scale of the tick length. 1 means that a tick has normal duration (0.05 seconds). 20 would therefore result in a length of 1 second per tick. If in doubt, leave it unchanged! (Default: 1)")
-            .defineInRange("time.time_multiplier", 1D, 0D, Double.MAX_VALUE);
-        DAYTIME_SHIFT = BUILDER.comment("The number of ticks by which the time of day is shifted to match the real daytime. By default, 0 ticks is 6 AM, but 0 ticks should represent 12 AM (midnight). If in doubt, leave it unchanged! (Default: 6000)")
-            .defineInRange("time.daytime_shift", 6000, 0, Integer.MAX_VALUE);
         CACHING = BUILDER.comment("Specifies how aggressively data should be cached. The lower the value, the less data will be cached, which can reduce RAM usage. However, depending on the situation, less caching can lead to increased CPU usage and cause lag. Only works with mods that actively use the feature! If in doubt, leave unchanged. (Default: NORMAL, OFF = only the most important data will be cached)")
             .defineEnum("caching.mode", ECachingMode.NORMAL);
 
-        HIDE_SODIUM_WARNING = BUILDER.comment("Hides the warning when Sodium is installed, but no mod that fixes the visual glitches.")
-            .define("compat.hide_sodium_warning", false);
+            
+        DEBUG_NETWORKING = BUILDER.comment("Prints addidional information about the networking system in the console. For debugging purposes. (Default: OFF)")
+            .define("debug.networking_logging", false);
+
+            
+        TIME_AUTO = BUILDER.comment("When enabled, DragonLib automatically adjusts the time system, depending on which time modification mod is installed and whether a compat is available for it. (Default: ON)")
+            .define("time_system.auto_adjustment", true);
+        TIME_TICKS_PER_DAY = BUILDER.comment(new String[] { "in Ticks", "The number of ticks per Minecraft day. This value is overridden if [Auto Adjustment] is enabled. (Default: 24000)" })
+            .defineInRange("time_system.ticks_per_day", 24000L, 1L, Long.MAX_VALUE);
+        TIME_DEFAULT_TPS = BUILDER.comment(new String[] { "in Ticks Per Second", "The ticks per second at which time of day advances. This value is overridden when [Auto Adjustment] is enabled or when time zones are defined. (Default: 20)" })
+            .defineInRange("time_system.ticks_per_second", 20D, 0D, (double)Integer.MAX_VALUE);
+        TIME_DAYTIME_SHIFT_FACTOR = BUILDER.comment("The proportion of the total day duration by which the clock time is shifted. By default, 0 ticks = 06:00, for which the time must be shifted by 25% of the day length. (Default: 0.25)")
+            .defineInRange("time_system.daytime_shift", 0.25D, 0D, 1D);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

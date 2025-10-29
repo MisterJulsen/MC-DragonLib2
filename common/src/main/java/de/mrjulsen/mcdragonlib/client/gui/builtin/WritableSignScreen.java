@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.builtin;
+package de.mrjulsen.mcdragonlib.client.gui.builtin;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -12,7 +12,8 @@ import com.mojang.math.Axis;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.block.WritableSignBlockEntity;
-import de.mrjulsen.mcdragonlib.net.builtin.WritableSignPacket;
+import de.mrjulsen.mcdragonlib.network.NetworkDirection;
+import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import net.minecraft.client.Minecraft;
@@ -86,7 +87,7 @@ public class WritableSignScreen extends Screen {
     }
 
     public void removed() {
-        //DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
+        DragonLib.UPDATE_SIGN_TEXT.send(NetworkDirection.toServer(), new WritableSignPacketData(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
     }
 
     public void tick() {
@@ -98,7 +99,7 @@ public class WritableSignScreen extends Screen {
     }
 
     protected void onDone() {
-        //DragonLib.getDragonLibNetworkManager().CHANNEL.sendToServer(new WritableSignPacket(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new))); 
+        DragonLib.UPDATE_SIGN_TEXT.send(NetworkDirection.toServer(), new WritableSignPacketData(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
         this.minecraft.setScreen(null);
     }
 

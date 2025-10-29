@@ -1,7 +1,7 @@
 {
 	"loader": "dragonlib:multipart_obj",
 	"flip_v": true,
-	"model": "dragonlib:models/block/train_station_clock.obj",
+	"model": "dragonlib:models/block/dragon.obj",
 	"textures": {
 		"texture0": "dragonlib:block/train_station_clock",
 		"texture1": "block/black_concrete",

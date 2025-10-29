@@ -4,13 +4,15 @@ import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.internal.NetworkTest;
-import de.mrjulsen.mcdragonlib.internal.TestModel;
+import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
+import de.mrjulsen.mcdragonlib.network.NetworkDirection;
+import de.mrjulsen.mcdragonlib.network.NetworkPacketType;
+import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
@@ -84,7 +86,10 @@ public class DragonLib {
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
     public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(DLUtils.resourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
-        
+
+    public static final DLNetworkManager DRAGONLIB_NETWORK = new DLNetworkManager(DLUtils.resourceLocation(MODID, "network"), "3");
+    public static final NetworkPacketType.Send<NetworkDirection.C2S, WritableSignPacketData> UPDATE_SIGN_TEXT = DRAGONLIB_NETWORK.registerSendOnlyPacket("update_writable_sign", NetworkDirection.C2S, WritableSignPacketData::handler, WritableSignPacketData::new) ;
+
     private static MinecraftServer currentServer;
 
     private static <T extends Block, I extends BlockItem>RegistrySupplier<T> registerBlock(String name, Supplier<T> block) {
@@ -118,14 +123,6 @@ public class DragonLib {
 
         DragonLibCrossPlatform.registerConfig();
         NetworkTest.init();
-/*
-        dragonLibNet = new NetworkManagerBase(DLUtils.resourceLocation(MODID, "dragonlib_network"), List.of(
-            IdentifiableResponsePacketBase.class
-            //WritableSignPacket.class,
-            //DataAccessorResponsePacket.class
-        ));
-        //registerCustom(BasicDataAccessorPacket.class);
-        */
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             DLOverlayManager.init();

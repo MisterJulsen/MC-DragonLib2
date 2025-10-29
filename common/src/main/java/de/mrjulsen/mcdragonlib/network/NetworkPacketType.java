@@ -20,22 +20,23 @@ import de.mrjulsen.mcdragonlib.network.packet.NetworkPacker;
 import de.mrjulsen.mcdragonlib.network.packet.PacketHeaderInfo;
 import de.mrjulsen.mcdragonlib.network.packet.PacketType;
 import de.mrjulsen.mcdragonlib.util.DLStatistics;
-import dev.architectury.networking.NetworkManager.Side;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 public abstract class NetworkPacketType<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> {
-    private final ResourceLocation id;
+    private final ResourceLocation channelId;
+    private final String name;
     private final PacketType type;
-    private final Side direction;
+    private final NetworkSide direction;
     private final Function<DLStatus, I> sendFactory;
     private final Function<DLStatus, O> responseFactory;
 
-    public NetworkPacketType(PacketType type, NetworkDirection direction, ResourceLocation id, Function<DLStatus, I> sendFactory, Function<DLStatus, O> responseFactory) {
+    public NetworkPacketType(ResourceLocation channelId, PacketType type, NetworkDirection direction, String name, Function<DLStatus, I> sendFactory, Function<DLStatus, O> responseFactory) {
+        this.channelId = channelId;
         this.type = type;
-        this.id = id;
+        this.name = name;
         this.direction = direction.getDirection();
         this.sendFactory = sendFactory;
         this.responseFactory = responseFactory;
@@ -44,20 +45,24 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
     abstract void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in);
     abstract void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, O in);
 
-    public final ResourceLocation getId() {
-        return id;
+    public final ResourceLocation getChannelId() {
+        return channelId;
+    }
+
+    public final String getName() {
+        return name;
     }
 
     public final PacketType getType() {
         return type;
     }
 
-    public final Side getDirection() {
+    public final NetworkSide getDirection() {
         return direction;
     }
 
     public final PacketHeaderInfo getInfo(CommunicationType communication, long requestId) {
-        return new PacketHeaderInfo(getType(), communication, requestId, getId());
+        return new PacketHeaderInfo(getType(), communication, requestId, getName());
     }
     
     protected void receive(PacketHeaderInfo info, NetworkPacketContext context, CompoundTag nbt, CommunicationType communication) {
@@ -78,7 +83,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
     protected void sendInternal(long requestId, N sender, @Nullable CompoundTag nbt) {
         PacketHeaderInfo info = getInfo(CommunicationType.REQUEST, requestId);
-        List<Packet<?>> mcPackets = NetworkPacker.pack(info, sender.getDirection(), nbt);
+        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
         for (Packet<?> packet : mcPackets) {
             sender.send(packet);
         }
@@ -92,9 +97,9 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
     
 
     protected void respondInternal(PacketHeaderInfo header, NetworkPacketContext context, @Nullable CompoundTag nbt) {
-        NetworkDirection sender = getDirection() == Side.C2S ? NetworkDirection.toServer() : NetworkDirection.toPlayer((ServerPlayer)context.getPlayer());
+        NetworkDirection sender = getDirection() == NetworkSide.C2S ? NetworkDirection.toServer() : NetworkDirection.toPlayer((ServerPlayer)context.getPlayer());
         PacketHeaderInfo info = getInfo(CommunicationType.RESPONSE, header.requestId());
-        List<Packet<?>> mcPackets = NetworkPacker.pack(info, sender.getDirection(), nbt);
+        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
         for (Packet<?> packet : mcPackets) {
             sender.send(packet);
         }
@@ -113,14 +118,14 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         protected final NetworkProcessor.Send<I> handler;
 
-        public Send(ResourceLocation id, NetworkDirection direction, NetworkProcessor.Send<I> handler, Function<DLStatus, I> factory) {
-            super(PacketType.SEND, direction, id, factory, NetworkPacketData.Empty::new);
+        public Send(ResourceLocation channelId, String name, NetworkDirection direction, NetworkProcessor.Send<I> handler, Function<DLStatus, I> factory) {
+            super(channelId, PacketType.SEND, direction, name, factory, NetworkPacketData.Empty::new);
             this.handler = handler;
         }
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            handler.execute(in);
+            handler.execute(in, context);
         }
 
         @Override
@@ -140,8 +145,8 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         protected static final Map<Long, CompletableFuture<?>> callbacks = new ConcurrentHashMap<>();
         private final NetworkProcessor.Receive<O> handler;
 
-        public Receive(ResourceLocation id, NetworkDirection direction, NetworkProcessor.Receive<O> handler, Function<DLStatus, O> factory) {
-            super(PacketType.RECEIVE, direction, id, NetworkPacketData.Empty::new, factory);
+        public Receive(ResourceLocation channelId, String name, NetworkDirection direction, NetworkProcessor.Receive<O> handler, Function<DLStatus, O> factory) {
+            super(channelId, PacketType.RECEIVE, direction, name, NetworkPacketData.Empty::new, factory);
             this.handler = handler;
         }
 
@@ -156,7 +161,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, NetworkPacketData.Empty in) {
             try {
-                O data = handler.execute();
+                O data = handler.execute(context);
                 respondInternal(info, context, data.serializeNbt());
             } catch (Exception e) {
                 respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
@@ -196,8 +201,8 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         protected static final Map<Long, CompletableFuture<?>> callbacks = new ConcurrentHashMap<>();
         private final NetworkProcessor.SendAndReceive<I, O> handler;
 
-        public SendAndReceive(ResourceLocation id, NetworkDirection direction, NetworkProcessor.SendAndReceive<I, O> handler, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
-            super(PacketType.SEND_AND_RECEIVE, direction, id, inputFactory, outputFactory);
+        public SendAndReceive(ResourceLocation channelId, String name, NetworkDirection direction, NetworkProcessor.SendAndReceive<I, O> handler, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
+            super(channelId, PacketType.SEND_AND_RECEIVE, direction, name, inputFactory, outputFactory);
             this.handler = handler;
         }
         
@@ -212,7 +217,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
             try {
-                O data = handler.execute((I)in);
+                O data = handler.execute((I)in, context);
                 respondInternal(info, context, data.serializeNbt());
             } catch (Exception e) {
                 respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
@@ -258,8 +263,8 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         private final Supplier<StreamReceiver<I, O>> receiverFactory;
 
 
-        public Stream(ResourceLocation id, NetworkDirection direction, Supplier<StreamReceiver<I, O>> receiverFactory, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
-            super(PacketType.STREAM, direction, id, inputFactory, outputFactory);
+        public Stream(ResourceLocation channelId, String name, NetworkDirection direction, Supplier<StreamReceiver<I, O>> receiverFactory, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
+            super(channelId, PacketType.STREAM, direction, name, inputFactory, outputFactory);
             this.receiverFactory = receiverFactory;
         }
         
@@ -276,7 +281,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
             try {
-                O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in);
+                O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in, context);
                 if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
                     outputCache.remove(info.requestId());
                 }
@@ -290,7 +295,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         @Override
         void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, O in) {
             try {
-                I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(Optional.of(in));
+                I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(false, Optional.of(in), Optional.of(context));
                 RequestData<N, O> requestData = ((RequestData<N, O>)callbacks.get(info.requestId()));
                 if (!in.getStatus().isDone()) {
                     sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
@@ -311,7 +316,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             long requestId = System.nanoTime();
             callbacks.put(requestId, new RequestData<>(sender, requestId, finishCallback));
             inputCache.put(requestId, handler);
-            sendInternal(requestId, sender, handler.execute(Optional.empty()).serializeNbt());
+            sendInternal(requestId, sender, handler.execute(true, Optional.empty(), Optional.empty()).serializeNbt());
         }
     }
 }
