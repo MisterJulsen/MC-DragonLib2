@@ -13,7 +13,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 @Mixin(LevelChunk.class)
 public class LevelChunkMixin {
     @Inject(method = "clearAllBlockEntities", at = @At(value = "HEAD"))
-    public void paw$onClearAllBlockEntities(CallbackInfo ci) {   
+    public void dragonlib$onClearAllBlockEntities(CallbackInfo ci) {   
         LevelChunk self = (LevelChunk)(Object)this;
         for (BlockEntity be : self.getBlockEntities().values()) {
             if (be instanceof IBlockEntityExtension bext) {
@@ -23,7 +23,7 @@ public class LevelChunkMixin {
     }
     
     @Inject(method = "addAndRegisterBlockEntity", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/world/level/chunk/LevelChunk;updateBlockEntityTicker(Lnet/minecraft/world/level/block/entity/BlockEntity;)V"))
-    public void paw$onAddAndRegisterBlockEntity(BlockEntity blockEntity, CallbackInfo ci) {   
+    public void dragonlib$onAddAndRegisterBlockEntity(BlockEntity blockEntity, CallbackInfo ci) {   
         LevelChunk self = (LevelChunk)(Object)this;
         for (BlockEntity be : self.getBlockEntities().values()) {
             if (be instanceof IBlockEntityExtension bext) {

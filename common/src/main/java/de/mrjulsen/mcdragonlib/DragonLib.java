@@ -2,12 +2,12 @@ package de.mrjulsen.mcdragonlib;
 
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
-
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
+import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntityRenderer;
 import de.mrjulsen.mcdragonlib.internal.NetworkTest;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
@@ -16,16 +16,19 @@ import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
+import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -111,6 +114,8 @@ public class DragonLib {
 
     private static boolean initialized = false;
     
+    public static ShaderInstance EXAMPLE_SHADER;
+    
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
@@ -125,6 +130,10 @@ public class DragonLib {
         NetworkTest.init();
 
         if (Platform.getEnv() == EnvType.CLIENT) {
+            ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
+                BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new); 
+            });
+
             DLOverlayManager.init();
             //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }

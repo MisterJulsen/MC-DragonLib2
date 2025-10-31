@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface StringSplitterAccessor {
 
     @Accessor("widthProvider")
-    StringSplitter.WidthProvider getWidthProvider();
+    StringSplitter.WidthProvider dragonlib$getWidthProvider();
 }

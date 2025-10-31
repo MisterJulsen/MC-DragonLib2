@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
@@ -36,9 +37,9 @@ public class NetworkTest {
     }
 
 
-    public static final DLNetworkManager NETWORK = new DLNetworkManager(new ResourceLocation("salz", "network"), "123");
+    public static final DLNetworkManager NETWORK = new DLNetworkManager(new ResourceLocation(DragonLib.MODID, "test"), "1");
 
-    public static final NetworkPacketType.Send<NetworkDirection.C2S, TestData> SEND = NETWORK.registerSendOnlyPacket("salz", NetworkDirection.C2S,
+    public static final NetworkPacketType.Send<NetworkDirection.C2S, TestData> SEND = NETWORK.registerSendOnlyPacket("string_message", NetworkDirection.C2S,
         (data, ctx) -> {
             DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
         }, TestData::new);

@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MinecraftMixin {
 
     @Inject(method = "setInitialScreen", at = @At(value = "HEAD"), cancellable = true)
-    public void onShowScreen(RealmsClient realmsClient, ReloadInstance reloadInstance, GameConfig.QuickPlayData quickPlayData, CallbackInfo ci) {
+    public void dragonlib$showScreen(RealmsClient realmsClient, ReloadInstance reloadInstance, GameConfig.QuickPlayData quickPlayData, CallbackInfo ci) {
         
         DLScreenWrapper wrapper = new DLScreenWrapper(root -> new DLTestWindow(root));
         wrapper.getWindowManager().createWindow(RedWindow::new);

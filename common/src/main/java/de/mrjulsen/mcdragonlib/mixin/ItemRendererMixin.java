@@ -24,7 +24,7 @@ public class ItemRendererMixin {
     public void dragonlib$render(ItemStack itemStack, ItemDisplayContext context, boolean leftHand, PoseStack poseStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
 		if (itemStack.getItem() instanceof ICustomItemRenderer renderer) {
             poseStack.pushPose();
-            DLGraphics graphics = new DLGraphics(poseStack, buffer, combinedLight, combinedOverlay);
+            DLGraphics graphics = new DLGraphics(poseStack, buffer, combinedLight, combinedOverlay, 1f);
             poseStack.scale(DragonLib.BLOCK_PIXEL, DragonLib.BLOCK_PIXEL, DragonLib.BLOCK_PIXEL);
             poseStack.pushPose();
             renderer.renderAdditional(graphics, itemStack, context, leftHand, poseStack, buffer, combinedLight, combinedOverlay, model);

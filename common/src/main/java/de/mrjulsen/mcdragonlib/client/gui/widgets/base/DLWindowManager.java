@@ -661,7 +661,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         invokeEvent(this, new DLGuiStandardEvents.MousePressedEvent(mouseX, mouseY, button));
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.CLICK);        
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
                 c.component().setFocus(e.getKey() == ComponentSelectionState.FOCUSED);
@@ -695,7 +695,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         }
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.MOUSE_MOVE);        
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.MOUSE_MOVE);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {                    
                 c.component().setSelected(e.getKey().isHit(), c.mouseX(), c.mouseY());
@@ -717,7 +717,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         invokeEvent(this, new DLGuiStandardEvents.MouseUpEvent(mouseX, mouseY, button));
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.CLICK);        
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
                 if (e.getKey().isHit() && mouseDownComponents.contains(c.component())) {
@@ -739,7 +739,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         invokeEvent(this, new DLGuiStandardEvents.ScrollEvent(mouseX, mouseY, scrollX, scrollY));
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.SCROLL);  
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.SCROLL);  
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
                 if (!hasWindows()) {
@@ -775,7 +775,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         if (mouseDownComponents.isEmpty()) return false;
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.copyOf(mouseDownComponents));
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.DRAG);
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG);
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
                 if (mouseDownComponents.contains(c.component())) {
@@ -824,7 +824,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         double mouseX = mouseXOnScreen();
         double mouseY = mouseYOnScreen();
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITY, flags, ConsumptionType.DRAG_AND_DROP);
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG_AND_DROP);
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {
                 if (e.getKey().isHit()) {

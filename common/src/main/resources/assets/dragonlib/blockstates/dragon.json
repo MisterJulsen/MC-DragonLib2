@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "dragonlib:block/train_station_clock"
+      "model": "dragonlib:block/dragon"
     }
   }
 }
