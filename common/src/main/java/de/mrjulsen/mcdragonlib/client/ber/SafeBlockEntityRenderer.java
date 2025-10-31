@@ -21,7 +21,7 @@ public abstract class SafeBlockEntityRenderer<T extends BlockEntity> implements 
 		if (isInvalid(be)) {
 			return;
         }
-		renderSafe(new BERGraphics<>(be, ms, bufferSource, context, light, overlay), partialTicks);
+		renderSafe(new BERGraphics<>(be, ms, bufferSource, context, light, overlay, partialTicks), partialTicks);
 	}
 
 	protected abstract void renderSafe(BERGraphics<T> graphics, float partialTicks);

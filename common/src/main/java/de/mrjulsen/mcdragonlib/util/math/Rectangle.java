@@ -6,7 +6,7 @@ import java.util.Objects;
 public class Rectangle {
 
     public static final double MAX_DOUBLE = Double.MAX_VALUE / 2D;
-    public static final Rectangle INFINITY = new Rectangle(-MAX_DOUBLE, -MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE);
+    public static final Rectangle INFINITE = new Rectangle(-MAX_DOUBLE, -MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE);
     public static final Rectangle EMPTY = new Rectangle(0, 0, 0, 0);
 
     protected double x1;

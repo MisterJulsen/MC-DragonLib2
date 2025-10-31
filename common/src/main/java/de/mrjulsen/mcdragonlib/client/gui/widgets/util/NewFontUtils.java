@@ -37,7 +37,7 @@ public class NewFontUtils {
                 if (pos >= index) {
                     return false; // Abbruch
                 }
-                sum.add(accessor.getWidthProvider().getWidth(codePoint, s));
+                sum.add(accessor.dragonlib$getWidthProvider().getWidth(codePoint, s));
                 return true;
             }
         };
@@ -83,7 +83,7 @@ public class NewFontUtils {
                 finished.set(true);
                 return false;
             }
-            sum.add(accessor.getWidthProvider().getWidth(codePoint, s));
+            sum.add(accessor.dragonlib$getWidthProvider().getWidth(codePoint, s));
             return true;
         };
 
@@ -107,7 +107,7 @@ public class NewFontUtils {
         StringSplitterAccessor accessor = (StringSplitterAccessor)font.getSplitter();
         FormattedCharSink sink = (pos, s, codePoint) -> {
             if (pos >= index) return false;
-            sum.add(accessor.getWidthProvider().getWidth(codePoint, s));
+            sum.add(accessor.dragonlib$getWidthProvider().getWidth(codePoint, s));
             return true;
         };
         content.accept(sink);

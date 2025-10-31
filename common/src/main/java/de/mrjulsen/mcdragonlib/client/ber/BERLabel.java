@@ -1,438 +1,295 @@
 package de.mrjulsen.mcdragonlib.client.ber;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.mutable.MutableFloat;
 import org.joml.Vector3f;
 
 import com.mojang.blaze3d.font.GlyphInfo;
-import com.mojang.blaze3d.vertex.PoseStack;
 
-import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
+import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
+import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
+import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.mixin.BakedGlyphAccessor;
-import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DLColor;
+import de.mrjulsen.mcdragonlib.util.Pair;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
-import de.mrjulsen.mcdragonlib.util.math.MathUtils;
-import net.minecraft.client.Minecraft;
+import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 
-/**
- * A simple component to display text on BERs with some customization options
- * (e.g. scrolling text, scaling, cropping, etc.). Make sure to call the {@code renderTick()}
- * method ONCE before rendering to enable smooth scrolling. Do not call it in {@code tick()},
- * otherwise the text would only have 20 fps, and do not call it multiple times
- * (otherwise the scrolling speed will be faster)
- */
 public class BERLabel {
 
-    protected static record TextDataCache(float textWidth, float scaledTextWidth, float scale, boolean shouldScroll) {}
-    protected static record CharData(int charCode, GlyphInfo glyphInfo, float glyphWidth, BakedGlyphAccessor glyph, float glyphUVDiff) {}
+    public enum EScrollMode { NEVER, WHEN_NEEDED, ALWAYS }
 
-    public static enum BoundsHitReaction {
-        /** Ignores the given limit and writes beyond the limits, but with minimal scaling to exceed the limit as little as possible. */
-        IGNORE,
-        /** Crops text at borders and uses the minimum scaling to keep as much text readable as possible.*/
-        CUT_OFF,
-        /** Allows the text to scroll if it no longer fits the bounds even with minimal scaling. The scrolling text then has normal scaling again. */
-        SCALE_SCROLL,
-        /** Allows the text to scroll if it no longer fits the bounds with default scaling. */
-        SCROLL;
-    }
+    protected static record StyledChar(
+        CharData charData,
+        Style style,
+        float unscaledAdvance
+    ) {}
 
-    private static final byte CHAR_SIZE = 8;
-    public static final float INVALID = -1;
-    public static final float DEFAULT_SCROLL_SPEED = 0.5f;
-    public static final BoundsHitReaction DEFAULT_BOUNDS_HIT_REACTION = BoundsHitReaction.CUT_OFF;
+    protected static record CharData(
+        int charCode,
+        String charString,
+        Style style,
+        GlyphInfo glyphInfo,
+        BakedGlyphAccessor glyph,
+        float glyphUWidth,
+        float glyphVHeight
+    ) {}
 
-    private final FontUtils fontUtils;
-    private Component text;
+    protected static final Map<Integer, CharData> charDataCache = new ConcurrentHashMap<>();
 
-    private float x = 0;
-    private float y = 0;
-    private boolean widthLimited = false;
-    private float maxWidth = 0;
-    private BoundsHitReaction boundsHitReaction = BoundsHitReaction.CUT_OFF;
-    private float minScale = 1;
-    private float scale = 1;
-    private float yScale = 1;
-    private float scrollingSpeed = DEFAULT_SCROLL_SPEED;
-    private boolean forceScrolling = false;
-    private boolean center = false;
-    private DLColor color = DLColor.WHITE;
-    private DLColor backgroundColor = DLColor.TRANSPARENT;
-    private boolean backgroundColorFullLabel = false;
+    public final Property<Rectangle> bounds = new Property<>(Rectangle.withSize(0, 0, 16, 16));
+    public final NumberProperty<Float> x = new NumberProperty<>(0F);
+    public final NumberProperty<Float> y = new NumberProperty<>(0F);
+    public final Property<ETextAlignment> textAlign = new Property<>(ETextAlignment.LEFT);
 
-    // Caching 
-    private final Cache<TextDataCache> textData = new Cache<>(this::calc);
-    private final Cache<Float> scaledTextWidth = new Cache<>(() -> {
-        float textWidth = getFontUtils().font.width(getText());
-        float rawXScale = textWidth * getScale();
-        return rawXScale;
-    });
-    private final Cache<Float> textWidth = new Cache<>(() -> {
-        return getText().getString().isEmpty() ? 0 : getFontUtils().font.width(getText()) * textData.get().scale();
-    });
-    private final Map<Integer, CharData> charDataCache = new HashMap<>();
+    public final Property<Component> text = new Property<>(TextUtils.empty());
+    public final ColorProperty color = new ColorProperty(DLColor.WHITE, DLColor.WHITE);
+    public final ColorProperty backgroundColor = new ColorProperty(DLColor.TRANSPARENT, DLColor.TRANSPARENT);
+    public final BooleanProperty fullBackground = new BooleanProperty(false, false);
 
-    // Mem
-    private float xScrollOffset = 0;
-    
+    public final NumberProperty<Float> targetWidth = new NumberProperty<>(16F, 0F, (float) Integer.MAX_VALUE);
+    public final NumberProperty<Float> targetHeight = new NumberProperty<>(16F, 0F, (float) Integer.MAX_VALUE);
+    public final NumberProperty<Float> horizontalMinScale = new NumberProperty<>(1F, 0F, (float) Integer.MAX_VALUE);
+    public final NumberProperty<Float> horizontalMaxScale = new NumberProperty<>(1F, 0F, (float) Integer.MAX_VALUE);
+    public final NumberProperty<Float> verticalMinScale = new NumberProperty<>(1F, 0F, (float) Integer.MAX_VALUE);
+    public final NumberProperty<Float> verticalMaxScale = new NumberProperty<>(1F, 0F, (float) Integer.MAX_VALUE);
+
+    public final NumberProperty<Float> horizontalScrollingSpeed = new NumberProperty<>(4F);
+    public final NumberProperty<Float> verticalScrollingSpeed = new NumberProperty<>(4F);
+    public final Property<EScrollMode> horizontalScrollMode = new Property<>(EScrollMode.NEVER);
+    public final Property<EScrollMode> verticalScrollMode = new Property<>(EScrollMode.NEVER);
+
+    private final FontUtils fontUtils = new FontUtils(Style.DEFAULT_FONT);
+
+    private long lastRenderTime = 0;
+    private float horizontalScrollOffset = 0.0f;
+    private float verticalScrollOffset = 0.0f;
+
+    private List<Pair<CharData, Float>> cachedGlyphs = null;
+    private float cachedUnscaledTextWidth = 0f;
+    private Component lastRenderedText = null;
+
     public BERLabel() {
-        this(TextUtils.empty());
-    }
-
-    public BERLabel(Component initialText) {
-        this(new FontUtils(Style.DEFAULT_FONT), initialText);
-    }
-
-    public BERLabel(FontUtils fontUtils, Component initialText) {
-        this.fontUtils = fontUtils;
-        this.text = initialText;
-    }
-
-    /**
-     * The position of the label.
-     * @param x x coordinate
-     * @param y y coordinate
-     * @return this
-     */
-    public BERLabel setPos(float x, float y) {
-        this.x = x;
-        this.y = y;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * Defines the maximum width the text can have.
-     * @param maxWidth The max width.
-     * @param reaction What happens when the limit is reached or exceeded.
-     * @return this
-     */
-    public BERLabel setMaxWidth(float maxWidth, BoundsHitReaction reaction) {
-        this.maxWidth = maxWidth;
-        this.boundsHitReaction = reaction;
-        this.widthLimited = true;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * Removes the maximum width of this label.
-     * @return this
-     */
-    public BERLabel noMaxWidth() {
-        this.maxWidth = 0;
-        this.widthLimited = false;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * The scaling of the text. {@code def} specifies the normal scaling, {@code min} the minimum scaling if there is not enough space.
-     * @param def Default scaling
-     * @param min Minimum scaling
-     * @return this
-     */
-    public BERLabel setScale(float def, float min) {
-        this.minScale = min;
-        this.scale = def;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * How fast the text should scroll.
-     * @param speed Per tick speed value
-     * @return this
-     */
-    public BERLabel setScrollingSpeed(float speed) {
-        this.scrollingSpeed = speed;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * Forces the text to scroll all the time.
-     * @param b
-     * @return this
-     */
-    public BERLabel setForceScrolling(boolean b) {
-        this.forceScrolling = b;
-        resetCaches();
-        return this;
-    }
-    
-    /**
-     * The y scale of the text.
-     * @param scale the scale value
-     * @return this
-     */
-    public BERLabel setYScale(float scale) {
-        this.yScale = scale;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * Places the text at the center of the label defined by the position and the max width. This won't work when there is no max width.
-     * @param b
-     * @return this
-     */
-    public BERLabel setCentered(boolean b) {
-        this.center = b;
-        resetCaches();
-        return this;
-    }
-
-    /**
-     * The background color for the text of this label.
-     * @param color The color
-     * @param fullSize whether the full label should use this background color or only the text.
-     * @return this
-     */
-    public BERLabel setBackground(DLColor color, boolean fullSize) {
-        this.backgroundColor = color;
-        this.backgroundColorFullLabel = fullSize;
-        return this;
-    }
-
-    /**
-     * Set the font color.
-     * @param color The color.
-     * @return this
-     */
-    public BERLabel setColor(DLColor color) {
-        this.color = color;
-        return this;
-    }
-    
-    /**
-     * Change the text of the label.
-     * @param text The new text.
-     * @return this
-     */
-    public BERLabel setText(Component text) {
-        this.text = text;
-        resetCaches();
-        return this;
-    }
-
-    public FontUtils getFontUtils() {
-        return fontUtils;
-    }
-
-    public Component getText() {
-        return text;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public float getMaxWidth() {
-        return maxWidth;
-    }
-
-    public BoundsHitReaction getBoundsHitReaction() {
-        return boundsHitReaction;
-    }
-
-    public float getMinScale() {
-        return minScale;
-    }
-
-    public float getScale() {
-        return scale;
-    }
-
-    public float getScrollingSpeed() {
-        return scrollingSpeed;
-    }
-
-    public boolean isForceScrolling() {
-        return forceScrolling;
-    }
-
-    public boolean isCentered() {
-        return center;
-    }
-
-    public DLColor getBackgroundColor() {
-        return backgroundColor;
-    }
-
-    public boolean isBackgroundColorFullSize() {
-        return backgroundColorFullLabel;
-    }
-
-    public DLColor getColor() {
-        return color;
-    }
-
-    public float getYScale() {
-        return yScale;
-    }
-
-    public float getTextWidth() {
-        return textWidth.get();
-    }
-
-    private void resetCaches() {
-        textData.clear();
         charDataCache.clear();
-        scaledTextWidth.clear();
-        textWidth.clear();
+        text.withAfterPropertyChangedCallback((oldVal, newVal) -> invalidateCache());
     }
 
-    protected TextDataCache calc() {
-        float textWidth = getFontUtils().font.width(getText());
-        if (!widthLimited) {
-            return new TextDataCache(textWidth, textWidth, getScale(), isForceScrolling());
-        }
+    private void invalidateCache() {
+        cachedGlyphs = null;
+        cachedUnscaledTextWidth = 0f;
+        lastRenderedText = null;
+    }    
 
-        float rawXScale = getMaxWidth() / textWidth;
-        float minScale = (getBoundsHitReaction() == BoundsHitReaction.SCROLL ? getScale() : getMinScale());
-        float defScale = getScale();
-        float finalXScale = MathUtils.clamp(rawXScale, minScale, defScale);
-        boolean mustScroll = isForceScrolling() || (rawXScale < getMinScale() && getMaxWidth() > 0 && (getBoundsHitReaction() == BoundsHitReaction.SCROLL || getBoundsHitReaction() == BoundsHitReaction.SCALE_SCROLL));
-
-        if (mustScroll) { // Reset the scale if it has to scroll
-            finalXScale = defScale;
-        }
-
-        return new TextDataCache(textWidth, textWidth * finalXScale, finalXScale, mustScroll);
+    private CharData getCharData(int codePoint, Style style) {
+        return charDataCache.computeIfAbsent(codePoint, c -> {
+            GlyphInfo info = fontUtils.fontSet.getGlyphInfo(c, false);
+            BakedGlyphAccessor glyph = fontUtils.getGlyphAccessor(c);
+            float glyphUVWidth = glyph.dragonlib$getU1() - glyph.dragonlib$getU0();
+            float glyphUVHeight = glyph.dragonlib$getV1() - glyph.dragonlib$getV0();
+            return new CharData(c, String.valueOf(Character.toChars(c)), style, info, glyph, glyphUVWidth, glyphUVHeight);
+        });
     }
 
-    /** Should be called once every frame for a smooth scrolling experience. */
-    public void renderTick() {
-        if (textData.get().shouldScroll()) {
-            float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
-            xScrollOffset -= Minecraft.getInstance().getDeltaFrameTime() * getScrollingSpeed();
-            if (xScrollOffset < -textData.get().textWidth()) {
-                xScrollOffset = scaledMaxWidth;
-            }
-        }
+    private void updateGlyphCache(Component component) {
+        if (component == null || component.equals(lastRenderedText)) return;
+
+        List<Pair<CharData, Float>> glyphs = new ArrayList<>();
+        MutableFloat widthSum = new MutableFloat();
+
+        StringDecomposer.iterateFormatted(component, Style.EMPTY, (charIndex, styl, codePoint) -> {
+            CharData data = getCharData(codePoint, styl);
+            float adv = data.glyphInfo().getAdvance(styl.isBold());
+            glyphs.add(Pair.of(data, adv));
+            widthSum.add(adv);
+            return true;
+        });
+
+        cachedGlyphs = glyphs;
+        cachedUnscaledTextWidth = widthSum.getValue();
+        lastRenderedText = component;
     }
 
     public void render(DLGraphics graphics) {
-        render(graphics, graphics.packedLight());
-    }
+        Component component = text.get();
+        if (component == null || component.getString().isEmpty()) return;
 
-    @SuppressWarnings("resource")
-    public void render(DLGraphics graphics, int light) {
+        long currentTime = System.currentTimeMillis();
+        float deltaTime = (lastRenderTime == 0) ? 0 : (currentTime - lastRenderTime) / 1000.0f;
+        lastRenderTime = currentTime;
 
-        getFontUtils().reset();
-        float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
-        graphics.poseStack().pushPose(); {
-            graphics.poseStack().translate(getX(), getY(), 0);
+        final float charQuadSize = 8.0f;
 
-            graphics.poseStack().pushPose(); {
-                graphics.poseStack().scale(textData.get().scale(), getYScale(), 1);
-                float txtX = textData.get().shouldScroll() ? xScrollOffset : (center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0);
+        updateGlyphCache(component);
 
-                if (getBackgroundColor().getAlphaF() > 0f && !getText().getString().isEmpty()) {
-                    if (isBackgroundColorFullSize()) {
-                        RenderUtils.fillColor(graphics, new Vector3f(-1, -1, 0), scaledMaxWidth + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
-                    } else {
-                        RenderUtils.fillColor(graphics, new Vector3f((center ? Math.max(0, scaledMaxWidth / 2f - textData.get().textWidth() / 2f) : 0) - 1, -1, 0), Math.min(scaledTextWidth.get() / textData.get().scale(), scaledMaxWidth) + 2, Minecraft.getInstance().font.lineHeight + 1, getBackgroundColor(), Direction.NORTH, light, false);
-                    }
-                    graphics.poseStack().translate(0, 0, 0.01f);
-                }
+        float targetW = targetWidth.get();
+        float targetH = targetHeight.get();
+        float textX = x.get();
+        float textY = y.get();
 
-                renderTextInBounds(graphics.poseStack(), getFontUtils(), graphics.multiBufferSource(), getText(), light,
-                    txtX,
-                    0,
-                    getBoundsHitReaction() == BoundsHitReaction.IGNORE ? Integer.MAX_VALUE : scaledMaxWidth
-                );
-            }
-            graphics.poseStack().popPose();
+        float minHScale = Math.max(horizontalMinScale.get(), 0.0001f);
+        float maxHScale = horizontalMaxScale.get() <= 0 ? Float.MAX_VALUE : horizontalMaxScale.get();
+        float minVScale = Math.max(verticalMinScale.get(), 0.0001f);
+        float maxVScale = verticalMaxScale.get() <= 0 ? Float.MAX_VALUE : verticalMaxScale.get();
+
+        float baseHScale = Mth.clamp(1.0f, minHScale, maxHScale);
+        float textWidthAtBaseScale = cachedUnscaledTextWidth * baseHScale;
+        boolean hScrollNeeded = targetW > 0 && textWidthAtBaseScale > targetW;
+
+        float baseVScale = Mth.clamp(1.0f, minVScale, maxVScale);
+        float textHeightAtBaseScale = charQuadSize * baseVScale;
+        boolean vScrollNeeded = targetH > 0 && textHeightAtBaseScale > targetH;
+
+        EScrollMode hMode = horizontalScrollMode.get();
+        boolean hScrollActive = horizontalScrollingSpeed.get() != 0.0f && (hMode == EScrollMode.ALWAYS || (hMode == EScrollMode.WHEN_NEEDED && hScrollNeeded));
+
+        EScrollMode vMode = verticalScrollMode.get();
+        boolean vScrollActive = verticalScrollingSpeed.get() != 0.0f && (vMode == EScrollMode.ALWAYS || (vMode == EScrollMode.WHEN_NEEDED && vScrollNeeded));
+
+        Rectangle initialBounds = bounds.get();
+        float finalClipLeft = (float)(hScrollActive ? Math.max(initialBounds.left(), textX) : initialBounds.left());
+        float finalClipRight = (float)(hScrollActive ? (targetW > 0 ? Math.min(initialBounds.right(), textX + targetW) : initialBounds.right()) : initialBounds.right());
+        float finalClipTop = (float)(vScrollActive ? Math.max(initialBounds.top(), textY) : initialBounds.top());
+        float finalClipBottom = (float)(vScrollActive ? (targetH > 0 ? Math.min(initialBounds.bottom(), textY + targetH) : initialBounds.bottom()) : initialBounds.bottom());
+
+        Rectangle finalClipBounds = Rectangle.withSize(finalClipLeft, finalClipTop, Math.max(0, finalClipRight - finalClipLeft), Math.max(0, finalClipBottom - finalClipTop));
+
+        float finalHScale, finalVScale;
+
+        if (hScrollActive) {
+            finalHScale = baseHScale;
+            float totalScrollRange = (float)finalClipBounds.width() + (cachedUnscaledTextWidth * finalHScale);
+            horizontalScrollOffset += horizontalScrollingSpeed.get() * deltaTime;
+            horizontalScrollOffset %= totalScrollRange;
+        } else {
+            finalHScale = targetW > 0 && cachedUnscaledTextWidth > 0 ? (targetW / cachedUnscaledTextWidth) : 1.0f;
+            finalHScale = Mth.clamp(finalHScale, minHScale, maxHScale);
+            horizontalScrollOffset = 0;
         }
-        graphics.poseStack().popPose();
-    }
 
-
-    protected void renderTextInBounds(PoseStack poseStack, FontUtils fontUtils, MultiBufferSource bufferSource, Component text, int packedLight, float xOffset, float xLeft, float xRight) {
-        if (xRight <= xLeft) {
-            return;
+        if (vScrollActive) {
+            finalVScale = baseVScale;
+            float totalScrollRange = (float)finalClipBounds.height() + (charQuadSize * finalVScale);
+            verticalScrollOffset += verticalScrollingSpeed.get() * deltaTime;
+            verticalScrollOffset %= totalScrollRange;
+        } else {
+            finalVScale = targetH > 0 && charQuadSize > 0 ? (targetH / charQuadSize) : 1.0f;
+            finalVScale = Mth.clamp(finalVScale, minVScale, maxVScale);
+            verticalScrollOffset = 0;
         }
 
-        poseStack.pushPose();
-        poseStack.translate(xLeft + (xOffset > 0 ? xOffset : 0), 0, 0);
-        Font.StringRenderOutput sro = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
-        
-        float newX = xOffset;
-        float glyphTranslation = 0;
-        final float charSize = CHAR_SIZE + (text.getStyle().isBold() ? 1 : 0);
+        float totalScaledWidth = cachedUnscaledTextWidth * finalHScale;
+        float totalScaledHeight = charQuadSize * finalVScale;
 
-        for (int i = 0; i < text.getString().length(); i++) {
-            int charCode = text.getString().charAt(i);
-            CharData charData = charDataCache.computeIfAbsent(charCode, c -> {
-                GlyphInfo info = fontUtils.fontSet.getGlyphInfo(c, false);
-                float glyphWidth = info.getAdvance(text.getStyle().isBold());
-                BakedGlyphAccessor glyph = fontUtils.getGlyphAccessor(c);
-                float glyphUVDiff = glyph.dragonlib$getU1() - glyph.dragonlib$getU0();
-                return new CharData(c, info, glyphWidth, glyph, glyphUVDiff);
-            });
-            float oldX = newX;
-            newX += charData.glyphWidth();
+        float finalX = (float)(hScrollActive ? finalClipBounds.right() - horizontalScrollOffset : textX);
+        float finalY = (float)(vScrollActive ? finalClipBounds.bottom() - verticalScrollOffset : textY);
 
-            if (newX > xLeft && oldX < xLeft) {
-                float diff = xLeft - oldX;
-                float scale = (1.0f / charSize * diff);
-                float sub = charData.glyphUVDiff() * scale;
+        if (!hScrollActive) {
+            ETextAlignment alignment = textAlign.get();
+            if (alignment == ETextAlignment.CENTER) finalX -= totalScaledWidth / 2.0f;
+            else if (alignment == ETextAlignment.RIGHT) finalX -= totalScaledWidth;
+        }
 
-                fontUtils.pushUV(charCode);
-                charData.glyph().dragonlib$setU0(charData.glyph().dragonlib$getU0() + sub);
+        DLColor bgColor = backgroundColor.get();
+        if (bgColor != null && bgColor.getAlphaF() >= 1) {
+            float bgX, bgY, bgW, bgH;
 
-                poseStack.pushPose();
-                float invScale = 1.0f - scale;
-                poseStack.scale(invScale, 1, 1);
-                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
-                StringDecomposer.iterateFormatted(String.valueOf((char)charCode), text.getStyle(), sro2);
-                poseStack.popPose();
-                fontUtils.popUV(charCode);
-                poseStack.translate(charData.glyphWidth() - (charSize * scale), 0, 0);
-                continue;
-            } else if (newX > xRight && newX < xRight + CHAR_SIZE * 2) {
-                float diff = newX - xRight;
-                float charRightSpace = charSize - charData.glyphWidth();
-                float totalDiff = diff + charRightSpace;
-
-                float scale = (1.0f / charSize * totalDiff);
-                float sub = charData.glyphUVDiff() * scale;
-
-                fontUtils.pushUV(charCode);
-                charData.glyph().dragonlib$setU1(charData.glyph().dragonlib$getU1() - sub);
-                poseStack.pushPose();
-                float invScale = 1.0f - scale;
-                poseStack.scale(invScale, 1, 1);
-                poseStack.translate(glyphTranslation / invScale, 0, 0);
-                Font.StringRenderOutput sro2 = fontUtils.font.new StringRenderOutput(bufferSource, 0, 0, getColor().getAsARGB(), false, poseStack.last().pose(), Font.DisplayMode.NORMAL, packedLight);
-                StringDecomposer.iterateFormatted(String.valueOf((char)charCode), text.getStyle(), sro2);
-                poseStack.popPose();
-                fontUtils.popUV(charCode);
-                break;
-            } else if (oldX >= xLeft && newX <= xRight) {
-                StringDecomposer.iterateFormatted(String.valueOf((char)charCode), text.getStyle(), sro);
+            if (fullBackground.get()) {
+                bgX = (float)finalClipBounds.left();
+                bgY = (float)finalClipBounds.top();
+                bgW = (float)finalClipBounds.width();
+                bgH = (float)finalClipBounds.height();
             } else {
+                float unclippedX = finalX - 1.0f;
+                float unclippedY = finalY - 1.0f;
+                float unclippedW = totalScaledWidth + 2.0f;
+                float unclippedH = totalScaledHeight + 2.0f;
+
+                bgX = (float)Math.max(unclippedX, finalClipBounds.left());
+                bgY = (float)Math.max(unclippedY, finalClipBounds.top());
+                bgW = (float)Math.max(0, Math.min(unclippedX + unclippedW, finalClipBounds.right()) - bgX);
+                bgH = (float)Math.max(0, Math.min(unclippedY + unclippedH, finalClipBounds.bottom()) - bgY);
+            }
+
+            if (bgW > 0 && bgH > 0)
+                RenderUtils.fillColor(graphics, new Vector3f(bgX, bgY, 0.0f), bgW, bgH, bgColor, Direction.NORTH, graphics.packedLight(), false);
+        }
+
+        graphics.poseStack().pushPose();
+        graphics.poseStack().translate(finalX, finalY, 0.001);
+
+        float currentUnscaledX = 0f;
+        for (Pair<CharData, Float> pair : cachedGlyphs) {
+            CharData charData = pair.getFirst();
+            float glyphAdvance = pair.getSecond();
+
+            float quadWidth = charQuadSize * finalHScale;
+            float quadHeight = charQuadSize * finalVScale;
+            float quadWorldX = finalX + currentUnscaledX * finalHScale;
+            float quadWorldY = finalY;
+
+            if (quadWorldX + quadWidth < finalClipBounds.left() || quadWorldX > finalClipBounds.right() ||
+                quadWorldY + quadHeight < finalClipBounds.top() || quadWorldY > finalClipBounds.bottom()) {
+                currentUnscaledX += glyphAdvance;
                 continue;
             }
 
-            glyphTranslation += charData.glyphWidth();
+            float u0Offset = 0f, u1Offset = 0f, v0Offset = 0f, v1Offset = 0f;
+            float clipXLeft = 0f, clipXRight = 0f, clipYTop = 0f, clipYBottom = 0f;
+
+            float glyphUWidth = charData.glyphUWidth();
+            float glyphVHeight = charData.glyphVHeight();
+
+            if (quadWorldX < finalClipBounds.left()) { clipXLeft = (float)(finalClipBounds.left() - quadWorldX) / quadWidth; u0Offset = glyphUWidth * clipXLeft; }
+            if (quadWorldX + quadWidth > finalClipBounds.right()) { clipXRight = (float)(quadWorldX + quadWidth - finalClipBounds.right()) / quadWidth; u1Offset = glyphUWidth * clipXRight; }
+            if (quadWorldY < finalClipBounds.top()) { clipYTop = (float)(finalClipBounds.top() - quadWorldY) / quadHeight; v0Offset = glyphVHeight * clipYTop; }
+            if (quadWorldY + quadHeight > finalClipBounds.bottom()) { clipYBottom = (float)(quadWorldY + quadHeight - finalClipBounds.bottom()) / quadHeight; v1Offset = glyphVHeight * clipYBottom; }
+
+            fontUtils.pushUV(charData.charCode());
+            BakedGlyphAccessor glyph = charData.glyph();
+            glyph.dragonlib$setU0(glyph.dragonlib$getU0() + u0Offset);
+            glyph.dragonlib$setU1(glyph.dragonlib$getU1() - u1Offset);
+            glyph.dragonlib$setV0(glyph.dragonlib$getV0() + v0Offset);
+            glyph.dragonlib$setV1(glyph.dragonlib$getV1() - v1Offset);
+
+            graphics.poseStack().pushPose();
+            graphics.poseStack().scale(finalHScale, finalVScale, 1.0f);
+            graphics.poseStack().translate(currentUnscaledX, 0, 0);
+
+            graphics.poseStack().translate(charQuadSize * clipXLeft, charQuadSize * clipYTop, 0);
+            graphics.poseStack().scale(1.0f - clipXLeft - clipXRight, 1.0f - clipYTop - clipYBottom, 1.0f);
+
+            Font.StringRenderOutput sro = fontUtils.font.new StringRenderOutput(
+                graphics.multiBufferSource(),
+                0, 0,
+                color.get().getAsARGB(),
+                false,
+                graphics.poseStack().last().pose(),
+                Font.DisplayMode.NORMAL,
+                graphics.packedLight()
+            );
+            StringDecomposer.iterateFormatted(charData.charString(), charData.style(), sro);
+
+            graphics.poseStack().popPose();
+            fontUtils.popUV(charData.charCode());
+
+            currentUnscaledX += glyphAdvance;
         }
-        poseStack.popPose();
+
+        graphics.poseStack().popPose();
     }
 }

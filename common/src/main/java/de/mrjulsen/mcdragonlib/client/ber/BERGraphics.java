@@ -15,8 +15,8 @@ public class BERGraphics<B extends BlockEntity> extends DLGraphics {
     protected final B blockEntity;
     protected final BlockEntityRendererProvider.Context berProviderContext;
 
-    public BERGraphics(B blockEntity, PoseStack poseStack, MultiBufferSource multiBufferSource, BlockEntityRendererProvider.Context berProviderContext, int packedLight, int packedOverlay) {
-        super(poseStack, multiBufferSource, packedLight, packedOverlay);
+    public BERGraphics(B blockEntity, PoseStack poseStack, MultiBufferSource multiBufferSource, BlockEntityRendererProvider.Context berProviderContext, int packedLight, int packedOverlay, float partialTick) {
+        super(poseStack, multiBufferSource, packedLight, packedOverlay, partialTick);
         this.blockEntity = blockEntity;
         this.berProviderContext = berProviderContext;
     }

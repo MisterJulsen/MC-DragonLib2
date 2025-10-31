@@ -13,12 +13,14 @@ public class DLGraphics {
     protected final MultiBufferSource multiBufferSource;
     protected final int packedLight;
     protected final int packedOverlay;
+    protected final float partialTick;
 
-    public DLGraphics(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, int packedOverlay) {
+    public DLGraphics(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, int packedOverlay, float partialTick) {
         this.poseStack = poseStack;
         this.multiBufferSource = multiBufferSource;
         this.packedLight = packedLight;
         this.packedOverlay = packedOverlay;
+        this.partialTick = partialTick;
     }
 
     public PoseStack poseStack() {
@@ -35,6 +37,10 @@ public class DLGraphics {
 
     public int packedOverlay() {
         return packedOverlay;
+    }
+
+    public float partialTick() {
+        return partialTick;
     }
 
     public VertexConsumer vertexConsumer(ResourceLocation textureLocation) {

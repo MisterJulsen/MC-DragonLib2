@@ -242,6 +242,14 @@ public final class DLColor {
         return !this.isDefined;
     }
 
+    public boolean hasTransparency() {
+        return getAlphaF() < 1;
+    }
+
+    public boolean isTransparent() {
+        return getAlphaF() <= 0;
+    }
+
     // --- Instance Methods (Modifications) ---
 
     public DLColor lighten(float amount) {
