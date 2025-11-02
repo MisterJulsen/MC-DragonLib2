@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
+import de.mrjulsen.mcdragonlib.client.gui.container.IMenuGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BitflagProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
@@ -488,9 +489,19 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     public <T extends DLGuiComponent> T addComponent(T component) {
         Objects.requireNonNull(component);
+
         if (component instanceof DLWindow) {
             throw new IllegalArgumentException("Cannot add windows as components.");
         }
+        if (component instanceof IMenuGuiComponent) {
+            if (!windowManager.supportsMenus()) {
+                throw new IllegalArgumentException("The window manager doesn't support menus.");
+            }
+            if (getNextParentMatching(c -> c instanceof DLMenuWindow).isEmpty()) {
+                throw new IllegalArgumentException("Cannot add menu components to non-menu windows.");
+            }
+        }
+
         this.components.add(component);
         component.setParent(this);
         component.setWindowManager(windowManager);

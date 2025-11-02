@@ -1,11 +1,13 @@
 package de.mrjulsen.mcdragonlib.client;
 
-import de.mrjulsen.mcdragonlib.client.gui.test.RedWindow;
+import java.util.Optional;
+
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.WindowBuilder;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.minecraft.client.Minecraft;
 
@@ -18,12 +20,7 @@ public final class DLOverlayManager {
         return root != null;
     }
 
-    public static void init() {
-
-        ClientLifecycleEvent.CLIENT_STARTED.register(mc -> {
-            //root = new DLWindowManager(RedWindow::new, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), () -> {});
-        });
-        
+    public static void init() {        
         ClientTickEvent.CLIENT_POST.register((mc) -> {
             if (!initialized()) return;
             root.tick();
@@ -32,11 +29,11 @@ public final class DLOverlayManager {
         dev.architectury.event.events.client.ClientGuiEvent.INIT_POST.register((guiGraphics, screen) -> {
             if (!initialized()) return;
             root.updateLayout((int)GuiUtils.getScreenWidth(), (int)GuiUtils.getScreenHeight());
-        });
-        
+        });        
 
         dev.architectury.event.events.client.ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((mc) -> {  
             if (!initialized()) return;
+            root.close();
         });
 
         dev.architectury.event.events.client.ClientGuiEvent.RENDER_HUD.register((guiGraphics, partialTick) -> {
@@ -94,6 +91,21 @@ public final class DLOverlayManager {
     public static void resizeDisplay() {
         if (!initialized()) return;
         root.updateLayout((int)GuiUtils.getScreenWidth(), (int)GuiUtils.getScreenHeight());
+    }
+
+    public static <T extends DLWindow> void addOverlay(WindowBuilder<T> builder) {
+        if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null) {
+            throw new IllegalStateException("Player must be in game to use overlays.");
+        }
+        if (!initialized()) {
+            root = new DLWindowManager(null, builder, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), () -> root = null);
+        } else {
+            root.createWindow(builder);
+        }
+    } 
+    
+    public static Optional<DLWindowManager> getWindowManager() {
+        return Optional.ofNullable(root);
     }
 }
 

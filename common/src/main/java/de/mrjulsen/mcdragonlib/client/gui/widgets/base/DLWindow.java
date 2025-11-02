@@ -16,7 +16,7 @@ import net.minecraft.client.gui.screens.Screen;
     DLGuiCommonEvents.WindowCreatedEvent.class,
     DLGuiCommonEvents.WindowFocusEvent.class,
 })
-public class DLWindow extends DLGuiComponent {
+public abstract class DLWindow extends DLGuiComponent {
 
     public static enum WindowPosition {
         CUSTOM,
@@ -131,7 +131,7 @@ public class DLWindow extends DLGuiComponent {
 
     public static <T extends DLWindow> T openWindow(WindowBuilder<T> builder) {
         AtomicReference<T> window = new AtomicReference<>(null);
-        DLScreenWrapper wrapper = new DLScreenWrapper(null, (mgr) -> {
+        DLScreenWrapper<?> wrapper = new DLScreenWrapper<>(null, (mgr) -> {
             T win = builder.build(mgr);
             window.set(win);
             return win;

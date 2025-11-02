@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
@@ -14,15 +13,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen implements MenuAccess<AbstractContainerMenu> {
+public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen implements MenuAccess<M> {
 
-    private final DLWindowManager<M> root;
-    private final AbstractContainerMenu menu;
+    private final DLWindowManager root;
+    private final M menu;
     
-    public  DLScreenWrapper(@Nullable M menu, WindowBuilder<?> window) {
+    public <T extends DLWindow> DLScreenWrapper(@Nullable M menu, WindowBuilder<T> window) {
         super(TextUtils.empty());
         this.menu = menu;
-        this.root = new DLWindowManager<>(menu, window, width, height, () -> {
+        this.root = new DLWindowManager(menu, window, width, height, () -> {
             Minecraft.getInstance().setScreen(null);
         });
     }
@@ -31,7 +30,7 @@ public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen imp
         return root;
     }
 
-    public boolean isMenuScreen() {
+    public boolean supportsMenus() {
         return menu != null;
     }
 
@@ -105,7 +104,7 @@ public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen imp
     }
 
     @Override
-    public TestContainerMenu getMenu() {
+    public M getMenu() {
         return menu;
     }
 }

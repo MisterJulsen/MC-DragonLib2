@@ -3,20 +3,18 @@ package de.mrjulsen.mcdragonlib.client.gui.test;
 import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.container.DLSlot;
+import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLMenuWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
 import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
-import de.mrjulsen.mcdragonlib.internal.NetworkTest;
-import de.mrjulsen.mcdragonlib.internal.NetworkTest.TestData;
-import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
@@ -32,35 +30,15 @@ import de.mrjulsen.mcdragonlib.util.time.format.TimeFormatRFC3339;
 import de.mrjulsen.mcdragonlib.util.time.format.TimeFormatTicks;
 import de.mrjulsen.mcdragonlib.util.time.format.TimeFormaturVerboseDuration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.Level;
 
-public class RedWindow extends DLWindow implements MenuAccess<AbstractContainerMenu> {
-    ArmorStand armorStandPreview;
-    AbstractContainerMenu menu;
+public class RedWindow extends DLMenuWindow<TestContainerMenu> {
 
-    public RedWindow(AbstractContainerMenu menu, DLWindowManager manager) {
-        super(manager);
-        this.menu = menu;
+    public RedWindow(DLWindowManager manager) {
+        super(TestContainerMenu.class, manager);
         movable.set(true);
-        //windowSpawnPosition.set(WindowPosition.CENTER);
         setPosition(50, 30);
         setSize(200, 200);
-
-
-
-        addEventListener(DLGuiStandardEvents.LayoutUpdateEvent.class, (s, e) -> {
-            
-            return false;
-        });
-
-
-
         
         DLButton btn = new DLButton(width() - 20, 0, 20, 20);
         btn.text.set(TextUtils.text("×"));
@@ -74,9 +52,10 @@ public class RedWindow extends DLWindow implements MenuAccess<AbstractContainerM
         btn2.text.set(TextUtils.text("⬜"));
         btn2.addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
             getWindowManager().createModal(mgr -> {
-                DLColorPickerWindow z = new DLColorPickerWindow(mgr, false, DLColor.UNDEFINED, (c) -> {});
+                DLColorPickerWindow z = new DLColorPickerWindow(mgr, false, DLColor.UNDEFINED, (c) -> {});                
                 return z;
             });
+            DLOverlayManager.addOverlay(mgr -> new DLTestWindow(mgr));
             return false;
         });
         addComponent(btn2);
@@ -85,13 +64,8 @@ public class RedWindow extends DLWindow implements MenuAccess<AbstractContainerM
         btn3.text.set(TextUtils.text("—"));
         btn3.addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
             if (Minecraft.getInstance().level != null) {
-                /*
-                NetworkTest.COPY_FILE.send(NetworkDirection.toServer(), new FileData("C:\\Users\\julia\\OneDrive\\Videos\\dometo moderator short.mp4"), (res) -> {                    
-                    DragonLib.LOGGER.info("FILE SIZE IS: " + res.txt());
-                }, () -> {});
-                */
                 getWindowManager().createWindow(mgr -> {
-                    RedWindow z = new RedWindow(menu, mgr);
+                    RedWindow z = new RedWindow(mgr);
                     return z;
                 });
             }
@@ -166,15 +140,6 @@ public class RedWindow extends DLWindow implements MenuAccess<AbstractContainerM
             GuiUtils.renderEntityFollowingMouse(graphics, 50, 100, 2, (float)getWindowManager().mouseXOnScreen(), (float)getWindowManager().mouseYOnScreen(), Minecraft.getInstance().player, LightTexture.FULL_BRIGHT);
         }
             */
-    }
-
-
-
-    @Override
-    public AbstractContainerMenu getMenu() {
-        return menu;
-    }
-        
-    
+    }    
     
 }

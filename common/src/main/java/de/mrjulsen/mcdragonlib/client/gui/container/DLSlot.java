@@ -336,10 +336,7 @@ public class DLSlot extends DLGuiComponent {
         }
 
         if (isSelected()) {
-            graphics.poseStack().pushPose();
-            graphics.poseStack().translate(0, 0, 32700);
             GuiUtils.fill(graphics, 1, 1, 16, 16, DLColor.fromInt(-2130706433));
-            graphics.poseStack().popPose();
         }
     }
 

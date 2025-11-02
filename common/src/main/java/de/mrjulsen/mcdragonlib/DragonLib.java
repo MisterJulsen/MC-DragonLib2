@@ -7,7 +7,6 @@ import de.mrjulsen.mcdragonlib.client.gui.container.ModMenuTypes;
 import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.client.gui.test.RedWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
@@ -144,7 +143,7 @@ public class DragonLib {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new); 
                 
                 MenuScreens.register(ModMenuTypes.TEST_MENU.get(), (TestContainerMenu menu, Inventory inventory, Component title) -> {
-                    DLScreenWrapper wrapper = new DLScreenWrapper(menu, root -> new RedWindow(menu, root));
+                    DLScreenWrapper<TestContainerMenu> wrapper = new DLScreenWrapper<>(menu, RedWindow::new);
                     return wrapper;
                 });
             });

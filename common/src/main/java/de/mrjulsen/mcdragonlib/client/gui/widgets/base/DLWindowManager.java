@@ -28,6 +28,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
@@ -53,7 +54,6 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 @SupportsEvents({
@@ -69,7 +69,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
     DLGuiStandardEvents.CharTypeEvent.class,
     DLGuiStandardEvents.RenderEvent.class
 })
-public class DLWindowManager<M extends AbstractContainerMenu> implements IEventDispatcher<DLWindowManager<M>>, MenuAccess<M> {
+public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuAccess<AbstractContainerMenu> {
     public static final int DRAG_THRESHOLD = 5;
 
     private final Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> eventListeners = new HashMap<>();
@@ -88,7 +88,7 @@ public class DLWindowManager<M extends AbstractContainerMenu> implements IEventD
     private final ConcurrentLinkedDeque<ModalWindowStack> windows = new ConcurrentLinkedDeque<>();
     private final PriorityQueue<IGuiManagementComponent> managementComponents = new PriorityQueue<>();
 
-    private final M menu;
+    private final AbstractContainerMenu menu;
 
     private final Runnable close;
 
@@ -107,7 +107,7 @@ public class DLWindowManager<M extends AbstractContainerMenu> implements IEventD
     private DLWindow focusedWindow;
 
 
-    public <T extends DLWindow> DLWindowManager(M menu, WindowBuilder<T> windowBuilder, double width, double height, Runnable close) {
+    public <T extends DLWindow> DLWindowManager(AbstractContainerMenu menu, WindowBuilder<T> windowBuilder, double width, double height, Runnable close) {
         this.menu = menu;
         this.close = close;
         this.width = width;
@@ -217,6 +217,9 @@ public class DLWindowManager<M extends AbstractContainerMenu> implements IEventD
     }
 
     public void render(DLGuiGraphics graphics, int mouseX, int mouseY) {
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+
         for (RenderLayer layer : RenderLayer.values()) {
             graphics.poseStack().pushPose();
             graphics.poseStack().translate(0, 0, -layer.z());
@@ -247,6 +250,9 @@ public class DLWindowManager<M extends AbstractContainerMenu> implements IEventD
         }
 
         GuiUtils.drawString(graphics, Minecraft.getInstance().font, 1, 1, Minecraft.getInstance().fpsString, DLColor.WHITE, ETextAlignment.LEFT, true);
+        
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
     }
 
     public void tick() {        
@@ -925,7 +931,11 @@ public class DLWindowManager<M extends AbstractContainerMenu> implements IEventD
 
 
     @Override
-    public M getMenu() {
-        return null;
+    public AbstractContainerMenu getMenu() {
+        return menu;
+    }
+    
+    public boolean supportsMenus() {
+        return menu != null;
     }
 }
