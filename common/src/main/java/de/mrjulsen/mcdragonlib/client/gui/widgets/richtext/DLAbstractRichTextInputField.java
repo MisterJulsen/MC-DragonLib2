@@ -349,7 +349,6 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         final int maxVisibleIdx = upperMarkerY == null ? Integer.MAX_VALUE : upperMarkerY.getValue().startIndex();
 
         RenderSystem.enableBlend();
-        RenderSystem.enableDepthTest();
         RenderSystem.defaultBlendFunc();
 
         for (TextRange range : ranges) {

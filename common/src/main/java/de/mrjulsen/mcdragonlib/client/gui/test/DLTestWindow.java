@@ -163,6 +163,7 @@ public class DLTestWindow extends DLWindow {
         addComponent(progressBar);
         
         DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(360, 50, 150, 150);
+        listBox.scale.set(0.75d);
         listBox.multiselect.set(true);
         listBox.resizable.set(true);
         for (int i = 0; i < 50; i++) {

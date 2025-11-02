@@ -223,12 +223,17 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         for (RenderLayer layer : RenderLayer.values()) {
             graphics.poseStack().pushPose();
             graphics.poseStack().translate(0, 0, -layer.z());
-            graphics.poseStack().pushPose();
+            graphics.poseStack().pushPose();            
+            interateManagerExtension((mgr) -> {
+                mgr.render(Phase.PRE, graphics, mouseX, mouseY, layer);
+                return false;
+            });
+
             if (!layer.isSpecial()) {
                 iterateAll(false, (win, i) -> {
                     graphics.poseStack().pushPose();
                     graphics.poseStack().translate(win.x(), win.y(), i);
-                    win.renderEvent(graphics, mouseX - win.x(), mouseY - win.y(), layer, win.x(), win.y(), 0, 0, win.getPositionBox());
+                    win.renderEvent(graphics, mouseX - win.x(), mouseY - win.y(), layer, win.x(), win.y(), 0, 0, win.getPositionBox(), 1);
                     graphics.poseStack().popPose();
                     return true;
                 });
@@ -236,13 +241,13 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                 renderInputOverlayComponents.forEach(x -> {
                     graphics.poseStack().pushPose();
                     graphics.poseStack().translate(x.xOffset(), x.yOffset(), 0);
-                    x.component().renderEvent(graphics, x.mouseX() - x.xOffset(), x.mouseY() - x.yOffset(), layer,x.xOffset(), x.yOffset(), 0, 0, Rectangle.withSize(0, 0, width, height));
+                    x.component().renderEvent(graphics, x.mouseX() - x.xOffset(), x.mouseY() - x.yOffset(), layer,x.xOffset(), x.yOffset(), 0, 0, Rectangle.withSize(0, 0, width, height), 1);
                     graphics.poseStack().popPose();
                 });
             }
             graphics.poseStack().popPose();
             interateManagerExtension((mgr) -> {
-                mgr.render(graphics, mouseX, mouseY, layer);
+                mgr.render(Phase.POST, graphics, mouseX, mouseY, layer);
                 return false;
             });
             invokeEvent(this, new DLGuiStandardEvents.RenderEvent(graphics, mouseX, mouseY, layer, Rectangle.withSize(0, 0, getScreenWidth(), getScreenHeight())));
@@ -614,10 +619,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (interateManagerExtension((mgr) -> mgr.mouseClicked(mouseX, mouseY, button))) {
+        if (interateManagerExtension((mgr) -> mgr.mouseClicked(Phase.PRE, false, mouseX, mouseY, button))) {
             return true;
         }
-
         
         if (!hasWindows()) {
             return false;
@@ -633,9 +637,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
         invokeEvent(this, new DLGuiStandardEvents.MousePressedEvent(mouseX, mouseY, button));
 
-        return iterateCurrentModal((win, consumed) -> {
+        boolean eventResult = iterateCurrentModal((win, consumed) -> {
             Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK, 1);        
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     c.component().setFocus(e.getKey() == ComponentSelectionState.FOCUSED);
@@ -663,10 +667,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             }
         });
         
+        return interateManagerExtension((mgr) -> mgr.mouseClicked(Phase.POST, eventResult, mouseX, mouseY, button)) || eventResult;
     }
 
     public boolean mouseMoved(DLWindow window, boolean consumed, double mouseX, double mouseY) {
-        if (interateManagerExtension((mgr) -> mgr.mouseMoved(mouseX, mouseY))) {
+        if (interateManagerExtension((mgr) -> mgr.mouseMoved(Phase.PRE, false, mouseX, mouseY))) {
             return true;
         }
 
@@ -679,13 +684,13 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
 
         Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.MOUSE_MOVE);        
+        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.MOUSE_MOVE, 1);        
         for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
             for (ComponentHitContext c : e.getValue()) {                    
                 c.component().setSelected(e.getKey().isHit(), c.mouseX(), c.mouseY());
             }
         }
-        return result.consumed();
+        return interateManagerExtension((mgr) -> mgr.mouseMoved(Phase.POST, result.consumed(), mouseX, mouseY)) || result.consumed();
     }
 
     public void finishMouseRelease(double mouseX, double mouseY, int button) {        
@@ -699,7 +704,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (interateManagerExtension((mgr) -> mgr.mouseReleased(mouseX, mouseY, button))) {
+        if (interateManagerExtension((mgr) -> mgr.mouseReleased(Phase.PRE, false, mouseX, mouseY, button))) {
             return true;
         }
 
@@ -708,9 +713,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
         invokeEvent(this, new DLGuiStandardEvents.MouseReleaseEvent(mouseX, mouseY, button));
 
-        return iterateCurrentModal((win, consumed) -> {
+        boolean eventResult = iterateCurrentModal((win, consumed) -> {
             Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK, 1);        
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     if (e.getKey().isHit() && mouseDownComponents.contains(c.component())) {
@@ -724,10 +729,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             };
             return false; // consumed.result
         }, null, (consumed) -> finishMouseRelease(mouseX, mouseY, button));
+
+        return interateManagerExtension((mgr) -> mgr.mouseReleased(Phase.POST, eventResult, mouseX, mouseY, button)) || eventResult;
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (interateManagerExtension((mgr) -> mgr.mouseScrolled(mouseX, mouseY, scrollX, scrollY))) {
+        if (interateManagerExtension((mgr) -> mgr.mouseScrolled(Phase.PRE, false, mouseX, mouseY, scrollX, scrollY))) {
             return true;
         }
 
@@ -736,9 +743,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
         invokeEvent(this, new DLGuiStandardEvents.ScrollEvent(mouseX, mouseY, scrollX, scrollY));
 
-        return iterateCurrentModal((win, consumed) -> {
+        boolean eventResult = iterateCurrentModal((win, consumed) -> {
             Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.SCROLL);  
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.SCROLL, 1);  
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     if (!hasWindows()) {
@@ -752,6 +759,8 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             mouseMoved(win, consumed, mouseX, mouseY);
             return result.consumed();
         }, null, null);
+
+        return interateManagerExtension((mgr) -> mgr.mouseScrolled(Phase.POST, eventResult, mouseX, mouseY, scrollX, scrollY)) || eventResult;
     }
 
     public void prepareMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
@@ -779,7 +788,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.PRE, mouseX, mouseY, button, dragX, dragY))) {
+        if (interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.PRE, false, mouseX, mouseY, button, dragX, dragY))) {
             return true;
         }
 
@@ -788,7 +797,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
         boolean eventResult = iterateCurrentModal((win, consumed) -> {
             Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.copyOf(mouseDownComponents));
-            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG);
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG, 1);
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     if (mouseDownComponents.contains(c.component())) {
@@ -804,64 +813,66 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             return result.consumed();
         }, () -> prepareMouseDragged(mouseX, mouseY, button, dragX, dragY), (consumed) -> finishMouseDragged(mouseX, mouseY, button, dragX, dragY));
         
-        return interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.POST, mouseX, mouseY, button, dragX, dragY)) || eventResult;
+        return interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.POST, eventResult, mouseX, mouseY, button, dragX, dragY)) || eventResult;
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (interateManagerExtension((mgr) -> mgr.keyPressed(keyCode, scanCode, modifiers))) {
+        if (interateManagerExtension((mgr) -> mgr.keyPressed(Phase.PRE, false, keyCode, scanCode, modifiers))) {
             return true;
         }
 
-        invokeEvent(this, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers));
+        boolean eventResult = invokeEvent(this, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers), true);
-            return true;
+            eventResult = true;
         }
-        return false;
+        final boolean fRes = eventResult;
+        return interateManagerExtension((mgr) -> mgr.keyPressed(Phase.POST, fRes, keyCode, scanCode, modifiers)) ||eventResult;
     }
 
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        if (interateManagerExtension((mgr) -> mgr.keyReleased(keyCode, scanCode, modifiers))) {
+        if (interateManagerExtension((mgr) -> mgr.keyReleased(Phase.PRE, false, keyCode, scanCode, modifiers))) {
             return true;
         }
 
-        invokeEvent(this, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers));
+        boolean eventResult = invokeEvent(this, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers), true);
-            return true;
+            eventResult = true;
         }
-        return false;
+        final boolean fRes = eventResult;
+        return interateManagerExtension((mgr) -> mgr.keyReleased(Phase.POST, fRes, keyCode, scanCode, modifiers)) || eventResult;
     }
 
     public boolean charTyped(char codePoint, int modifiers) {
-        if (interateManagerExtension((mgr) -> mgr.charTyped(codePoint, modifiers))) {
+        if (interateManagerExtension((mgr) -> mgr.charTyped(Phase.PRE, false, codePoint, modifiers))) {
             return true;
         }
 
-        invokeEvent(this, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers));
+        boolean eventResult = invokeEvent(this, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers), true);
-            return true;
+            eventResult = true;
         }
-        return false;
+        final boolean fRes = eventResult;
+        return interateManagerExtension((mgr) -> mgr.charTyped(Phase.POST, fRes, codePoint, modifiers)) || eventResult;
     }
     
-    public boolean onFilesDrop(List<Path> packs) {
+    public boolean onFilesDrop(List<Path> paths) {
         double mouseX = mouseXOnScreen();
         double mouseY = mouseYOnScreen();
     
-        if (interateManagerExtension((mgr) -> mgr.onFilesDrop(packs))) {
+        if (interateManagerExtension((mgr) -> mgr.onFilesDrop(Phase.PRE, false, paths))) {
             return true;
         }
-
         
-        return iterateCurrentModal((win, consumed) -> {
+        boolean eventResult = iterateCurrentModal((win, consumed) -> {
             Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG_AND_DROP);
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG_AND_DROP, 1);
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     if (e.getKey().isHit()) {
-                        c.component().invokeEvent(c.component(), new DLGuiStandardEvents.DragAndDropFilesEvent(packs, c.mouseX(), c.mouseY()), true);
+                        c.component().invokeEvent(c.component(), new DLGuiStandardEvents.DragAndDropFilesEvent(paths, c.mouseX(), c.mouseY()), true);
                     }
                 }
             }
@@ -870,7 +881,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                 bringWindowToFront(win);
             }
             return b;
-        }, null, null);        
+        }, null, null);
+        
+        return interateManagerExtension((mgr) -> mgr.onFilesDrop(Phase.POST, eventResult, paths)) || eventResult;
     }
 
     public void onClose() {

@@ -799,10 +799,7 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
             graphics.poseStack().popPose();
         }
 
-
-        RenderSystem.disableDepthTest();
         graphics.graphics().bufferSource().endBatch();
-        RenderSystem.enableDepthTest();
         GuiUtils.enableScissor(graphics, (int)renderBounds.x(), (int)renderBounds.y(), (int)renderBounds.width(), (int)renderBounds.height());
     }
 

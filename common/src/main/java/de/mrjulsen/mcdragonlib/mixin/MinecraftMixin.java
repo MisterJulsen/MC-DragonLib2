@@ -4,7 +4,6 @@ import com.mojang.realmsclient.client.RealmsClient;
 
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.test.DLTestWindow;
-import de.mrjulsen.mcdragonlib.client.gui.test.RedWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.GameConfig;

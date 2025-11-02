@@ -242,7 +242,8 @@ public class GuiUtils {
     }
 
     public static void fill(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor color) {
-        RenderSystem.enableDepthTest();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         graphics.graphics().fill(x, y, x + w, y + h, color.getAsARGB());
@@ -259,7 +260,8 @@ public class GuiUtils {
             vertexColors[(align.ordinal() + i) % vertexColors.length] = (i < 2 ? colorA : colorB);
         }
 
-        RenderSystem.enableDepthTest();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -307,6 +309,8 @@ public class GuiUtils {
                 break;
         }
 
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color.getAsARGB(), dropShadow);
     }
 
@@ -317,7 +321,9 @@ public class GuiUtils {
     public static void renderItem(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, boolean drawDecorations) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(x, y, 0);
-        graphics.poseStack().scale(scale, scale, 1);
+        graphics.poseStack().scale(scale, scale, 1);        
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         graphics.graphics().renderItem(stack, 0, 0);
         if (drawDecorations) {
             graphics.graphics().renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0);
@@ -329,7 +335,9 @@ public class GuiUtils {
     public static void renderItemDecoration(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, String text) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(x, y, 0);
-        graphics.poseStack().scale(scale, scale, 1);
+        graphics.poseStack().scale(scale, scale, 1);        
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         graphics.graphics().renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0, text);
         graphics.poseStack().popPose();
     }

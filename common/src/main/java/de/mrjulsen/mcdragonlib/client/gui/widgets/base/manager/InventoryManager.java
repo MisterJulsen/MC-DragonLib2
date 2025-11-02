@@ -228,8 +228,8 @@ public class InventoryManager implements IGuiManagementComponent {
     }
 
     @Override
-    public void render(DLGuiGraphics graphics, int mouseX, int mouseY, RenderLayer layer) {
-        if (layer != RenderLayer.FRONT) {
+    public void render(Phase phase, DLGuiGraphics graphics, int mouseX, int mouseY, RenderLayer layer) {
+        if (phase != Phase.POST && layer != RenderLayer.FRONT) {
             return;
         }
         ItemStack itemStack = getDraggingItem().isEmpty() ? getHoldingItem() : getDraggingItem();

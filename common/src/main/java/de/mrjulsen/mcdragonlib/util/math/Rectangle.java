@@ -37,32 +37,38 @@ public class Rectangle {
         return surrounding(rectangles.toArray(Rectangle[]::new));
     }
 
+
+    public Rectangle scale(double factor) {
+        return new Rectangle(x() * factor, y() * factor, width() * factor, height() * factor);
+    }
+
+
     public static Rectangle offset(Rectangle rect, double dx, double dy) {
-    double newX = rect.x() + dx;
-    double newY = rect.y() + dy;
-    double width = rect.width();
-    double height = rect.height();
+        double newX = rect.x() + dx;
+        double newY = rect.y() + dy;
+        double width = rect.width();
+        double height = rect.height();
 
-    if (newX < -MAX_DOUBLE) {
-        double overflow = -MAX_DOUBLE - newX;
-        newX = -MAX_DOUBLE;
-        width = Math.max(0, width - overflow);
-    } else if (newX + width > MAX_DOUBLE) {
-        double overflow = (newX + width) - MAX_DOUBLE;
-        width = Math.max(0, width - overflow);
+        if (newX < -MAX_DOUBLE) {
+            double overflow = -MAX_DOUBLE - newX;
+            newX = -MAX_DOUBLE;
+            width = Math.max(0, width - overflow);
+        } else if (newX + width > MAX_DOUBLE) {
+            double overflow = (newX + width) - MAX_DOUBLE;
+            width = Math.max(0, width - overflow);
+        }
+
+        if (newY < -MAX_DOUBLE) {
+            double overflow = -MAX_DOUBLE - newY;
+            newY = -MAX_DOUBLE;
+            height = Math.max(0, height - overflow);
+        } else if (newY + height > MAX_DOUBLE) {
+            double overflow = (newY + height) - MAX_DOUBLE;
+            height = Math.max(0, height - overflow);
+        }
+
+        return Rectangle.withSize(newX, newY, width, height);
     }
-
-    if (newY < -MAX_DOUBLE) {
-        double overflow = -MAX_DOUBLE - newY;
-        newY = -MAX_DOUBLE;
-        height = Math.max(0, height - overflow);
-    } else if (newY + height > MAX_DOUBLE) {
-        double overflow = (newY + height) - MAX_DOUBLE;
-        height = Math.max(0, height - overflow);
-    }
-
-    return Rectangle.withSize(newX, newY, width, height);
-}
 
     public static Rectangle surroundingBase(Rectangle base, Rectangle... rectangles) {
         Rectangle[] rects = new Rectangle[rectangles.length + 1];
