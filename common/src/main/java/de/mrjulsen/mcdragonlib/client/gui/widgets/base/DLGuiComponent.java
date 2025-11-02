@@ -159,8 +159,6 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     private double mouseDownY;
     private int mouseDownButton;
 
-    protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + dX());
-    protected final Cache<Double> globalY = new Cache<>(() -> getParent().map(p -> p.getYOnScreen()).orElse(0D) + dY());
 
     public enum ConsumptionType {
         CLICK,
@@ -177,11 +175,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public final BooleanProperty visible = new BooleanProperty(true, true)
             .withAfterPropertyChangedCallback(this::onVisibilityChanged);
     public final BooleanProperty resizable = new BooleanProperty(false, true)
-            .withAfterPropertyChangedCallback(
-                    (o, v) -> invokeEvent(this, new DLGuiStandardEvents.ResizableChangedEvent(v), true));
+            .withAfterPropertyChangedCallback((o, v) -> invokeEvent(this, new DLGuiStandardEvents.ResizableChangedEvent(v), true));
     public final BooleanProperty movable = new BooleanProperty(false, true)
-            .withAfterPropertyChangedCallback(
-                    (o, v) -> invokeEvent(this, new DLGuiStandardEvents.MovableChangedEvent(v), true));
+            .withAfterPropertyChangedCallback((o, v) -> invokeEvent(this, new DLGuiStandardEvents.MovableChangedEvent(v), true));
     public final NumberProperty<Byte> multiClickable = new NumberProperty<>((byte) 1, (byte) 1, Byte.MAX_VALUE);
     public final Property<CursorType> cursor = new Property<>(null);
     public final Property<Predicate<ConsumptionType>> inputConsumptionPolicy = new Property<>(
@@ -189,8 +185,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public final BitflagProperty<EAlign> anchor = new BitflagProperty<>(EAlign.class, EAlign.LEFT, EAlign.TOP);
     public final Property<Size> minSize = new Property<Size>(Size.of(5, 5));
     public final Property<Size> maxSize = new Property<>(Size.INFINITY);
-
     public final NumberProperty<Double> scale = new NumberProperty<>(1D, 0.01D, 10D);
+
+    
+    protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + (dX() * getParent().map(p -> p.scale.get()).orElse(1D)));
+    protected final Cache<Double> globalY = new Cache<>(() -> getParent().map(p -> p.getYOnScreen()).orElse(0D) + (dY() * getParent().map(p -> p.scale.get()).orElse(1D)));
 
     public DLGuiComponent(int x, int y, int w, int h) {
         this.x = x;
@@ -708,8 +707,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             return;
         }
         int dX = (int) mouseX, dY = (int) mouseY;
-        setInMoveArea(dX <= getResizeBorderSize() || dX >= width() - getResizeBorderSize()
-                || dY <= getResizeBorderSize() || dY >= height() - getResizeBorderSize());
+        setInMoveArea(dX <= getResizeBorderSize() || dX >= width() - getResizeBorderSize() || dY <= getResizeBorderSize() || dY >= height() - getResizeBorderSize());
     }
 
     public void updateResizeArea(double mouseX, double mouseY) {
@@ -809,8 +807,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         boolean hasChanged = dragging != b;
         this.dragging = b;
         if (hasChanged && b) {
-            dragOffsetX = (int) (mouseX - x());
-            dragOffsetY = (int) (mouseY - y());
+            dragOffsetX = (int) (mouseX * getGlobalScale() - x());
+            dragOffsetY = (int) (mouseY * getGlobalScale() - y());
             dragOriginalWidth = width();
             dragOriginalHeight = height();
         }
@@ -887,7 +885,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
                             (int) (mouseX - dragOffsetX), (int) (mouseY - dragOffsetY), dragOverComponents, cancel),
                             true);
                     if (cancel.isFalse()) {
-                        setPosition((mouseX - dragOffsetX), (mouseY - dragOffsetY));
+                        setPosition((mouseX * getGlobalScale() - dragOffsetX), (mouseY * getGlobalScale() - dragOffsetY));
                     }
                 }
             } else if (b) {
@@ -998,36 +996,37 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
      * @param ignoredComponents
      * @param nonConsumable
      */
-    public record Flags(boolean eventConsumed, boolean focusFound, boolean ignored, boolean enabled,
-            ImmutableSet<DLGuiComponent> ignoredComponents, ImmutableSet<DLGuiComponent> nonConsumable) {
+    public record Flags(boolean eventConsumed, boolean focusFound, boolean ignored, boolean enabled, ImmutableSet<DLGuiComponent> ignoredComponents, ImmutableSet<DLGuiComponent> nonConsumable) {
         public static final Flags EMPTY = new Flags(false, false, false, true, ImmutableSet.of(), ImmutableSet.of());
     }
 
-    public HitResult iterateComponents(double mouseX, double mouseY, double xOffset, double yOffset, Rectangle bounds,
-            Flags flags, ConsumptionType type, double parentScale) {
+    public HitResult iterateComponents(double mouseX, double mouseY, double xOffset, double yOffset, Rectangle bounds, Flags flags, ConsumptionType type, double parentScale) {
         HitResult result = new HitResult();
         if (flags.ignoredComponents().contains(this))
             return result;
 
         double currentScale = this.scale.get() * parentScale;
-        boolean ignored = flags.ignored() || !this.visible.get(), focusFound = flags.focusFound(),
-                eventConsumed = flags.eventConsumed(), enabled = flags.enabled() && this.enabled.get();
-        double localMouseX = (mouseX - xOffset) / parentScale, localMouseY = (mouseY - yOffset) / parentScale;
-        double scaledLocalMouseX = localMouseX / this.scale.get(), scaledLocalMouseY = localMouseY / this.scale.get();
-        Rectangle newBounds = Rectangle.intersection(bounds,
-                Rectangle.offset(getChildInteractionBounds(), xOffset, yOffset));
+        boolean ignored = flags.ignored() || !this.visible.get();
+        boolean focusFound = flags.focusFound();
+        boolean eventConsumed = flags.eventConsumed();
+        boolean enabled = flags.enabled() && this.enabled.get();
+        double localMouseX = (mouseX - xOffset) / parentScale;
+        double localMouseY = (mouseY - yOffset) / parentScale;
+        double scaledLocalMouseX = localMouseX / this.scale.get();
+        double scaledLocalMouseY = localMouseY / this.scale.get();
+
+        Rectangle newBounds = Rectangle.intersection(bounds, Rectangle.offset(getChildInteractionBounds(), xOffset, yOffset));
         Rectangle childBounds = Rectangle.offset(newBounds, getScrollOffsetX(), getScrollOffsetY());
 
-        for (ListIterator<DLGuiComponent> children = getComponents().listIterator(componentsCount()); children
-                .hasPrevious();) {
+        for (ListIterator<DLGuiComponent> children = getComponents().listIterator(componentsCount()); children.hasPrevious();) {
             DLGuiComponent component = children.previous();
             if (flags.ignoredComponents().contains(component))
                 continue;
-            HitResult hit = component.iterateComponents(mouseX, mouseY, xOffset + component.x() * currentScale,
-                    yOffset + component.y() * currentScale, childBounds,
-                    new Flags(eventConsumed, focusFound, ignored, enabled, flags.ignoredComponents(),
-                            flags.nonConsumable()),
-                    type, currentScale);
+
+            HitResult hit = component.iterateComponents(mouseX, mouseY, xOffset + component.x() * currentScale, yOffset + component.y() * currentScale, childBounds,
+                new Flags(eventConsumed, focusFound, ignored, enabled, flags.ignoredComponents(), flags.nonConsumable()),
+                type, currentScale
+            );
             result.addAll(hit.components());
             if (childBounds.collision(mouseX, mouseY)) {
                 eventConsumed |= hit.consumed();
@@ -1035,18 +1034,17 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             }
         }
 
-        boolean valid = isMouseOver(scaledLocalMouseX, scaledLocalMouseY) && newBounds.collision(mouseX, mouseY)
-                && !ignored && !eventConsumed;
+        boolean valid = isMouseOver(scaledLocalMouseX, scaledLocalMouseY) && newBounds.collision(mouseX, mouseY) && !ignored && !eventConsumed;
         if (valid) {
             result.add(
-                    enabled ? (focusFound ? ComponentSelectionState.HIT : ComponentSelectionState.FOCUSED)
-                            : ComponentSelectionState.UNSELECTED,
-                    new ComponentHitContext(this, scaledLocalMouseX, scaledLocalMouseY, (int) xOffset, (int) yOffset,
-                            enabled));
+                enabled
+                    ? (focusFound ? ComponentSelectionState.HIT : ComponentSelectionState.FOCUSED)
+                    : ComponentSelectionState.UNSELECTED,
+                new ComponentHitContext(this, scaledLocalMouseX, scaledLocalMouseY, (int) xOffset, (int) yOffset, enabled)
+            );
             result.consume(!flags.nonConsumable().contains(this) && inputConsumptionPolicy.get().test(type));
         } else {
-            result.add(ComponentSelectionState.UNSELECTED, new ComponentHitContext(this, scaledLocalMouseX,
-                    scaledLocalMouseY, (int) xOffset, (int) yOffset, enabled));
+            result.add(ComponentSelectionState.UNSELECTED, new ComponentHitContext(this, scaledLocalMouseX, scaledLocalMouseY, (int) xOffset, (int) yOffset, enabled));
             result.consume(!flags.nonConsumable().contains(this) && eventConsumed);
         }
         return result;
@@ -1065,7 +1063,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         if (useScissor) {
             int x1 = (int) Math.floor(Math.max(scissorBounds.x(), -maxWidth));
             int y1 = (int) Math.floor(Math.max(scissorBounds.y(), -maxHeight));
-            int w = (int) Math.ceil(scissorBounds.width()), h = (int) Math.ceil(scissorBounds.height());
+            int w = (int) Math.ceil(scissorBounds.width());
+            int h = (int) Math.ceil(scissorBounds.height());
             GuiUtils.enableScissor(graphics, x1, y1, w, h);
         }
 
@@ -1149,8 +1148,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     public void renderSpecialOverlay(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        renderBoundingBox(graphics, (int) newBounds.x() - x(), (int) newBounds.y() - y(), (int) newBounds.width(),
-                (int) newBounds.height());
+        renderBoundingBox(graphics, (int)((newBounds.x() - x())), (int)((newBounds.y() - y())), (int) newBounds.width(), (int) newBounds.height());
     }
 
     public static void renderBoundingBox(DLGuiGraphics graphics, int x, int y, int w, int h) {

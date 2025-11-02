@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.test;
+package de.mrjulsen.mcdragonlib.internal;
 
 import java.util.ArrayList;
 import java.util.List;

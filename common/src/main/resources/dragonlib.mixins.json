@@ -7,7 +7,6 @@
     "FontAccessor",
     "BakedGlyphAccessor",
     "AbstractWidgetAccessor",
-    "AbstractContainerScreenMixin",
     "TextureManagerMixin",
     "ScreenAccessor",
     "ItemRendererMixin",

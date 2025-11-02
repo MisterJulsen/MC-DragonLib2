@@ -1,6 +1,5 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;

@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.container;
+package de.mrjulsen.mcdragonlib.internal;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import dev.architectury.registry.registries.DeferredRegister;

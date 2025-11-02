@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.test;
+package de.mrjulsen.mcdragonlib.internal;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.container.DLSlot;
-import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLMenuWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
@@ -52,7 +51,8 @@ public class RedWindow extends DLMenuWindow<TestContainerMenu> {
         btn2.text.set(TextUtils.text("⬜"));
         btn2.addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
             getWindowManager().createModal(mgr -> {
-                DLColorPickerWindow z = new DLColorPickerWindow(mgr, false, DLColor.UNDEFINED, (c) -> {});                
+                DLColorPickerWindow z = new DLColorPickerWindow(mgr, false, DLColor.UNDEFINED, (c) -> {});      
+                z.scale.set(0.5d);
                 return z;
             });
             DLOverlayManager.addOverlay(mgr -> new DLTestWindow(mgr));
@@ -76,7 +76,6 @@ public class RedWindow extends DLMenuWindow<TestContainerMenu> {
         if (Minecraft.getInstance().player != null) {
             for (int a = 0; a < 4; a++) {
                 for (int i = 0; i < 9; i++) {
-                    System.out.println(menu + ": " + menu.slots.get(i).getItem().getItem());
                     DLSlot slot = new DLSlot(10 + (i * 18), 10 + (a * 18), 18, 18, menu.slots.get(a * 9 + i), menu);
                     addComponent(slot);
                 }

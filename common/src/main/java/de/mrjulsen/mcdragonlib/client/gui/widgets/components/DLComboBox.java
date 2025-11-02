@@ -55,7 +55,11 @@ public class DLComboBox<T> extends DLCycleButton<T> {
 
     @Override
     public boolean defaultButtonClickAction(DLGuiComponent src, ClickEvent event) {
-        ModalId id = getWindowManager().createModal((root) -> new DLPopupWindow(root, (int)getXOnScreen(), (int)getYOnScreen() + height(), width()));
+        ModalId id = getWindowManager().createModal((root) -> {
+            DLPopupWindow popup = new DLPopupWindow(root, (int)(getXOnScreen()), (int)(getYOnScreen() + height() * getGlobalScale()), width());
+            //popup.scale.set(getGlobalScale());
+            return popup;
+        });
         DLWindow win = getWindowManager().getWindows(id)[0];
 
         DLComboBoxDropDownList<T> list = dropDownBuilder.get().build(id, win.width(), win.height());
@@ -161,7 +165,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         protected void layoutComponents() {
             int currentY = 0;
             for (DLComboboxDropDownItem<T> item : contentPanel.getComponentsOfType(DLComboboxDropDownItem.class, true)) {
-                setItemWidth(item, width() - scrollBar.width());
+                setItemWidth(item, width() - scrollBar.width() - 2);
                 setItemX(item, 0);
                 setItemY(item, currentY);
                 currentY += item.height();
