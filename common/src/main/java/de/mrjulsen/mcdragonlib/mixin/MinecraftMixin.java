@@ -20,8 +20,8 @@ public class MinecraftMixin {
     @Inject(method = "setInitialScreen", at = @At(value = "HEAD"), cancellable = true)
     public void dragonlib$showScreen(RealmsClient realmsClient, ReloadInstance reloadInstance, GameConfig.QuickPlayData quickPlayData, CallbackInfo ci) {
         
-        DLScreenWrapper wrapper = new DLScreenWrapper(root -> new DLTestWindow(root));
-        wrapper.getWindowManager().createWindow(RedWindow::new);
+        DLScreenWrapper wrapper = new DLScreenWrapper(null, root -> new DLTestWindow(root));
+        //wrapper.getWindowManager().createWindow(RedWindow::new);
         Minecraft.getInstance().setScreen(wrapper);
         ci.cancel();
     }

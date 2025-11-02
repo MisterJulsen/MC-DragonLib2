@@ -21,7 +21,7 @@ public final class DLOverlayManager {
     public static void init() {
 
         ClientLifecycleEvent.CLIENT_STARTED.register(mc -> {
-            root = new DLWindowManager(RedWindow::new, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), () -> {});
+            //root = new DLWindowManager(RedWindow::new, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), () -> {});
         });
         
         ClientTickEvent.CLIENT_POST.register((mc) -> {
@@ -36,8 +36,7 @@ public final class DLOverlayManager {
         
 
         dev.architectury.event.events.client.ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((mc) -> {  
-            if (!initialized()) return;          
-            root.createWindow(RedWindow::new);
+            if (!initialized()) return;
         });
 
         dev.architectury.event.events.client.ClientGuiEvent.RENDER_HUD.register((guiGraphics, partialTick) -> {
@@ -63,21 +62,17 @@ public final class DLOverlayManager {
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_CLICKED_POST.register((mc, screen, mouseX, mouseY, button) -> {
             if (!initialized()) return EventResult.pass();
-            boolean result = root.iterateCurrentModal((win, consumed) -> root.mouseClicked(win, consumed, mouseX, mouseY, button), () -> root.prepareMouseClick(mouseX, mouseY, button), (consumed) -> {
-                if (!consumed) {
-                    root.updateWindowFocus(true);
-                }
-            });            
+            boolean result = root.mouseClicked(mouseX, mouseY, button);            
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_DRAGGED_POST.register((mc, screen, mouseX, mouseY, button, dragX, dragY) -> {
             if (!initialized()) return EventResult.pass();
-            boolean result = root.iterateCurrentModal((win, consumed) -> root.mouseDragged(win, consumed, mouseX, mouseY, button, dragX, dragY), () -> root.prepareMouseDragged(mouseX, mouseY, button, dragX, dragY), (consumed) -> root.finishMouseDragged(mouseX, mouseY, button, dragX, dragY));
+            boolean result = root.mouseDragged(mouseX, mouseY, button, dragX, dragY);
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_RELEASED_PRE.register((mc, screen, mouseX, mouseY, button) -> {
             if (!initialized()) return EventResult.pass();
-            boolean result = root.iterateCurrentModal((win, consumed) -> root.mouseReleased(win, consumed, mouseX, mouseY, button), null, (consumed) -> root.finishMouseRelease(mouseX, mouseY));
+            boolean result = root.mouseReleased(mouseX, mouseY, button);
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });
         dev.architectury.event.events.client.ClientPlayerEvent.CLIENT_PLAYER_QUIT.register((mc) -> {
@@ -93,7 +88,7 @@ public final class DLOverlayManager {
 
     public static boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!initialized()) return false;
-        return root.iterateCurrentModal((win, consumed) -> root.mouseScrolled(win, consumed, mouseX, mouseY, scrollX, scrollY), null, null);
+        return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     public static void resizeDisplay() {

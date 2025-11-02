@@ -1,14 +1,16 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents.WindowCreatedEvent;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager.ModalId;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 
 @SupportsEvents({
     DLGuiCommonEvents.WindowCreatedEvent.class,
@@ -123,6 +125,28 @@ public class DLWindow extends DLGuiComponent {
             return;
         }
         super.setY(y);
+    }
+
+
+
+    public static <T extends DLWindow> T openWindow(WindowBuilder<T> builder) {
+        AtomicReference<T> window = new AtomicReference<>(null);
+        DLScreenWrapper wrapper = new DLScreenWrapper(null, (mgr) -> {
+            T win = builder.build(mgr);
+            window.set(win);
+            return win;
+        });
+        Minecraft.getInstance().setScreen(wrapper);
+        return window.get();
+    }
+
+    public static void closeWindow() {
+        Screen screen = Minecraft.getInstance().screen;
+        if (screen instanceof DLScreenWrapper wrapper) {
+            wrapper.getWindowManager().close();
+        } else {
+            Minecraft.getInstance().setScreen(null);
+        }
     }
     
 }

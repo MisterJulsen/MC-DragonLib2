@@ -3,20 +3,26 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 import java.nio.file.Path;
 import java.util.List;
 
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager.WindowBuilder;
+import org.jetbrains.annotations.Nullable;
+
+import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public class DLScreenWrapper extends Screen {
+public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen implements MenuAccess<AbstractContainerMenu> {
 
-    private final DLWindowManager root;
+    private final DLWindowManager<M> root;
+    private final AbstractContainerMenu menu;
     
-    public DLScreenWrapper(WindowBuilder<?> window) {
+    public  DLScreenWrapper(@Nullable M menu, WindowBuilder<?> window) {
         super(TextUtils.empty());
-        this.root = new DLWindowManager(window, width, height, () -> {
+        this.menu = menu;
+        this.root = new DLWindowManager<>(menu, window, width, height, () -> {
             Minecraft.getInstance().setScreen(null);
         });
     }
@@ -24,6 +30,12 @@ public class DLScreenWrapper extends Screen {
     public DLWindowManager getWindowManager() {
         return root;
     }
+
+    public boolean isMenuScreen() {
+        return menu != null;
+    }
+
+
 
     @Override
     protected void init() {
@@ -45,11 +57,7 @@ public class DLScreenWrapper extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return root.iterateCurrentModal((win, consumed) -> root.mouseClicked(win, consumed, mouseX, mouseY, button), () -> root.prepareMouseClick(mouseX, mouseY, button), (consumed) -> {
-            if (!consumed) {
-                root.updateWindowFocus(true);
-            }
-        });
+        return root.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -59,16 +67,16 @@ public class DLScreenWrapper extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        return root.iterateCurrentModal((win, consumed) -> root.mouseReleased(win, consumed, mouseX, mouseY, button), null, (consumed) -> root.finishMouseRelease(mouseX, mouseY));
+        return root.mouseReleased(mouseX, mouseY, button);
     }
 
     public boolean onScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return root.iterateCurrentModal((win, consumed) -> root.mouseScrolled(win, consumed, mouseX, mouseY, scrollX, scrollY), null, null);
+        return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return root.iterateCurrentModal((win, consumed) -> root.mouseDragged(win, consumed, mouseX, mouseY, button, dragX, dragY), () -> root.prepareMouseDragged(mouseX, mouseY, button, dragX, dragY), (consumed) -> root.finishMouseDragged(mouseX, mouseY, button, dragX, dragY));
+        return root.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
@@ -87,12 +95,17 @@ public class DLScreenWrapper extends Screen {
     }
 
     @Override
-    public void onFilesDrop(List<Path> packs) {
-        root.iterateCurrentModal((win, consumed) -> root.onFilesDrop(win, consumed, packs), null, null);
+    public void onFilesDrop(List<Path> paths) {
+        root.onFilesDrop(paths);
     }
 
     @Override
     public void onClose() {
         root.onClose();
+    }
+
+    @Override
+    public TestContainerMenu getMenu() {
+        return menu;
     }
 }

@@ -2,14 +2,16 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -19,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.glfw.GLFW;
@@ -31,6 +34,7 @@ import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent.ConsumptionType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent.Flags;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.IGuiManagementComponent.Phase;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.HitResult;
@@ -48,111 +52,31 @@ import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 @SupportsEvents({
     DLGuiStandardEvents.ClickEvent.class,
     DLGuiStandardEvents.RightClickEvent.class,
     DLGuiStandardEvents.MousePressedEvent.class,
-    DLGuiStandardEvents.MouseUpEvent.class,
+    DLGuiStandardEvents.MouseReleaseEvent.class,
     DLGuiStandardEvents.MouseMoveEvent.class,
     DLGuiStandardEvents.ScrollEvent.class,
     DLGuiStandardEvents.TickEvent.class,
     DLGuiStandardEvents.KeyPressEvent.class,
     DLGuiStandardEvents.KeyReleaseEvent.class,
-    DLGuiStandardEvents.CharTypeEvent.class
+    DLGuiStandardEvents.CharTypeEvent.class,
+    DLGuiStandardEvents.RenderEvent.class
 })
-public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
-    public static final int DRAG_THRESHOLD = 5;    
+public class DLWindowManager<M extends AbstractContainerMenu> implements IEventDispatcher<DLWindowManager<M>>, MenuAccess<M> {
+    public static final int DRAG_THRESHOLD = 5;
 
     private final Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> eventListeners = new HashMap<>();
 
     @Override
     public Map<Class<? extends IEvent>, PriorityQueue<EventListenerWrapper<?>>> getEventListeners() {
         return eventListeners;
-    }
-
-    public static class ModalWindowStack extends ConcurrentLinkedDeque<DLWindow> {
-        private final ModalId id;
-
-        public ModalWindowStack(UUID id) {
-            Objects.requireNonNull(id);
-            this.id = new ModalId(id);
-        }
-
-        @Override
-        public boolean add(DLWindow win) {
-            win.assignToModal(id);
-            boolean b = super.add(win);
-            return b;
-        }
-
-        @Override
-        public DLWindow remove() {            
-            DLWindow win = super.remove();
-            win.assignToModal(null);
-            return win;
-        }
-
-        @Override
-        public void clear() {
-            for (DLWindow win : this) {
-                win.assignToModal(null);
-            }
-            super.clear();
-        }
-
-        public ModalId id() {
-            return id;
-        }
-
-        @SuppressWarnings("unlikely-arg-type")
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof ModalWindowStack o) {
-                return id.equals(o.id);
-            }
-            if (obj instanceof ModalId o) {
-                return id.equals(o);
-            }
-            if (obj instanceof UUID o) {
-                return id.equals(o);
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return id.hashCode();
-        }
-    }
-
-    public static class ModalId {
-        private final UUID id;
-
-        public ModalId(UUID id) {
-            this.id = id;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof ModalId o) {
-                return id.equals(o.id);
-            }
-            if (obj instanceof UUID o) {
-                return id.equals(o);
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return id.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return id.toString();
-        }
     }
 
     private DLGuiComponent focusedComponent = null;
@@ -162,6 +86,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
     private final Queue<ComponentHitContext> renderInputOverlayComponents = new ConcurrentLinkedQueue<>();
 
     private final ConcurrentLinkedDeque<ModalWindowStack> windows = new ConcurrentLinkedDeque<>();
+    private final PriorityQueue<IGuiManagementComponent> managementComponents = new PriorityQueue<>();
+
+    private final M menu;
+
     private final Runnable close;
 
     private double width;
@@ -179,11 +107,45 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
     private DLWindow focusedWindow;
 
 
-    public <T extends DLWindow> DLWindowManager(WindowBuilder<T> windowBuilder, double width, double height, Runnable close) {
+    public <T extends DLWindow> DLWindowManager(M menu, WindowBuilder<T> windowBuilder, double width, double height, Runnable close) {
+        this.menu = menu;
         this.close = close;
         this.width = width;
         this.height = height;
         createWindow(windowBuilder);
+    }
+    
+
+    public <T extends IGuiManagementComponent> T addManager(Function<DLWindowManager, T> factory) {
+        T mgr = factory.apply(this);        
+        for (IGuiManagementComponent m : managementComponents) {
+            if (m.getClass().isAssignableFrom(mgr.getClass())) {
+                return (T)m;
+            }
+        }
+        managementComponents.add(mgr);
+        mgr.onAttach(this);
+        return mgr;
+    }
+
+    public <T extends IGuiManagementComponent> void removeManager(Class<T> type) {
+        Iterator<IGuiManagementComponent> mgrIterator = managementComponents.iterator();
+        while (mgrIterator.hasNext()) {
+            IGuiManagementComponent mgr = mgrIterator.next();
+            if (mgr.getClass().isAssignableFrom(type)) {
+                mgrIterator.remove();
+                mgr.onDetach(this);
+            }
+        }
+    }
+
+    public <T extends IGuiManagementComponent> Optional<T> getManager(Class<T> type) {
+        for (IGuiManagementComponent m : managementComponents) {
+            if (m.getClass().isAssignableFrom(type)) {
+                return Optional.of((T)m);
+            }
+        }
+        return Optional.empty();
     }
 
     public void updateLayout(double width, double height) {
@@ -242,7 +204,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         });
     }
 
-    protected void init() {
+    protected void init() {        
+        interateManagerExtension((mgr) -> {
+            mgr.init();
+            return false;
+        });
+
         iterateAll(false, (win, i) -> {
             win.updateLayoutEvent((int)width, (int)height);            
             return true;
@@ -253,6 +220,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         for (RenderLayer layer : RenderLayer.values()) {
             graphics.poseStack().pushPose();
             graphics.poseStack().translate(0, 0, -layer.z());
+            graphics.poseStack().pushPose();
             if (!layer.isSpecial()) {
                 iterateAll(false, (win, i) -> {
                     graphics.poseStack().pushPose();
@@ -270,12 +238,22 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
                 });
             }
             graphics.poseStack().popPose();
+            interateManagerExtension((mgr) -> {
+                mgr.render(graphics, mouseX, mouseY, layer);
+                return false;
+            });
+            invokeEvent(this, new DLGuiStandardEvents.RenderEvent(graphics, mouseX, mouseY, layer, Rectangle.withSize(0, 0, getScreenWidth(), getScreenHeight())));
+            graphics.poseStack().popPose();
         }
 
         GuiUtils.drawString(graphics, Minecraft.getInstance().font, 1, 1, Minecraft.getInstance().fpsString, DLColor.WHITE, ETextAlignment.LEFT, true);
     }
 
-    public void tick() {
+    public void tick() {        
+        interateManagerExtension((mgr) -> {
+            mgr.tick();
+            return false;
+        });
         invokeEvent(this, new DLGuiStandardEvents.TickEvent());
         iterateAll(false, (win, i) -> {
             win.tick();
@@ -313,6 +291,14 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
 
     public double mouseYOnScreen() {
         return Minecraft.getInstance().mouseHandler.ypos() * (double)Minecraft.getInstance().getWindow().getGuiScaledHeight() / (double)Minecraft.getInstance().getWindow().getScreenHeight();
+    }
+
+    public List<DLGuiComponent> getDraggedOverComponents() {
+        return Collections.unmodifiableList(dragOverComponents);
+    }
+
+    public DLGuiComponent getFocusedComponent() {
+        return focusedComponent;
     }
 
 
@@ -423,37 +409,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         });
     }
 
-    /*
-    @SuppressWarnings("unlikely-arg-type")
-    public ModalId createModal(DLWindow window) {
-        UUID id;
-        do {
-            id = UUID.randomUUID();
-        } while (windows.contains(id));
-        windows.add(new ModalWindowStack(id));
-        return createWindow(window);
-    }
-
-    public ModalId createWindow(DLWindow window) {
-        if (!hasWindows()) {
-            return createModal(window);
-        }
-        return createWindow(window, getCurrentModalId());
-    }
-
-    public ModalId createWindow(DLWindow window, ModalId id) {
-        if (!hasWindows()) {
-            return createModal(window);
-        }
-        ModalWindowStack stack = getModalById(id);
-        stack.add(window);
-        window.setRoot(() -> this);
-        window.invoke(window, new DLGuiBuiltInEvents.WindowCreatedEvent(this, (int)width, (int)height));
-        updateWindowFocus(false);
-        return stack.id();
-    }
-        */
-
     public <T extends DLWindow> ModalId createModal(WindowBuilder<T> windowBuilder) {
         createModalInternal();
         return createWindow(windowBuilder);
@@ -487,10 +442,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         window.invokeEvent(window, new DLGuiCommonEvents.WindowCreatedEvent(this, id, (int)width, (int)height));
         updateWindowFocus(false);
         return stack.id();
-    }
-
-    public static interface WindowBuilder<T extends DLWindow> {
-        T build(DLWindowManager manager);
     }
 
     public void bringWindowToFront(DLWindow window) {
@@ -586,6 +537,17 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         mouseDownButton = -1;
     }
 
+    
+
+    protected boolean interateManagerExtension(Function<IGuiManagementComponent, Boolean> action) {
+        for (IGuiManagementComponent manager : managementComponents) {
+            if (action.apply(manager)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected void iterateAll(boolean backwards, BiFunction<DLWindow, Integer, Boolean> callback) { 
         if (backwards) {
             iterateAllBackwards(callback);
@@ -645,7 +607,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         isMouseDown = true;
     }
 
-    public boolean mouseClicked(DLWindow window, boolean consumed, double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (interateManagerExtension((mgr) -> mgr.mouseClicked(mouseX, mouseY, button))) {
+            return true;
+        }
+
+        
         if (!hasWindows()) {
             return false;
         }
@@ -660,32 +627,43 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         }
         invokeEvent(this, new DLGuiStandardEvents.MousePressedEvent(mouseX, mouseY, button));
 
-        Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
-        for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
-            for (ComponentHitContext c : e.getValue()) {
-                c.component().setFocus(e.getKey() == ComponentSelectionState.FOCUSED);
-                if (e.getKey().isHit()) {                        
-                    c.component().setMouseDown(true, c.mouseX(), c.mouseY(), button);
-                    mouseDownComponents.add(c.component());
-                }
-                if (e.getKey() == ComponentSelectionState.FOCUSED) {
-                    focusedComponent = c.component();
+        return iterateCurrentModal((win, consumed) -> {
+            Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
+            for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
+                for (ComponentHitContext c : e.getValue()) {
+                    c.component().setFocus(e.getKey() == ComponentSelectionState.FOCUSED);
+                    if (e.getKey().isHit()) {                        
+                        c.component().setMouseDown(true, c.mouseX(), c.mouseY(), button);
+                        mouseDownComponents.add(c.component());
+                    }
+                    if (e.getKey() == ComponentSelectionState.FOCUSED) {
+                        focusedComponent = c.component();
+                    }
                 }
             }
-        }
-        boolean b = result.consumed();        
-        if (!hasWindows()) {
-            return b;
-        }
+            boolean b = result.consumed();        
+            if (!hasWindows()) {
+                return b;
+            }
 
-        if (b && !consumed) {
-            bringWindowToFront(window);
-        }
-        return b;
+            if (b && !consumed) {
+                bringWindowToFront(win);
+            }
+            return b;
+        }, () -> prepareMouseClick(mouseX, mouseY, button), (consumed) -> {
+            if (!consumed) {
+                updateWindowFocus(true);
+            }
+        });
+        
     }
 
     public boolean mouseMoved(DLWindow window, boolean consumed, double mouseX, double mouseY) {
+        if (interateManagerExtension((mgr) -> mgr.mouseMoved(mouseX, mouseY))) {
+            return true;
+        }
+
         if (!hasWindows()) {
             return false;
         }
@@ -704,54 +682,70 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         return result.consumed();
     }
 
-    public void finishMouseRelease(double mouseX, double mouseY) {
+    public void finishMouseRelease(double mouseX, double mouseY, int button) {        
+        for (DLGuiComponent component : dragOverComponents) {
+            component.setDragComponentOver(false, draggingComponents.stream().map(x -> x.component()).toList(), mouseX, mouseY, button);
+        }
+
         clearMouseInteractionData();
         isMouseDown = false;
         iterateCurrentModal((win, consumed) -> mouseMoved(win, consumed, mouseX, mouseY), null, null);
     }
 
-    public boolean mouseReleased(DLWindow window, boolean consumed, double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (interateManagerExtension((mgr) -> mgr.mouseReleased(mouseX, mouseY, button))) {
+            return true;
+        }
+
         if (!hasWindows()) {
             return false;
         }
-        invokeEvent(this, new DLGuiStandardEvents.MouseUpEvent(mouseX, mouseY, button));
+        invokeEvent(this, new DLGuiStandardEvents.MouseReleaseEvent(mouseX, mouseY, button));
 
-        Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
-        for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
-            for (ComponentHitContext c : e.getValue()) {
-                if (e.getKey().isHit() && mouseDownComponents.contains(c.component())) {
-                    c.component().mouseClickDispatcher(c.mouseX(), c.mouseY(), button);
+        return iterateCurrentModal((win, consumed) -> {
+            Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.CLICK);        
+            for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
+                for (ComponentHitContext c : e.getValue()) {
+                    if (e.getKey().isHit() && mouseDownComponents.contains(c.component())) {
+                        c.component().mouseClickDispatcher(c.mouseX(), c.mouseY(), button);
+                    }
+                    c.component().setMouseDown(false, c.mouseX(), c.mouseY(), button);
+                    if (c.component().isDragged()) {
+                        c.component().setDragging(false, c.mouseX(), c.mouseY(), button, mouseDownX, mouseDownY, 0, 0, specialDragAction, dragOverComponents);
+                    }
                 }
-                c.component().setMouseDown(false, c.mouseX(), c.mouseY(), button);
-                if (c.component().isDragged()) {
-                    c.component().setDragging(false, c.mouseX(), c.mouseY(), button, mouseDownX, mouseDownY, 0, 0, specialDragAction, dragOverComponents);
-                }
-            }
-        };
-        return false;//result.consumed();
+            };
+            return false; // consumed.result
+        }, null, (consumed) -> finishMouseRelease(mouseX, mouseY, button));
     }
 
-    public boolean mouseScrolled(DLWindow window, boolean consumed, double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (interateManagerExtension((mgr) -> mgr.mouseScrolled(mouseX, mouseY, scrollX, scrollY))) {
+            return true;
+        }
+
         if (!hasWindows()) {
             return false;
         }
         invokeEvent(this, new DLGuiStandardEvents.ScrollEvent(mouseX, mouseY, scrollX, scrollY));
 
-        Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.SCROLL);  
-        for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
-            for (ComponentHitContext c : e.getValue()) {
-                if (!hasWindows()) {
-                    return result.consumed();
-                }
-                if (e.getKey().isHit()) {
-                    c.component().invokeEvent(c.component(), new DLGuiStandardEvents.ScrollEvent(c.mouseX(), c.mouseY(), -scrollX, -scrollY), true);
+        return iterateCurrentModal((win, consumed) -> {
+            Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.SCROLL);  
+            for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
+                for (ComponentHitContext c : e.getValue()) {
+                    if (!hasWindows()) {
+                        return result.consumed();
+                    }
+                    if (e.getKey().isHit()) {
+                        c.component().invokeEvent(c.component(), new DLGuiStandardEvents.ScrollEvent(c.mouseX(), c.mouseY(), -scrollX, -scrollY), true);
+                    }
                 }
             }
-        }
-        mouseMoved(window, consumed, mouseX, mouseY);
-        return result.consumed();
+            mouseMoved(win, consumed, mouseX, mouseY);
+            return result.consumed();
+        }, null, null);
     }
 
     public void prepareMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
@@ -763,37 +757,55 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
 
     public void finishMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         List<DLGuiComponent> immutableDragOverComponents = ImmutableList.copyOf(dragOverComponents);
+        List<DLGuiComponent> draggingC = new ArrayList<>(draggingComponents.size());
         for (ComponentHitContext c : draggingComponents) {
             if (c.component().setDragging(true, c.mouseX(), c.mouseY(), button, mouseDownX, mouseDownY, dragX, dragY, specialDragAction, immutableDragOverComponents)) {
                 renderInputOverlayComponents.add(c);
             }
+            draggingC.add(c.component());
+        }
+        for (DLGuiComponent component : dragOverComponents) {
+            component.setDragComponentOver(true, draggingC, mouseX, mouseY, button);
+        }
+        for (DLGuiComponent component : draggingC) {
+            component.invokeEvent(component, new DLGuiStandardEvents.DraggingOverEvent(immutableDragOverComponents, mouseX, mouseY, button));
         }
     }
 
-    public boolean mouseDragged(DLWindow window, boolean consumed, double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.PRE, mouseX, mouseY, button, dragX, dragY))) {
+            return true;
+        }
+
         isDragging = true;
         if (mouseDownComponents.isEmpty()) return false;
 
-        Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.copyOf(mouseDownComponents));
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG);
-        for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
-            for (ComponentHitContext c : e.getValue()) {
-                if (mouseDownComponents.contains(c.component())) {
-                    draggingComponents.add(c);
-                } else if (e.getKey().isHit()) {
-                    dragOverComponents.add(c.component());
-                } else if (c.component().isComponentDraggedOver()) {                    
-                    for (DLGuiComponent o : mouseDownComponents) {                        
-                        c.component().setDragComponentOver(false, o, c.mouseX(), c.mouseY());
+        boolean eventResult = iterateCurrentModal((win, consumed) -> {
+            Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.copyOf(mouseDownComponents));
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG);
+            for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
+                for (ComponentHitContext c : e.getValue()) {
+                    if (mouseDownComponents.contains(c.component())) {
+                        draggingComponents.add(c);
+                    } else if (e.getKey().isHit()) {
+                        dragOverComponents.add(c.component());
+                    } else if (c.component().isComponentDraggedOver()) {
+                        c.component().setDragComponentOver(false, new ArrayList<>(mouseDownComponents), c.mouseX(), c.mouseY(), button);
                     }
                 }
             }
-        }
+            
+            return result.consumed();
+        }, () -> prepareMouseDragged(mouseX, mouseY, button, dragX, dragY), (consumed) -> finishMouseDragged(mouseX, mouseY, button, dragX, dragY));
         
-        return result.consumed();
+        return interateManagerExtension((mgr) -> mgr.mouseDragged(Phase.POST, mouseX, mouseY, button, dragX, dragY)) || eventResult;
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (interateManagerExtension((mgr) -> mgr.keyPressed(keyCode, scanCode, modifiers))) {
+            return true;
+        }
+
         invokeEvent(this, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyPressEvent(keyCode, scanCode, modifiers), true);
@@ -803,6 +815,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
     }
 
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if (interateManagerExtension((mgr) -> mgr.keyReleased(keyCode, scanCode, modifiers))) {
+            return true;
+        }
+
         invokeEvent(this, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.KeyReleaseEvent(keyCode, scanCode, modifiers), true);
@@ -812,6 +828,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
     }
 
     public boolean charTyped(char codePoint, int modifiers) {
+        if (interateManagerExtension((mgr) -> mgr.charTyped(codePoint, modifiers))) {
+            return true;
+        }
+
         invokeEvent(this, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers));
         if (focusedComponent != null) {
             focusedComponent.invokeEvent(focusedComponent, new DLGuiStandardEvents.CharTypeEvent(codePoint, modifiers), true);
@@ -820,27 +840,38 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
         return false;
     }
     
-    public boolean onFilesDrop(DLWindow window, boolean consumed, List<Path> packs) {
+    public boolean onFilesDrop(List<Path> packs) {
         double mouseX = mouseXOnScreen();
         double mouseY = mouseYOnScreen();
-        Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
-        HitResult result = window.iterateComponents(mouseX, mouseY, window.x(), window.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG_AND_DROP);
-        for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
-            for (ComponentHitContext c : e.getValue()) {
-                if (e.getKey().isHit()) {
-                    c.component().invokeEvent(c.component(), new DLGuiStandardEvents.DragAndDropFilesEvent(packs, c.mouseX(), c.mouseY()), true);
+    
+        if (interateManagerExtension((mgr) -> mgr.onFilesDrop(packs))) {
+            return true;
+        }
+
+        
+        return iterateCurrentModal((win, consumed) -> {
+            Flags flags = new Flags(consumed, consumed, false, true, ImmutableSet.of(), ImmutableSet.of());
+            HitResult result = win.iterateComponents(mouseX, mouseY, win.x(), win.y(), Rectangle.INFINITE, flags, ConsumptionType.DRAG_AND_DROP);
+            for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
+                for (ComponentHitContext c : e.getValue()) {
+                    if (e.getKey().isHit()) {
+                        c.component().invokeEvent(c.component(), new DLGuiStandardEvents.DragAndDropFilesEvent(packs, c.mouseX(), c.mouseY()), true);
+                    }
                 }
             }
-        }
-        boolean b = result.consumed();
-        if (b) {
-            bringWindowToFront(window);
-        }
-        return b;
+            boolean b = result.consumed();
+            if (b) {
+                bringWindowToFront(win);
+            }
+            return b;
+        }, null, null);        
     }
 
     public void onClose() {
-        CursorType.set(null);
+        interateManagerExtension((mgr) -> {
+            mgr.close();
+            return false;
+        });
         iterateAll(false, (win, i) -> {
             try {
                 win.close();
@@ -849,6 +880,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
             }
             return true;
         });
+        CursorType.set(null);
     }
 
     public static boolean hasControlDown() {
@@ -889,5 +921,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager> {
 
     public boolean isUpdatingLayout() {
         return updatingLayout;
+    }
+
+
+    @Override
+    public M getMenu() {
+        return null;
     }
 }

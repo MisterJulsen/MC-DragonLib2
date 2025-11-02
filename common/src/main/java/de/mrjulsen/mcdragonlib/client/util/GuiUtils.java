@@ -324,6 +324,15 @@ public class GuiUtils {
         }
         graphics.poseStack().popPose();
     }
+    
+
+    public static void renderItemDecoration(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, String text) {
+        graphics.poseStack().pushPose();
+        graphics.poseStack().translate(x, y, 0);
+        graphics.poseStack().scale(scale, scale, 1);
+        graphics.graphics().renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0, text);
+        graphics.poseStack().popPose();
+    }
 
     public static void renderEntity(DLGuiGraphics graphics, int x, int y, LivingEntity entity) {
         renderEntity(graphics, x, y, 1, entity, LightTexture.FULL_BRIGHT);

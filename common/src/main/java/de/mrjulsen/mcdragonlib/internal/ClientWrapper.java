@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 
 public class ClientWrapper {
     public static void openTestScreen() {
-        Minecraft.getInstance().setScreen(new DLScreenWrapper(root -> new DLWindow(root)));
+        //Minecraft.getInstance().setScreen(new DLScreenWrapper(root -> new DLWindow(root)));
     }
 
     @SuppressWarnings("resource")

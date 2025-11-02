@@ -57,7 +57,7 @@ public final class DLGuiStandardEvents {
      */
     public record MouseLeaveEvent(double mouseX, double mouseY) implements IEvent {}
     public record MouseMoveEvent(double mouseX, double mouseY) implements IEvent {}
-    public record MouseUpEvent(double mouseX, double mouseY, int button) implements IEvent {}
+    public record MouseReleaseEvent(double mouseX, double mouseY, int button) implements IEvent {}
     public record MousePressedEvent(double mouseX, double mouseY, int button) implements IEvent {}
     public record ClickEvent(double mouseX, double mouseY) implements IEvent {}
     public record RightClickEvent(double mouseX, double mouseY) implements IEvent {}
@@ -91,11 +91,16 @@ public final class DLGuiStandardEvents {
     public record DragComponentBeginEvent(double mouseX, double mouseY, int button, List<DLGuiComponent> draggedOverComponents) implements IEvent {}
     public record DragComponentEvent(double mouseX, double mouseY, int button, int newX, int newY, double dragX, double dragY, List<DLGuiComponent> draggedOverComponents) implements IEvent {}
     public record DragComponentEndEvent(double mouseX, double mouseY, int button, int newX, int newY, List<DLGuiComponent> draggedOverComponents, MutableBoolean cancel) implements IEvent {}
-    public record DragComponentOverBeginEvent(DLGuiComponent other, double mouseX, double mouseY) implements IEvent {}
-    public record DragComponentOverEvent(DLGuiComponent other, double mouseX, double mouseY) implements IEvent {}
-    public record DragComponentOverEndEvent(DLGuiComponent other, double mouseX, double mouseY) implements IEvent {}
+
+    public record DragComponentOverBeginEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button) implements IEvent {}
+    public record DragComponentOverEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button) implements IEvent {}
+    public record DragComponentOverEndEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button) implements IEvent {}
+    
+    public record DraggingOverEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button) implements IEvent {}
+
     public record DropComponentEvent(DLGuiComponent other, double mouseX, double mouseY) implements IEvent {}
     public record DragAndDropFilesEvent(List<Path> paths, double mouseX, double mouseY) implements IEvent {}
+
     public record VisibilityChangedEvent(boolean visible) implements IEvent {}
     public record EnabledChangedEvent(boolean enabled) implements IEvent {}
     public record ResizableChangedEvent(boolean resizable) implements IEvent {}

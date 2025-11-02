@@ -84,7 +84,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         addEventListener(DLGuiStandardEvents.MultiClickEvent.class, (a, b) -> this.onMouseDown2(b.mouseX(), b.mouseY(), b.button()));
         addEventListener(DLGuiStandardEvents.ScrollEvent.class, (src, e) -> this.onScroll(e.mouseX(), e.mouseY(), e.deltaX(), e.deltaY()));
         addEventListener(DLGuiStandardEvents.DragEvent.class, this::onMouseDragged2);
-        addEventListener(DLGuiStandardEvents.MouseUpEvent.class, this::onMouseUp2);
+        addEventListener(DLGuiStandardEvents.MouseReleaseEvent.class, this::onMouseUp2);
 
         // TEST
         setTextCursor(0, true);
@@ -462,7 +462,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
         return true;
     }
 
-    public boolean onMouseUp2(DLGuiComponent src, DLGuiStandardEvents.MouseUpEvent event) {
+    public boolean onMouseUp2(DLGuiComponent src, DLGuiStandardEvents.MouseReleaseEvent event) {
         if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             this.isDragging = false;
         }

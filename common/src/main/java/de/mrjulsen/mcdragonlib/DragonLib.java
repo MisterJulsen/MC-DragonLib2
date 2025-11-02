@@ -3,6 +3,11 @@ package de.mrjulsen.mcdragonlib;
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.container.ModMenuTypes;
+import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
+import de.mrjulsen.mcdragonlib.client.gui.test.RedWindow;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
@@ -28,10 +33,13 @@ import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -128,10 +136,17 @@ public class DragonLib {
 
         DragonLibCrossPlatform.registerConfig();
         NetworkTest.init();
+        ModMenuTypes.register();
+        
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new); 
+                
+                MenuScreens.register(ModMenuTypes.TEST_MENU.get(), (TestContainerMenu menu, Inventory inventory, Component title) -> {
+                    DLScreenWrapper wrapper = new DLScreenWrapper(menu, root -> new RedWindow(menu, root));
+                    return wrapper;
+                });
             });
 
             DLOverlayManager.init();

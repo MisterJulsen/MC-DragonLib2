@@ -66,7 +66,7 @@ import com.google.common.collect.ImmutableSet;
     DLGuiStandardEvents.FocusChangedEvent.class,
     DLGuiStandardEvents.MouseDownEvent.class,
     DLGuiStandardEvents.MouseHoldDownEvent.class,
-    DLGuiStandardEvents.MouseUpEvent.class,
+    DLGuiStandardEvents.MouseReleaseEvent.class,
     DLGuiStandardEvents.MouseEnterEvent.class,
     DLGuiStandardEvents.MouseLeaveEvent.class,
     DLGuiStandardEvents.MouseMoveEvent.class,
@@ -90,6 +90,7 @@ import com.google.common.collect.ImmutableSet;
     DLGuiStandardEvents.DragComponentOverBeginEvent.class,
     DLGuiStandardEvents.DragComponentOverEndEvent.class,
     DLGuiStandardEvents.DragComponentOverEvent.class,
+    DLGuiStandardEvents.DraggingOverEvent.class,
     DLGuiStandardEvents.VisibilityChangedEvent.class,
     DLGuiStandardEvents.EnabledChangedEvent.class,
     DLGuiStandardEvents.ResizableChangedEvent.class,
@@ -726,7 +727,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             if (b) {
                 invokeEvent(this, new DLGuiStandardEvents.MouseDownEvent(mouseX, mouseY, button), true);
             } else {
-                invokeEvent(this, new DLGuiStandardEvents.MouseUpEvent(mouseX, mouseY, button), true);
+                invokeEvent(this, new DLGuiStandardEvents.MouseReleaseEvent(mouseX, mouseY, button), true);
                 ticksHoldingDown = 0;
             }
             this.mouseDown = b;
@@ -831,7 +832,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             }
             for (DLGuiComponent c : dragOverComponents) {
                 if (b) {
-                    c.setDragComponentOver(true, this, mouseX, mouseY);
+                    //c.setDragComponentOver(true, this, mouseX, mouseY);
                 } else {
                     c.invokeEvent(c, new DLGuiStandardEvents.DropComponentEvent(this, mouseX, mouseY), true);
                 }
@@ -852,17 +853,17 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     private boolean isComponentDraggedOver = false;
-    public boolean setDragComponentOver(boolean b, DLGuiComponent other, double mouseX, double mouseY) {
+    public boolean setDragComponentOver(boolean b, List<DLGuiComponent> other, double mouseX, double mouseY, int button) {
         boolean hasChanged = isComponentDraggedOver != b;
         if (hasChanged) {
             if (b) {
-                invokeEvent(this, new DLGuiStandardEvents.DragComponentOverBeginEvent(other, mouseX, mouseY), true);
+                invokeEvent(this, new DLGuiStandardEvents.DragComponentOverBeginEvent(other, mouseX, mouseY, button), true);
             } else {
-                invokeEvent(this, new DLGuiStandardEvents.DragComponentOverEndEvent(other, mouseX, mouseY), true);
+                invokeEvent(this, new DLGuiStandardEvents.DragComponentOverEndEvent(other, mouseX, mouseY, button), true);
             }
             this.isComponentDraggedOver = b;
         } else if (b) {
-            invokeEvent(this, new DLGuiStandardEvents.DragComponentOverEvent(other, mouseX, mouseY), true);
+            invokeEvent(this, new DLGuiStandardEvents.DragComponentOverEvent(other, mouseX, mouseY, button), true);
         }
         return hasChanged;
     }

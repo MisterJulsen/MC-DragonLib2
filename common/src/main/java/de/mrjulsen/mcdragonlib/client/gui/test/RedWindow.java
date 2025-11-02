@@ -4,6 +4,7 @@ import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
+import de.mrjulsen.mcdragonlib.client.gui.container.DLSlot;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
@@ -31,14 +32,22 @@ import de.mrjulsen.mcdragonlib.util.time.format.TimeFormatRFC3339;
 import de.mrjulsen.mcdragonlib.util.time.format.TimeFormatTicks;
 import de.mrjulsen.mcdragonlib.util.time.format.TimeFormaturVerboseDuration;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.Level;
 
-public class RedWindow extends DLWindow {
+public class RedWindow extends DLWindow implements MenuAccess<AbstractContainerMenu> {
     ArmorStand armorStandPreview;
+    AbstractContainerMenu menu;
 
-    public RedWindow(DLWindowManager manager) {
+    public RedWindow(AbstractContainerMenu menu, DLWindowManager manager) {
         super(manager);
+        this.menu = menu;
+        movable.set(true);
         //windowSpawnPosition.set(WindowPosition.CENTER);
         setPosition(50, 30);
         setSize(200, 200);
@@ -81,11 +90,24 @@ public class RedWindow extends DLWindow {
                     DragonLib.LOGGER.info("FILE SIZE IS: " + res.txt());
                 }, () -> {});
                 */
-                NetworkTest.SEND.send(NetworkDirection.toServer(), new TestData(DLStatus.OK, "SALZBUTTERMILCH"));
+                getWindowManager().createWindow(mgr -> {
+                    RedWindow z = new RedWindow(menu, mgr);
+                    return z;
+                });
             }
             return false;
         });
         addComponent(btn3);
+
+        if (Minecraft.getInstance().player != null) {
+            for (int a = 0; a < 4; a++) {
+                for (int i = 0; i < 9; i++) {
+                    System.out.println(menu + ": " + menu.slots.get(i).getItem().getItem());
+                    DLSlot slot = new DLSlot(10 + (i * 18), 10 + (a * 18), 18, 18, menu.slots.get(a * 9 + i), menu);
+                    addComponent(slot);
+                }
+            }
+        }
     }
 
     
@@ -144,6 +166,13 @@ public class RedWindow extends DLWindow {
             GuiUtils.renderEntityFollowingMouse(graphics, 50, 100, 2, (float)getWindowManager().mouseXOnScreen(), (float)getWindowManager().mouseYOnScreen(), Minecraft.getInstance().player, LightTexture.FULL_BRIGHT);
         }
             */
+    }
+
+
+
+    @Override
+    public AbstractContainerMenu getMenu() {
+        return menu;
     }
         
     

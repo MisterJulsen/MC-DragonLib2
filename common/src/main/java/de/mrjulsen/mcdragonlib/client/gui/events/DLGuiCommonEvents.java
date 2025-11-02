@@ -3,7 +3,7 @@ package de.mrjulsen.mcdragonlib.client.gui.events;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager.ModalId;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.ModalId;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.RichTextComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.action.InteractiveElement;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.ITextFormatter;

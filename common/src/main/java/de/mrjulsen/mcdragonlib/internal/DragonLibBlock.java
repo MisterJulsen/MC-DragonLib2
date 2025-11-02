@@ -1,10 +1,15 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import de.mrjulsen.mcdragonlib.client.gui.container.TestContainerMenu;
+import de.mrjulsen.mcdragonlib.util.TextUtils;
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
@@ -22,14 +27,6 @@ public class DragonLibBlock extends BaseEntityBlock {
         super(properties.noOcclusion());
     }
 
-    @Override
-    public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
-        if (Platform.isDevelopmentEnvironment() && level.isClientSide()) {
-            ClientWrapper.openTestScreen();
-        }
-        return InteractionResult.SUCCESS;
-    }
-
     public static class DragonLibItem extends BlockItem {
         public DragonLibItem(Block pBlock, Properties pProperties) {
             super(pBlock, pProperties.rarity(Rarity.EPIC));            
@@ -44,6 +41,23 @@ public class DragonLibBlock extends BaseEntityBlock {
     @Override
     public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
+    }
+
+    
+
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (pLevel.isClientSide) {
+            return InteractionResult.SUCCESS;
+        } else {
+            pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
+            return InteractionResult.CONSUME;
+        }
+    }
+
+    public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
+        return new SimpleMenuProvider((containerId, inv, player) -> {
+            return new TestContainerMenu(containerId, inv, ContainerLevelAccess.create(pLevel, pPos));
+        }, TextUtils.text(""));
     }
     
 }
