@@ -9,12 +9,7 @@ import com.mojang.math.Transformation;
 import net.minecraft.core.Direction;
 
 public interface TransformationExtensions {
-	/**
-	 * Apply this transformation to a different origin.
-	 * Can be used for switching between coordinate systems.
-	 * Parameter is relative to the current origin.
-	 */
-	default Transformation applyOrigin(Vector3f origin) {
+		default Transformation applyOrigin(Vector3f origin) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
@@ -39,17 +34,11 @@ public interface TransformationExtensions {
 		normal.normalize();
 	}
 
-	/**
-	 * convert transformation from assuming center-block system to opposing-corner-block system
-	 */
-	default Transformation blockCenterToCorner() {
+		default Transformation blockCenterToCorner() {
 		return applyOrigin(new Vector3f(.5f, .5f, .5f));
 	}
 
-	/**
-	 * convert transformation from assuming opposing-corner-block system to center-block system
-	 */
-	default Transformation blockCornerToCenter() {
+		default Transformation blockCornerToCenter() {
 		return applyOrigin(new Vector3f(-.5f, -.5f, -.5f));
 	}
 }

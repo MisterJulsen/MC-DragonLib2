@@ -27,12 +27,6 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 
-/**
- * A loader for {@link MultipartObjModel OBJ models}.
- * <p>
- * Allows the user to enable automatic face culling, toggle quad shading, flip UVs, render emissively and specify a
- * {@link ObjMaterialLibrary material library} override.
- */
 public class MultipartObjLoader implements ModelLoadingPlugin, IGeometryLoader<MultipartObjModel> {
     public static final ResourceLocation ID = new ResourceLocation(DragonLib.MODID, "multipart_obj");
 	public static final MultipartObjLoader INSTANCE = new MultipartObjLoader();

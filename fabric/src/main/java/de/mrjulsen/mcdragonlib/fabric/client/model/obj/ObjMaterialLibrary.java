@@ -15,9 +15,6 @@ import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * An OBJ material library (MTL), composed of named {@link Material materials}.
- */
 public class ObjMaterialLibrary {
 	public static final ObjMaterialLibrary EMPTY = new ObjMaterialLibrary();
 	final Map<String, Material> materials = Maps.newHashMap();
@@ -46,7 +43,7 @@ public class ObjMaterialLibrary {
 					break;
 
 				case "map_Ka":
-					// Ignores all options params
+					
 					currentMaterial.ambientColorMap = line[line.length - 1];
 					break;
 
@@ -59,7 +56,7 @@ public class ObjMaterialLibrary {
 					break;
 
 				case "map_Kd":
-					// Ignores all options params
+					
 					currentMaterial.diffuseColorMap = line[line.length - 1];
 					break;
 
@@ -72,16 +69,16 @@ public class ObjMaterialLibrary {
 					break;
 
 				case "map_Ks":
-					// Ignores all options params
+					
 					currentMaterial.specularColorMap = line[line.length - 1];
 					break;
 
 				case "d":
-					// Ignores all options params
+					
 					currentMaterial.dissolve = Float.parseFloat(line[1]);
 					break;
 				case "Tr":
-					// Ignores all options params
+					
 					currentMaterial.transparency = Float.parseFloat(line[1]);
 					break;
 			}
@@ -110,7 +107,7 @@ public class ObjMaterialLibrary {
 		public float dissolve = 1.0f;
 		public float transparency = 0.0f;
 
-		// non-standard
+		
 		public int diffuseTintIndex = 0;
 
 		public RenderMaterial getMaterial(Renderer renderer) {

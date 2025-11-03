@@ -1,7 +1,3 @@
-/*
- * Copyright (c) Forge Development LLC and contributors
- * SPDX-License-Identifier: LGPL-2.1-only
- */
 
 package de.mrjulsen.mcdragonlib.fabric.client.model.obj;
 
@@ -56,12 +52,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec2;
 
-/**
- * A model loaded from an OBJ file.
- * <p>
- * Supports positions, texture coordinates, normals and colors. The {@link ObjMaterialLibrary material library}
- * has support for numerous features, including support for {@link ResourceLocation} textures (non-standard).
- */
 public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 	public static final boolean ENABLED;
 	private static final Renderer renderer;
@@ -119,10 +109,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		return rootComponentNames;
 	}
 
-	/**
-	 * Bake from custom block model geometry
-	 */
-	@Override
+		@Override
 	public BakedModel bake(BlockModel owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d) {
 		ImmutableList<Mesh> meshes = bakeMeshes(owner, baker, spriteGetter, modelTransform);
 		TextureAtlasSprite particle = spriteGetter.apply(owner.getMaterial("particle"));
@@ -132,10 +119,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		);
 	}
 
-	/**
-	 * Bake from a standalone model
-	 */
-	@Nullable
+		@Nullable
 	@Override
 	public BakedModel bake(@NotNull ModelBaker baker, @NotNull Function<Material, TextureAtlasSprite> spriteGetter,
 						   @NotNull ModelState modelTransform, @NotNull ResourceLocation modelLocation) {
@@ -203,7 +187,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		}
 
 		boolean hasTransform = !((TransformationExtensions)(Object)transform).isIdentity();
-		// The incoming transform is referenced on the center of the block, but our coords are referenced on the corner
+		
 		Transformation transformation = hasTransform ? ((TransformationExtensions)(Object)transform).blockCenterToCorner() : transform;
 
 		Vector4f[] pos = new Vector4f[4];
@@ -245,46 +229,46 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 
 		Direction cull = null;
 		if (automaticCulling) {
-			if (Mth.equal(pos[0].x(), 0) && // vertex.position.x
+			if (Mth.equal(pos[0].x(), 0) && 
 					Mth.equal(pos[1].x(), 0) &&
 					Mth.equal(pos[2].x(), 0) &&
 					Mth.equal(pos[3].x(), 0) &&
-					norm[0].x() < 0) // vertex.normal.x
+					norm[0].x() < 0) 
 			{
 				cull = Direction.WEST;
-			} else if (Mth.equal(pos[0].x(), 1) && // vertex.position.x
+			} else if (Mth.equal(pos[0].x(), 1) && 
 					Mth.equal(pos[1].x(), 1) &&
 					Mth.equal(pos[2].x(), 1) &&
 					Mth.equal(pos[3].x(), 1) &&
-					norm[0].x() > 0) // vertex.normal.x
+					norm[0].x() > 0) 
 			{
 				cull = Direction.EAST;
-			} else if (Mth.equal(pos[0].z(), 0) && // vertex.position.z
+			} else if (Mth.equal(pos[0].z(), 0) && 
 					Mth.equal(pos[1].z(), 0) &&
 					Mth.equal(pos[2].z(), 0) &&
 					Mth.equal(pos[3].z(), 0) &&
-					norm[0].z() < 0) // vertex.normal.z
+					norm[0].z() < 0) 
 			{
-				cull = Direction.NORTH; // can never remember
-			} else if (Mth.equal(pos[0].z(), 1) && // vertex.position.z
+				cull = Direction.NORTH; 
+			} else if (Mth.equal(pos[0].z(), 1) && 
 					Mth.equal(pos[1].z(), 1) &&
 					Mth.equal(pos[2].z(), 1) &&
 					Mth.equal(pos[3].z(), 1) &&
-					norm[0].z() > 0) // vertex.normal.z
+					norm[0].z() > 0) 
 			{
 				cull = Direction.SOUTH;
-			} else if (Mth.equal(pos[0].y(), 0) && // vertex.position.y
+			} else if (Mth.equal(pos[0].y(), 0) && 
 					Mth.equal(pos[1].y(), 0) &&
 					Mth.equal(pos[2].y(), 0) &&
 					Mth.equal(pos[3].y(), 0) &&
-					norm[0].y() < 0) // vertex.normal.z
+					norm[0].y() < 0) 
 			{
-				cull = Direction.DOWN; // can never remember
-			} else if (Mth.equal(pos[0].y(), 1) && // vertex.position.y
+				cull = Direction.DOWN; 
+			} else if (Mth.equal(pos[0].y(), 1) && 
 					Mth.equal(pos[1].y(), 1) &&
 					Mth.equal(pos[2].y(), 1) &&
 					Mth.equal(pos[3].y(), 1) &&
-					norm[0].y() > 0) // vertex.normal.y
+					norm[0].y() > 0) 
 			{
 				cull = Direction.UP;
 			}
@@ -294,7 +278,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		quadBaker.emit();
 	}
 
-	// Honestly I don't know what the fuck this is doing... or if it will work across different renderer implementations
+	
 	private int encodeQuadColor(Vector4f colorTint) {
 		int r = (int) (colorTint.x() * 255.0F);
 		int g = (int) (colorTint.y() * 255.0F);

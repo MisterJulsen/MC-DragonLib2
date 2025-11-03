@@ -22,35 +22,21 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.CustomValue.CvType;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Manager for {@linkplain IGeometryLoader geometry loaders}.
- * <p>
- * Provides a lookup.
- */
 public final class GeometryLoaderManager {
 	private static ImmutableMap<ResourceLocation, IGeometryLoader<?>> LOADERS;
 	private static String LOADER_LIST;
 	public static final List<ResourceLocation> KNOWN_MISSING_LOADERS = new ArrayList<>();
 
-	/**
-	 * Finds the {@link IGeometryLoader} for a given name, or null if not found.
-	 */
-	@Nullable
+		@Nullable
 	public static IGeometryLoader<?> get(ResourceLocation name) {
 		return LOADERS.get(name);
 	}
 
-	/**
-	 * Retrieves a comma-separated list of all active loaders, for use in error messages.
-	 */
-	public static String getLoaderList() {
+		public static String getLoaderList() {
 		return LOADER_LIST;
 	}
 
-	/**
-	 * Get the ID of the model loader which should load the given JSON.
-	 */
-	@Nullable
+		@Nullable
 	public static String getModelLoader(JsonObject json) {
 		if (json.has(DragonLib.MODID + ":loader")) {
 			return GsonHelper.getAsString(json, DragonLib.MODID + ":loader");
@@ -70,19 +56,7 @@ public final class GeometryLoaderManager {
 		LOADER_LIST = loaders.keySet().stream().map(ResourceLocation::toString).collect(Collectors.joining(", "));
 	}
 
-	/**
-	 * Allows mods to let DragonLib know of model loaders implemented elsewhere, to prevent log spam.
-	 * to use, add a field to your FMJ: <pre>
-	 *     "custom": {
-	 *         "dragonlib:provided_loaders": [
-	 *             "my_mod:my_loader",
-	 *             "my_mod:my_other_loader"
-	 *         ]
-	 *     }
-	 * </pre>
-	 * These IDs will not be considered missing, and DragonLib will not interfere with models using them.
-	 */
-	private static void getProvidedLoaders(Map<ResourceLocation, IGeometryLoader<?>> loaders) {
+		private static void getProvidedLoaders(Map<ResourceLocation, IGeometryLoader<?>> loaders) {
 		List<ResourceLocation> providedLoaders = new ArrayList<>();
 		for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
 			CustomValue provided = mod.getMetadata().getCustomValue(DragonLib.MODID + ":provided_loaders");
@@ -116,7 +90,7 @@ public final class GeometryLoaderManager {
 				out.append(loader).append(", ");
 				loaders.put(loader, NullGeometryLoader.INSTANCE);
 			}
-			DragonLib.LOGGER.info(out.substring(0, out.length() - 2)); // cut off final ", "
+			DragonLib.LOGGER.info(out.substring(0, out.length() - 2)); 
 		}
 	}
 

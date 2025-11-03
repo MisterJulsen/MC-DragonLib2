@@ -3,9 +3,6 @@ package de.mrjulsen.mcdragonlib.fabric.client.model.geometry;
 import com.mojang.math.Transformation;
 import net.minecraft.client.resources.model.ModelState;
 
-/**
- * Simple implementation of {@link ModelState}.
- */
 public final class SimpleModelState implements ModelState {
 	private final Transformation transformation;
 	private final boolean uvLocked;

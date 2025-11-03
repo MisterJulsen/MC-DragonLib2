@@ -25,12 +25,12 @@ public class ObjParser {
 		var materialLibraryOverrideLocation = settings.mtlOverride();
 		var model = new ObjModel(settings);
 
-		// for relative references to material libraries
+		
 		String modelDomain = modelLocation.getNamespace();
 		String modelPath = modelLocation.getPath();
 		int lastSlash = modelPath.lastIndexOf('/');
 		if (lastSlash >= 0) {
-			modelPath = modelPath.substring(0, lastSlash + 1); // include the '/'
+			modelPath = modelPath.substring(0, lastSlash + 1); 
 		} else {
 			modelPath = "";
 		}
@@ -56,7 +56,7 @@ public class ObjParser {
 		String[] line;
 		while ((line = tokenizer.readAndSplitLine(true)) != null) {
 			switch (line[0]) {
-				case "mtllib": // Loads material library
+				case "mtllib": 
 				{
 					if (materialLibraryOverrideLocation != null) {
 						break;
@@ -71,7 +71,7 @@ public class ObjParser {
 					break;
 				}
 
-				case "usemtl": // Sets the current material (starts new mesh)
+				case "usemtl": 
 				{
 					String mat = Strings.join(Arrays.copyOfRange(line, 1, line.length), " ");
 					ObjMaterialLibrary.Material newMat = mtllib.getMaterial(mat);
@@ -80,27 +80,27 @@ public class ObjParser {
 						if (currentMesh != null && currentMesh.mat == null && currentMesh.faces.size() == 0) {
 							currentMesh.mat = currentMat;
 						} else {
-							// Start new mesh
+							
 							currentMesh = null;
 						}
 					}
 					break;
 				}
 
-				case "v": // Vertex
+				case "v": 
 					model.positions.add(parseVector4To3(line));
 					break;
-				case "vt": // Vertex texcoord
+				case "vt": 
 					model.texCoords.add(parseVector2(line));
 					break;
-				case "vn": // Vertex normal
+				case "vn": 
 					model.normals.add(parseVector3(line));
 					break;
-				case "vc": // Vertex color (non-standard)
+				case "vc": 
 					model.colors.add(parseVector4(line));
 					break;
 
-				case "f": // Face
+				case "f": 
 				{
 					if (currentMesh == null) {
 						currentMesh = model.new ModelMesh(currentMat, currentSmoothingGroup);
@@ -154,7 +154,7 @@ public class ObjParser {
 					break;
 				}
 
-				case "s": // Smoothing group (starts new mesh)
+				case "s": 
 				{
 					String smoothingGroup = "off".equals(line[1]) ? null : line[1];
 					if (!Objects.equals(currentSmoothingGroup, smoothingGroup)) {
@@ -162,7 +162,7 @@ public class ObjParser {
 						if (currentMesh != null && currentMesh.smoothingGroup == null && currentMesh.faces.size() == 0) {
 							currentMesh.smoothingGroup = currentSmoothingGroup;
 						} else {
-							// Start new mesh
+							
 							currentMesh = null;
 						}
 					}
@@ -179,7 +179,7 @@ public class ObjParser {
 						model.parts.put(name, currentGroup);
 						currentObject = null;
 					}
-					// Start new mesh
+					
 					currentMesh = null;
 					break;
 				}
@@ -196,7 +196,7 @@ public class ObjParser {
 						currentObject = model.new ModelObject(currentGroup.name() + "/" + name);
 						currentGroup.parts.put(name, currentObject);
 					}
-					// Start new mesh
+					
 					currentMesh = null;
 					break;
 				}

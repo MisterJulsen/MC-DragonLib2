@@ -18,11 +18,6 @@ import net.minecraft.client.resources.model.SimpleBakedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * A completely empty model with no quads or texture dependencies.
- * <p>
- * You can access it as a {@link BakedModel}, an {@link IUnbakedGeometry} or an {@link IGeometryLoader}.
- */
 public class EmptyModel implements IUnbakedGeometry<EmptyModel> {
 	public static final BakedModel BAKED = new Baked();
 	public static final EmptyModel INSTANCE = new EmptyModel();
@@ -37,7 +32,7 @@ public class EmptyModel implements IUnbakedGeometry<EmptyModel> {
 
 	@Override
 	public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, BlockModel context) {
-		// NO-OP
+		
 	}
 
 	private static class Baked extends SimpleBakedModel {

@@ -14,11 +14,6 @@ import org.joml.Vector4f;
 
 import java.util.Arrays;
 
-/**
- * A collection of {@link net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform} implementations.
- *
- * @see net.fabricmc.fabric.api.renderer.v1.render.RenderContext.QuadTransform
- */
 public final class QuadTransformers {
 
 	private static final RenderContext.QuadTransform EMPTY = quad -> {
@@ -29,17 +24,11 @@ public final class QuadTransformers {
 		Arrays.setAll(array, i -> applyingLightmap(LightTexture.pack(i, i)));
 	});
 
-	/**
-	 * {@return a {@link MutableQuadView} transformer that does nothing}
-	 */
-	public static RenderContext.QuadTransform empty() {
+		public static RenderContext.QuadTransform empty() {
 		return EMPTY;
 	}
 
-	/**
-	 * {@return a new {@link MutableQuadView} transformer that applies the specified {@link Transformation }}
-	 */
-	public static RenderContext.QuadTransform applying(Transformation transform) {
+		public static RenderContext.QuadTransform applying(Transformation transform) {
 		TransformationExtensions transformExt = (TransformationExtensions)(Object)transform;
 		if (transformExt.isIdentity())
 			return empty();
@@ -72,10 +61,7 @@ public final class QuadTransformers {
 		};
 	}
 
-	/**
-	 * @return A new {@link MutableQuadView} transformer that applies the specified packed light value.
-	 */
-	public static RenderContext.QuadTransform applyingLightmap(int packedLight) {
+		public static RenderContext.QuadTransform applyingLightmap(int packedLight) {
 		return quad -> {
 			for (int i = 0; i < 4; i++)
 				quad.lightmap(i, packedLight);
@@ -83,33 +69,20 @@ public final class QuadTransformers {
 		};
 	}
 
-	/**
-	 * @return A new {@link MutableQuadView} transformer that applies the specified block and sky light values.
-	 */
-	public static RenderContext.QuadTransform applyingLightmap(int blockLight, int skyLight) {
+		public static RenderContext.QuadTransform applyingLightmap(int blockLight, int skyLight) {
 		return applyingLightmap(LightTexture.pack(blockLight, skyLight));
 	}
 
-	/**
-	 * @return A {@link MutableQuadView} transformer that sets the lightmap to the given emissivity (0-15)
-	 */
-	public static RenderContext.QuadTransform settingEmissivity(int emissivity) {
+		public static RenderContext.QuadTransform settingEmissivity(int emissivity) {
 		Preconditions.checkArgument(emissivity >= 0 && emissivity < 16, "Emissivity must be between 0 and 15.");
 		return EMISSIVE_TRANSFORMERS[emissivity];
 	}
 
-	/**
-	 * @return A {@link MutableQuadView} transformer that sets the lightmap to its max value
-	 */
-	public static RenderContext.QuadTransform settingMaxEmissivity() {
+		public static RenderContext.QuadTransform settingMaxEmissivity() {
 		return EMISSIVE_TRANSFORMERS[15];
 	}
 
-	/**
-	 * @param color The color in ARGB format.
-	 * @return A {@link MutableQuadView} transformer that sets the color to the specified value.
-	 */
-	@SuppressWarnings("deprecation")
+		@SuppressWarnings("deprecation")
 	public static RenderContext.QuadTransform applyingColor(int color) {
 		final int fixedColor = toABGR(color);
 		return quad -> {
@@ -119,38 +92,18 @@ public final class QuadTransformers {
 		};
 	}
 
-	/**
-	 * This method supplies a default alpha value of 255 (no transparency)
-	 * @param red The red value (0-255)
-	 * @param green The green value (0-255)
-	 * @param blue The blue value (0-255)
-	 * @return A {@link MutableQuadView} transformer that sets the color to the specified value.
-	 */
-	public static RenderContext.QuadTransform applyingColor(int red, int green, int blue) {
+		public static RenderContext.QuadTransform applyingColor(int red, int green, int blue) {
 		return applyingColor(255, red, green, blue);
 	}
 
-	/**
-	 * @param alpha The alpha value (0-255)
-	 * @param red The red value (0-255)
-	 * @param green The green value (0-255)
-	 * @param blue The blue value (0-255)
-	 * @return A {@link MutableQuadView} transformer that sets the color to the specified value.
-	 */
-	public static RenderContext.QuadTransform applyingColor(int alpha, int red, int green, int blue) {
+		public static RenderContext.QuadTransform applyingColor(int alpha, int red, int green, int blue) {
 		return applyingColor(alpha << 24 | red << 16 | green << 8 | blue);
 	}
 
-	/**
-	 * Converts an ARGB color to an ABGR color, as the commonly used color format is not the format colors end up packed into.
-	 * This function doubles as its own inverse.
-	 * @param color ARGB color
-	 * @return ABGR color
-	 */
-	public static int toABGR(int color) {
-		return (color & 0xFF00FF00) // alpha and green same spot
-				| ((color >> 16) & 0x000000FF) // red moves to blue
-				| ((color << 16) & 0x00FF0000); // blue moves to red
+		public static int toABGR(int color) {
+		return (color & 0xFF00FF00) 
+				| ((color >> 16) & 0x000000FF) 
+				| ((color << 16) & 0x00FF0000); 
 	}
 
 	private QuadTransformers() {}

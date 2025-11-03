@@ -14,11 +14,6 @@ import com.google.common.base.Charsets;
 
 import joptsimple.internal.Strings;
 
-/**
- * A tokenizer for OBJ and MTL files.
- * <p>
- * Joins split lines and ignores comments.
- */
 public class ObjTokenizer implements AutoCloseable {
 	private final BufferedReader lineReader;
 
@@ -28,7 +23,7 @@ public class ObjTokenizer implements AutoCloseable {
 
 	@Nullable
 	public String[] readAndSplitLine(boolean ignoreEmptyLines) throws IOException {
-		//noinspection LoopConditionNotUpdatedInsideLoop
+		
 		do {
 			String currentLine = lineReader.readLine();
 			if (currentLine == null) {

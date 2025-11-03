@@ -28,12 +28,6 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 
-/**
- * A loader for {@link ObjModel OBJ models}.
- * <p>
- * Allows the user to enable automatic face culling, toggle quad shading, flip UVs, render emissively and specify a
- * {@link ObjMaterialLibrary material library} override.
- */
 public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> {
 	public static final ResourceLocation ID = DLUtils.resourceLocation("forge:obj");
 	public static final ObjLoader INSTANCE = new ObjLoader();
@@ -44,7 +38,7 @@ public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> 
 
 	@Override
 	public void onInitializeModelLoader(Context ctx) {
-		// called every reload, clear caches
+		
 		modelCache.clear();
 		materialCache.clear();
 
@@ -52,10 +46,7 @@ public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> 
 		ctx.resolveModel().register(new Resolver());
 	}
 
-	/**
-	 * models/misc is automatically scanned for OBJ models.
-	 */
-	private void findModels(Consumer<ResourceLocation> out) {
+		private void findModels(Consumer<ResourceLocation> out) {
 		ResourceManager manager = getResourceManager();
 		manager.listResources("models/misc", id -> {
 			if (id.getPath().endsWith(".json")) {
@@ -91,15 +82,12 @@ public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> 
 					GsonHelper.getAsBoolean(json, "emissiveAmbient", true),
 					GsonHelper.getAsString(json, "mtlOverride", null)
 			));
-		} catch (RuntimeException e) { // ID parse fail, json parse fail
+		} catch (RuntimeException e) { 
 			return Either.right(e);
 		}
 	}
 
-	/**
-	 * Load an OBJ model as a block model's geometry.
-	 */
-	@Override
+		@Override
 	public ObjModel read(JsonObject jsonObject, JsonDeserializationContext deserializationContext) {
 		return tryReadSettings(jsonObject).map(this::loadModel, exception -> {
 			throw new JsonParseException("Error loading OBJ model settings", exception);

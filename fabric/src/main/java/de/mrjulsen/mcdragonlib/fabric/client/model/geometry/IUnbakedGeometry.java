@@ -13,33 +13,17 @@ import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * General interface for any model that can be baked, superset of vanilla {@link UnbakedModel}.
- * <p>
- * Instances of this class ar usually created via {@link IGeometryLoader}.
- *
- * @see IGeometryLoader
- * @see BlockModel
- */
 public interface IUnbakedGeometry<T extends IUnbakedGeometry<T>> {
 	BakedModel bake(
 			BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
 			ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d
 	);
 
-	/**
-	 * Resolve parents of nested {@link BlockModel}s which are later used in
-	 * {@link IUnbakedGeometry#bake(BlockModel, ModelBaker, Function, ModelState, ItemOverrides, ResourceLocation, boolean)}
-	 * via {@link BlockModel#resolveParents(Function)}
-	 */
-	default void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, BlockModel context) {
+		default void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, BlockModel context) {
 
 	}
 
-	/**
-	 * {@return a set of all the components whose visibility may be configured via {@link BlockModel}}
-	 */
-	default Set<String> getConfigurableComponentNames() {
+		default Set<String> getConfigurableComponentNames() {
 		return Set.of();
 	}
 }
