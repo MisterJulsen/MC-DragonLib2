@@ -342,7 +342,7 @@ public final class DLColor {
                 resG = g1 - g2;
                 resB = b1 - b2;
                 break;
-            case MULTIPLY: // TODO remove clamp
+            case MULTIPLY:
                 resR = MathUtils.clamp(r1 * r2, 0, 255);
                 resG = MathUtils.clamp(g1 * g2, 0, 255);
                 resB = MathUtils.clamp(b1 * b2, 0, 255);

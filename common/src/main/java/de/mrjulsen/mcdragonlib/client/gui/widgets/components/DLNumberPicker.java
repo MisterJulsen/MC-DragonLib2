@@ -4,7 +4,6 @@ import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
@@ -14,18 +13,23 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemE
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaSimpleButtonRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaTextBoxRenderer;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.DLAbstractRichTextInputField;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.INumberFormatAdapter;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 
 @SupportsEvents({
-    DLGuiCommonEvents.ValueChangedEvent.class,
-    DLGuiCommonEvents.ValueRangeChangedEvent.class
+    DLNumberPicker.ValueChangedEvent.class,
+    DLNumberPicker.ValueRangeChangedEvent.class
 })
 public class DLNumberPicker extends DLGuiComponent {
+    
+    public record ValueChangedEvent(double value) implements IEvent {}
+    public record ValueRangeChangedEvent(double min, double max) implements IEvent {}
 
     private static final int BUTTON_WIDTH = 16;
 
@@ -39,7 +43,7 @@ public class DLNumberPicker extends DLGuiComponent {
     public final NumberProperty<Double> min = new NumberProperty<Double>(0D);
     public final NumberProperty<Double> max = new NumberProperty<Double>(100D);
     public final NumberProperty<Double> value = new NumberProperty<Double>(0D, () -> min.get(), () -> max.get())
-        .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLGuiCommonEvents.ValueChangedEvent(val)));
+        .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLNumberPicker.ValueChangedEvent(val)));
     public final Property<INumberFormatAdapter> format = new Property<>(new INumberFormatAdapter.DecimalNumberFormat(0));
     public final Property<IStateRenderer<DLButton.ButtonState>> buttonsComponentRenderer = new Property<>(VanillaSimpleButtonRenderer.VANILLA_BUTTON_GRAY);
     public final Property<IStateRenderer<DLRichTextEditBox.TextBoxState>> textboxComponentRenderer = new Property<>(VanillaTextBoxRenderer.VANILLA_TEXTBOX);
@@ -103,7 +107,7 @@ public class DLNumberPicker extends DLGuiComponent {
         });
         addComponent(subBtn);
 
-        addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (src, event) -> {
+        addEventListener(DLNumberPicker.ValueChangedEvent.class, (src, event) -> {
             updateTextboxValue();
             return false;
         });
@@ -119,11 +123,11 @@ public class DLNumberPicker extends DLGuiComponent {
             }
             return false;
         });
-        textBox.addEventListener(DLGuiCommonEvents.TextAcceptKeyPressedEvent.class, (src, event) -> {
+        textBox.addEventListener(DLAbstractRichTextInputField.TextAcceptKeyPressedEvent.class, (src, event) -> {
             updateValueFromTextbox();
             return false;
         });
-        textBox.addEventListener(DLGuiCommonEvents.TextCancelKeyPressedEvent.class, (src, event) -> {
+        textBox.addEventListener(DLAbstractRichTextInputField.TextCancelKeyPressedEvent.class, (src, event) -> {
             updateTextboxValue();
             return false;
         });
@@ -131,8 +135,8 @@ public class DLNumberPicker extends DLGuiComponent {
         updateTextboxValue();
         updateButtons();
         
-        this.min.withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLGuiCommonEvents.ValueRangeChangedEvent(min.get(), max.get())));
-        this.max.withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLGuiCommonEvents.ValueRangeChangedEvent(min.get(), max.get())));
+        this.min.withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLNumberPicker.ValueRangeChangedEvent(min.get(), max.get())));
+        this.max.withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLNumberPicker.ValueRangeChangedEvent(min.get(), max.get())));
         this.showButtons.withAfterPropertyChangedCallback((o, val) -> {
             updateButtons();
             if (val) {

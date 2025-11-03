@@ -7,7 +7,6 @@ import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
@@ -44,7 +43,7 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
  * </ul>
  */
 @SupportsEvents({
-    DLGuiCommonEvents.BackgroundColorChangedEvent.class,
+    DLScrollBar.BackgroundColorChangedEvent.class,
     DLScrollBar.ValueChangedEvent.class,
     DLScrollBar.MaxValueChangedEvent.class,
     DLScrollBar.ScreenSizeChangedEvent.class,
@@ -52,6 +51,7 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 })
 public class DLScrollBar extends DLGuiComponent {
 
+    public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
     public record ValueChangedEvent(double value) implements IEvent {}
     public record MaxValueChangedEvent(int max) implements IEvent {}
     public record ScreenSizeChangedEvent(int size) implements IEvent {}
@@ -134,7 +134,7 @@ public class DLScrollBar extends DLGuiComponent {
      */
     @InheritableProperty(overrideLocal = false)
     public final ColorProperty backgroundTint = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
-        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLGuiCommonEvents.BackgroundColorChangedEvent(a), true));
+        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLScrollBar.BackgroundColorChangedEvent(a), true));
 
     public final Property<IStateRenderer<ScrollBarState>> componentRenderer = new Property<>(VanillaContainerScrollBarRenderer.VANILLA_SCROLLBAR);
     public final Property<IStateRenderer<DLButton.ButtonState>> buttonsComponentRenderer = new Property<>(VanillaSimpleButtonRenderer.VANILLA_BUTTON_GRAY);

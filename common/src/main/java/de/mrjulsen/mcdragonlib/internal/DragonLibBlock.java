@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -54,7 +55,7 @@ public class DragonLibBlock extends BaseEntityBlock {
 
     public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
         return new SimpleMenuProvider((containerId, inv, player) -> {
-            return new TestContainerMenu(containerId, inv, ContainerLevelAccess.create(pLevel, pPos));
+            return new PlayerInventoryContainerMenu.Base(containerId, inv, ContainerLevelAccess.create(pLevel, pPos));
         }, TextUtils.text(""));
     }
     

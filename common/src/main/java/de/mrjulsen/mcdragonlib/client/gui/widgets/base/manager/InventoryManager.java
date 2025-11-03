@@ -227,6 +227,22 @@ public class InventoryManager implements IGuiManagementComponent {
         this.quickdropTime = quickdropTime;
     }
 
+
+    /*
+    protected void slotClicked(int slotId, int mouseButton, ClickType type) {
+        Minecraft.getInstance().gameMode.handleInventoryMouseClick(windowManager.getMenu().containerId, slotId, mouseButton, type, Minecraft.getInstance().player);
+    }
+
+    @Override
+    public boolean mouseClicked(Phase phase, boolean consumed, double mouseX, double mouseY, int button) {
+        if (phase == Phase.POST && !consumed && isHoldingItem() && getLastClickedSlot() != null) {
+            this.slotClicked(getLastClickedSlot().getSlot().index, button, ClickType.THROW);
+            return true;
+        }
+        return false;
+    }
+        */
+
     @Override
     public void render(Phase phase, DLGuiGraphics graphics, int mouseX, int mouseY, RenderLayer layer) {
         if (phase != Phase.POST && layer != RenderLayer.FRONT) {

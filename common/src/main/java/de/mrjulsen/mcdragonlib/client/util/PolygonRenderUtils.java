@@ -104,7 +104,7 @@ public final class PolygonRenderUtils {
         float blue  = color.getBlueF();
 
         int n = points.size();
-        boolean ccw = polygonArea(points) > 0; // true = CCW
+        boolean ccw = polygonArea(points) > 0;
 
         Vector2f[] miters = new Vector2f[n];
         for (int i = 0; i < n; i++) {
@@ -113,7 +113,6 @@ public final class PolygonRenderUtils {
             Vector2f pNext = points.get((i + 1) % n);
 
             Vector2f dirPrev = new Vector2f(pCurr).sub(pPrev).normalize();
-            // für outward: normales Vorzeichen umdrehen
             Vector2f normalPrev = new Vector2f(ccw ? -dirPrev.y : dirPrev.y, ccw ? dirPrev.x : -dirPrev.x);
 
             Vector2f dirNext = new Vector2f(pNext).sub(pCurr).normalize();
@@ -134,20 +133,17 @@ public final class PolygonRenderUtils {
             Vector2f m0 = miters[i];
             Vector2f m1 = miters[(i + 1) % n];
 
-            // dieses Mal sind die Input-Punkte die INNERE Hülle
-            Vector2f v0 = new Vector2f(p0).add(m0); // outward
-            Vector2f v1 = new Vector2f(p1).add(m1); // outward
-            Vector2f v2 = new Vector2f(p1);         // original (innen)
-            Vector2f v3 = new Vector2f(p0);         // original (innen)
+            Vector2f v0 = new Vector2f(p0).add(m0);
+            Vector2f v1 = new Vector2f(p1).add(m1);
+            Vector2f v2 = new Vector2f(p1);
+            Vector2f v3 = new Vector2f(p0);
 
             if (!isCCW(v0, v1, v2)) {
-                // CCW
                 vertexConsumer.vertex(matrix, v0.x, v0.y, 0).color(red, green, blue, alpha).endVertex();
                 vertexConsumer.vertex(matrix, v1.x, v1.y, 0).color(red, green, blue, alpha).endVertex();
                 vertexConsumer.vertex(matrix, v2.x, v2.y, 0).color(red, green, blue, alpha).endVertex();
                 vertexConsumer.vertex(matrix, v3.x, v3.y, 0).color(red, green, blue, alpha).endVertex();
             } else {
-                // CW -> umdrehen
                 vertexConsumer.vertex(matrix, v0.x, v0.y, 0).color(red, green, blue, alpha).endVertex();
                 vertexConsumer.vertex(matrix, v3.x, v3.y, 0).color(red, green, blue, alpha).endVertex();
                 vertexConsumer.vertex(matrix, v2.x, v2.y, 0).color(red, green, blue, alpha).endVertex();

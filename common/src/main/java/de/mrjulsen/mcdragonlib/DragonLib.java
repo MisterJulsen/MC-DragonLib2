@@ -3,16 +3,11 @@ package de.mrjulsen.mcdragonlib;
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntityRenderer;
-import de.mrjulsen.mcdragonlib.internal.ModMenuTypes;
-import de.mrjulsen.mcdragonlib.internal.NetworkTest;
-import de.mrjulsen.mcdragonlib.internal.RedWindow;
-import de.mrjulsen.mcdragonlib.internal.TestContainerMenu;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketType;
@@ -32,13 +27,10 @@ import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -134,20 +126,20 @@ public class DragonLib {
         initialized = true;
 
         DragonLibCrossPlatform.registerConfig();
-        NetworkTest.init();
-        ModMenuTypes.register();
+        //NetworkTest.init();
+        //ModMenuTypes.register();
         
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
-                BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new); 
-                
-                MenuScreens.register(ModMenuTypes.TEST_MENU.get(), (TestContainerMenu menu, Inventory inventory, Component title) -> {
-                    DLScreenWrapper<TestContainerMenu> wrapper = new DLScreenWrapper<>(menu, RedWindow::new);
+                BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
+                /*                
+                MenuScreens.register(ModMenuTypes.PLAYER_INVENTORY.get(), (PlayerInventoryContainerMenu.Base menu, Inventory inventory, Component title) -> {
+                    DLScreenWrapper<PlayerInventoryContainerMenu.Base> wrapper = new DLScreenWrapper<>(menu, DLPlayerInventoryWindow::new);
                     return wrapper;
                 });
+                */
             });
-
             DLOverlayManager.init();
             //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }
@@ -195,18 +187,6 @@ public class DragonLib {
         Level level = getPhysicalLevel();
         return level == null ? 0 : level.getDayTime();
     }
-    
-    /*
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static void registerCustom(Class<BasicDataAccessorPacket> c) {
-        try {
-            BasicDataAccessorPacket packet = c.getConstructor().newInstance();
-            getDragonLibNetworkManager().CHANNEL.register(c, packet::encode, (buf) -> (BasicDataAccessorPacket)packet.decode(buf), packet::handle);
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-            DragonLib.LOGGER.error("Unable to register packet.", e);
-        }
-    }
-        */
 
     /**
      * Why 🐲? Because I can. Let me bee 🐝

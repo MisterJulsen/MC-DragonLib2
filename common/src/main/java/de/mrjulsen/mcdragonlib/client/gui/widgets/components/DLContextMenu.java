@@ -3,7 +3,6 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
@@ -39,7 +38,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
             super(manager);
             setSize(menu.width(), menu.height());
             anchor.set(EAlign.values());
-            addEventListener(DLGuiCommonEvents.WindowFocusEvent.class, (src, e) -> {
+            addEventListener(DLWindow.WindowFocusEvent.class, (src, e) -> {
                 if (!e.focus()) {
                     for (DLWindow win : getWindowManager().getWindows(this.getAssignedModal().get())) {
                         if (win instanceof DLContextMenuWindow && getWindowManager().getFocusedWindow() == win)

@@ -3,7 +3,6 @@ package de.mrjulsen.mcdragonlib.client.gui.builtin;
 import java.util.function.Consumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
@@ -89,7 +88,7 @@ public class DLColorPickerWindow extends DLWindow {
         r.showButtons.set(false);
         r.max.set(255D);
         r.format.set(new INumberFormatAdapter.DecimalNumberFormat(0));
-        r.addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (s, e) -> {
+        r.addEventListener(DLNumberPicker.ValueChangedEvent.class, (s, e) -> {
             if (skipValueUpdate) return false;
             skipValueUpdate = true;
             DLColor color = picker.color.get();
@@ -108,7 +107,7 @@ public class DLColorPickerWindow extends DLWindow {
         g.showButtons.set(false);
         g.max.set(255D);
         g.format.set(new INumberFormatAdapter.DecimalNumberFormat(0));
-        g.addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (s, e) -> {
+        g.addEventListener(DLNumberPicker.ValueChangedEvent.class, (s, e) -> {
             if (skipValueUpdate) return false;
             skipValueUpdate = true;
             DLColor color = picker.color.get();            
@@ -127,7 +126,7 @@ public class DLColorPickerWindow extends DLWindow {
         b.showButtons.set(false);
         b.max.set(255D);
         b.format.set(new INumberFormatAdapter.DecimalNumberFormat(0));        
-        b.addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (s, e) -> {
+        b.addEventListener(DLNumberPicker.ValueChangedEvent.class, (s, e) -> {
             if (skipValueUpdate) return false;
             skipValueUpdate = true;
             DLColor color = picker.color.get();            
@@ -148,7 +147,7 @@ public class DLColorPickerWindow extends DLWindow {
             a.showButtons.set(false);
             a.max.set(100D);
             a.format.set(new INumberFormatAdapter.UnitNumberFormat(0, "%"));      
-            a.addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (s, e) -> {
+            a.addEventListener(DLNumberPicker.ValueChangedEvent.class, (s, e) -> {
                 if (skipValueUpdate) return false;
                 skipValueUpdate = true;
                 DLColor color = picker.color.get();
@@ -165,7 +164,7 @@ public class DLColorPickerWindow extends DLWindow {
         hex.min.set((double)Integer.MIN_VALUE);
         hex.max.set((double)Integer.MAX_VALUE);
         hex.format.set(new INumberFormatAdapter.HexARGBColorFormat(showAlpha));   
-        hex.addEventListener(DLGuiCommonEvents.ValueChangedEvent.class, (s, e) -> {
+        hex.addEventListener(DLNumberPicker.ValueChangedEvent.class, (s, e) -> {
             if (skipValueUpdate) return false;
             skipValueUpdate = true;
             picker.color.set(DLColor.fromInt(hex.value.get().intValue()));

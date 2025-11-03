@@ -6,8 +6,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
@@ -20,6 +20,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
@@ -29,11 +30,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 
 @SupportsEvents({
-    DLGuiCommonEvents.CaptionChangedEvent.class,
-    DLGuiCommonEvents.BackgroundColorChangedEvent.class,
-    DLGuiCommonEvents.TextColorChangedEvent.class
+    DLButton.CaptionChangedEvent.class,
+    DLButton.BackgroundColorChangedEvent.class,
+    DLButton.TextColorChangedEvent.class
 })
 public class DLButton extends DLGuiComponent {
+    
+    public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
+    public record TextColorChangedEvent(DLColor color) implements IEvent {}
+    public record CaptionChangedEvent(Component text) implements IEvent {}
 
     public static enum ButtonState {
         NORMAL,
@@ -47,17 +52,20 @@ public class DLButton extends DLGuiComponent {
     public final EventListenerId defaultButtonClickEventId;
 
     public final Property<Component> text = new Property<Component>(TextUtils.text(getClass().getSimpleName()))
-        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLGuiCommonEvents.CaptionChangedEvent(a), true));
+        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.CaptionChangedEvent(a), true));
     @InheritableProperty(overrideLocal = false)
     public final ColorProperty textColor = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
-        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLGuiCommonEvents.TextColorChangedEvent(a), true));
+        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.TextColorChangedEvent(a), true));
     @InheritableProperty(overrideLocal = false)
     public final ColorProperty backgroundTint = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
-        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLGuiCommonEvents.BackgroundColorChangedEvent(a), true));
+        .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.BackgroundColorChangedEvent(a), true));
     public final Property<IStateRenderer<ButtonState>> componentRenderer = new Property<>(VanillaButtonRenderer.VANILLA_BUTTONS);
     public final Property<DLSprite> icon = new Property<>(DLSprite.empty());
     public final Property<ETextAlignment> textAlignment = new Property<>(ETextAlignment.CENTER);
     public final Property<ETextAlignment> iconAlignment = new Property<>(ETextAlignment.CENTER);
+    
+    @InheritableProperty(overrideLocal = false)
+    public final BooleanProperty drawFontShadow = new BooleanProperty(true, true);
 
 
     public DLButton(int x, int y) {
@@ -186,7 +194,7 @@ public class DLButton extends DLGuiComponent {
             buttonText,
             enabled.get() ? DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR : DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR,
             ETextAlignment.LEFT,
-            true
+            drawFontShadow.get()
         );
 
         GuiUtils.resetTint();

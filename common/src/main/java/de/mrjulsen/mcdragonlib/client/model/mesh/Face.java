@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.model.ModelUtils;
 import de.mrjulsen.mcdragonlib.util.DLColor;
+import de.mrjulsen.mcdragonlib.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -336,11 +337,11 @@ public class Face implements ITransformable<Face> {
         return ImmutableList.copyOf(edges);
     }
 
-    public Edge[] /* TODO: Pair */ getEdgesAtCorner(CornerType corner) {
-        return new Edge[] {
+    public Pair<Edge, Edge> getEdgesAtCorner(CornerType corner) {
+        return new Pair<>(
             edges.get((corner.index() + 1) % EdgeType.values().length), // behind
             edges.get(corner.index()) // in front
-        };
+        );
     }
 
     void updateVertices(UnaryOperator<Vertex> replaceFunc) {

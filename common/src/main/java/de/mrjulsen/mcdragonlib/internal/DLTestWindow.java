@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.lwjgl.glfw.GLFW;
 
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
@@ -136,7 +135,7 @@ public class DLTestWindow extends DLWindow {
         textbox.contentPadding.set(new Padding(2));
         textbox.decoratedPadding.set(new Padding(1));
         textbox.acceptAndCancelKeysEnabled.set(true);
-        textbox.addEventListener(DLGuiCommonEvents.TextAcceptKeyPressedEvent.class, (src, e) -> {
+        textbox.addEventListener(DLRichTextEditBox.TextAcceptKeyPressedEvent.class, (src, e) -> {
             txt = textbox.text.get().toComponent();
             return false;
         });

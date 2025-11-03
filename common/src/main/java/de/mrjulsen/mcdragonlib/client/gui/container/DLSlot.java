@@ -12,13 +12,14 @@ import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents.MouseReleas
 import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.manager.InventoryManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.render.ILayeredStateRenderer;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaSlotRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -31,8 +32,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag.Default;
 
 public class DLSlot extends DLGuiComponent {
+    
+    public static enum SlotState {
+        NORMAL,
+        DISABLED,
+        SELECTED,
+        DISABLED_SELECTED;
+    }
 
     public final Property<DLSprite> icon = new Property<DLSprite>(DLSprite.empty());
+    public final Property<ILayeredStateRenderer<SlotState>> componentRenderer = new Property<>(VanillaSlotRenderer.VANILLA_SLOT);
 
     public final AbstractContainerMenu menu;
     private final Slot slot;
@@ -321,7 +330,16 @@ public class DLSlot extends DLGuiComponent {
             }
         }
 
-        DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, 0, 0, width(), height());
+        if (!enabled.get() && isMouseOver(mouseX, mouseY)) {
+            componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, SlotState.DISABLED_SELECTED);
+        } else if (!enabled.get()) {
+            componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, SlotState.DISABLED);
+        } else if (isSelected()) {
+            componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, SlotState.SELECTED);
+        } else {
+            componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, SlotState.NORMAL);
+        }
+        
         if (itemStack.isEmpty() && slot.isActive()) {
             DLSprite sprite = icon.get();
             sprite.render(graphics, width() / 2 - sprite.getWidth() / 2, height() / 2 - sprite.getHeight() / 2);
@@ -335,8 +353,16 @@ public class DLSlot extends DLGuiComponent {
             GuiUtils.renderItemDecoration(graphics, itemStack, 1, 1, 1, string);
         }
 
-        if (isSelected()) {
-            GuiUtils.fill(graphics, 1, 1, 16, 16, DLColor.fromInt(-2130706433));
+        
+
+        if (!enabled.get() && isMouseOver(mouseX, mouseY)) {
+            componentRenderer.get().renderSpritePost(graphics, 0, 0, width(), height(), this, SlotState.DISABLED_SELECTED);
+        } else if (!enabled.get()) {
+            componentRenderer.get().renderSpritePost(graphics, 0, 0, width(), height(), this, SlotState.DISABLED);
+        } else if (isSelected()) {
+            componentRenderer.get().renderSpritePost(graphics, 0, 0, width(), height(), this, SlotState.SELECTED);
+        } else {
+            componentRenderer.get().renderSpritePost(graphics, 0, 0, width(), height(), this, SlotState.NORMAL);
         }
     }
 
@@ -356,5 +382,9 @@ public class DLSlot extends DLGuiComponent {
 
     public static List<Component> getTooltipFromItem(ItemStack item) {
         return item.getTooltipLines(Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips ? Default.ADVANCED : Default.NORMAL);
+    }
+
+    public Slot getSlot() {
+        return slot;
     }
 }

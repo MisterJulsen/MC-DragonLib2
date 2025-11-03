@@ -109,9 +109,10 @@ public final class MathUtils {
      */
     public static double slope(Vector3f a, Vector3f b) {
         double heightDiff = java.lang.Math.max(a.y, b.y) - java.lang.Math.min(a.y, b.y);
-        Vector3f vec = new Vector3f(b).sub(a);
-        double distance = 0;// TODO vec.horizontalDistance();
-        return distance / heightDiff;
+        float dx = a.x - b.x;
+        float dz = a.z - b.z;
+        float horizontalDistance = (float) Math.sqrt(dx * dx + dz * dz);
+        return horizontalDistance / heightDiff;
     }
 
     public static double lerp(double delta, double start, double end) {

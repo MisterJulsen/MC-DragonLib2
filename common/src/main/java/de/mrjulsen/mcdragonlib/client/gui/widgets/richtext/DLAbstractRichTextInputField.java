@@ -3,7 +3,6 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents.MouseDownEvent;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
@@ -18,6 +17,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.util.TextCursorPosition;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -36,11 +36,15 @@ import org.lwjgl.glfw.GLFW;
 import java.util.*;
 
 @SupportsEvents({
-    DLGuiCommonEvents.TextReadOnlyChangedEvent.class,
-    DLGuiCommonEvents.TextAcceptKeyPressedEvent.class,
-    DLGuiCommonEvents.TextCancelKeyPressedEvent.class
+    DLAbstractRichTextInputField.TextReadOnlyChangedEvent.class,
+    DLAbstractRichTextInputField.TextAcceptKeyPressedEvent.class,
+    DLAbstractRichTextInputField.TextCancelKeyPressedEvent.class
 })
 public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
+    
+    public record TextReadOnlyChangedEvent(boolean readOnly) implements IEvent {}
+    public record TextAcceptKeyPressedEvent() implements IEvent {}
+    public record TextCancelKeyPressedEvent() implements IEvent {}
 
     private static final int CURSOR_BLINK_RATE = 20;
     private static final long DOUBLE_CLICK_TIME_MS = 300;
@@ -54,7 +58,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
     public final ColorProperty lineHighlightColor = new ColorProperty(DLColor.fromInt(0x30FFFFFF), DLColor.TRANSPARENT);
     public final BooleanProperty showLineHighlight = new BooleanProperty(false, false);
     public final BooleanProperty readOnly = new BooleanProperty(false, false)
-        .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLGuiCommonEvents.TextReadOnlyChangedEvent(x)));
+        .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLAbstractRichTextInputField.TextReadOnlyChangedEvent(x)));
     public final Property<Component> placeholderText = new Property<>(TextUtils.empty());
     public final NumberProperty<Byte> cursorWidth = new NumberProperty<>((byte)1, (byte)1, Byte.MAX_VALUE);
     public final Property<Padding> decoratedPadding = new Property<>(Padding.ZERO);
@@ -498,7 +502,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
                     case GLFW.GLFW_KEY_KP_ENTER:
                         if (canModify) {
                             if (acceptAndCancelKeysEnabled.get() && !controlDown && !shiftDown) {
-                                invokeEvent(this, new DLGuiCommonEvents.TextAcceptKeyPressedEvent());
+                                invokeEvent(this, new DLAbstractRichTextInputField.TextAcceptKeyPressedEvent());
                             } else if (multiline.get()) {
                                 deleteSelection();
                                 text.get().insert(getGlobalCursorIndex(), "\n", null, null);
@@ -571,14 +575,14 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
                 switch (keyCode) {
                     case GLFW.GLFW_KEY_ESCAPE:
                         if (canModify && acceptAndCancelKeysEnabled.get()) {
-                            invokeEvent(this, new DLGuiCommonEvents.TextCancelKeyPressedEvent());
+                            invokeEvent(this, new DLAbstractRichTextInputField.TextCancelKeyPressedEvent());
                         }
                         break;
                     case GLFW.GLFW_KEY_ENTER:
                     case GLFW.GLFW_KEY_KP_ENTER:
                         if (canModify) {
                             if (acceptAndCancelKeysEnabled.get() && !shiftDown) {
-                                invokeEvent(this, new DLGuiCommonEvents.TextAcceptKeyPressedEvent());
+                                invokeEvent(this, new DLAbstractRichTextInputField.TextAcceptKeyPressedEvent());
                             } else if (multiline.get()) {
                                 deleteSelection();
                                 text.get().insert(getGlobalCursorIndex(), "\n", null, null);

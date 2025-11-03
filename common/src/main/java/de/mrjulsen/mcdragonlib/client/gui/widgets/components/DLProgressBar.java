@@ -1,7 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
@@ -13,7 +12,7 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 
 @SupportsEvents({
-    DLGuiCommonEvents.BackgroundColorChangedEvent.class,
+    DLProgressBar.BackgroundColorChangedEvent.class,
     DLProgressBar.ValueChangedEvent.class,
     DLProgressBar.MaxValueChangedEvent.class,
     DLProgressBar.BarColorChanged.class,
@@ -22,6 +21,7 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 })
 public class DLProgressBar extends DLGuiComponent {
     
+    public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
     public record ValueChangedEvent(double value) implements IEvent {}
     public record MaxValueChangedEvent(double max) implements IEvent {}
     public record BarColorChanged(DLColor color) implements IEvent {}
@@ -42,7 +42,7 @@ public class DLProgressBar extends DLGuiComponent {
     public final ColorProperty color = new ColorProperty(DLColor.GREEN, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new BarColorChanged(val)));
     public final ColorProperty backgroundColor = new ColorProperty(DLColor.BLACK, DLColor.BLACK)
-        .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLGuiCommonEvents.BackgroundColorChangedEvent(val)));
+        .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new DLProgressBar.BackgroundColorChangedEvent(val)));
     public final ColorProperty borderColor = new ColorProperty(DLColor.WHITE, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, val) -> invokeEvent(this, new BorderColorChanged(val)));
     public final Property<ProgressBarStyle> style = new Property<>(ProgressBarStyle.CONTINUOUS)

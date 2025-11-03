@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.*;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
@@ -30,6 +29,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -56,25 +56,35 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @SupportsEvents({
-    DLGuiCommonEvents.TextChangedEvent.class,
-    DLGuiCommonEvents.TextLineSpacingChangedEvent.class,
-    DLGuiCommonEvents.TextLineWrapChangedEvent.class,
-    DLGuiCommonEvents.TextMaxCharactersChangedEvent.class,
-    DLGuiCommonEvents.TextMultilinedChanged.class,
-    DLGuiCommonEvents.TextFilterRegexChangedEvent.class,
-    DLGuiCommonEvents.TextInteractiveElementClicked.class
+    DLRichTextLabel.TextChangedEvent.class,
+    DLRichTextLabel.TextLineSpacingChangedEvent.class,
+    DLRichTextLabel.TextLineWrapChangedEvent.class,
+    DLRichTextLabel.TextMaxCharactersChangedEvent.class,
+    DLRichTextLabel.TextMultilinedChanged.class,
+    DLRichTextLabel.TextFilterRegexChangedEvent.class,
+    DLRichTextLabel.TextInteractiveElementClicked.class,
+    DLRichTextLabel.TextTextValidationEvent.class
 })
 public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.MenuBuilder {
     
+    public record TextChangedEvent(RichTextComponent text) implements IEvent {}
+    public record TextMultilinedChanged(boolean multiline) implements IEvent {}
+    public record TextLineWrapChangedEvent(boolean lineWrap) implements IEvent {}
+    public record TextMaxCharactersChangedEvent(int maxCharacters) implements IEvent {}
+    public record TextLineSpacingChangedEvent(int lineSpacing) implements IEvent {}
+    public record TextFilterRegexChangedEvent(MutableHolder<String> regex) implements IEvent {}
+    public record TextInteractiveElementClicked(InteractiveElement.ClickAction action) implements IEvent {}
+    public record TextTextValidationEvent(String currentText, String futureText, MutableHolder<String> input) implements IEvent {}
+    
     public final Property<RichTextComponent> text = new Property<RichTextComponent>(new RichTextComponent())
         .withAfterPropertyChangedCallback((o, x) -> {
-            invokeEvent(this, new DLGuiCommonEvents.TextChangedEvent(x));
+            invokeEvent(this, new DLRichTextLabel.TextChangedEvent(x));
             setupRichTextComponent(x);
             refresh();
         });
     public final BooleanProperty lineWrap = new BooleanProperty(false, false)
         .withAfterPropertyChangedCallback((o, x) -> {
-            invokeEvent(this, new DLGuiCommonEvents.TextLineWrapChangedEvent(x));
+            invokeEvent(this, new DLRichTextLabel.TextLineWrapChangedEvent(x));
             refresh();
         });
     public final BooleanProperty multiline = new BooleanProperty(false, false)
@@ -84,24 +94,24 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
                 lineWrap.set(false);
             }
             text.get().setMultiline(x);
-            invokeEvent(this, new DLGuiCommonEvents.TextMultilinedChanged(x));
+            invokeEvent(this, new DLRichTextLabel.TextMultilinedChanged(x));
             refresh();
         });
     public final NumberProperty<Integer> maxCharacters = new NumberProperty<Integer>(1000000, () -> 0, () -> 2000000)
         .withAfterPropertyChangedCallback((o, x) -> {
             text.get().setMaxCharacters(x);
-            invokeEvent(this, new DLGuiCommonEvents.TextMaxCharactersChangedEvent(x));
+            invokeEvent(this, new DLRichTextLabel.TextMaxCharactersChangedEvent(x));
             refresh();
         });
     public final NumberProperty<Integer> lineSpacing = new NumberProperty<Integer>(2)
         .withAfterPropertyChangedCallback((o, x) -> {
-            invokeEvent(this, new DLGuiCommonEvents.TextLineSpacingChangedEvent(x));
+            invokeEvent(this, new DLRichTextLabel.TextLineSpacingChangedEvent(x));
             refresh();
         });        
     public final Property<String> filterRegex = new Property<>("(?s).*")
         .withModificationCallback((o, n) -> {
             MutableHolder<String> regex = new MutableHolder<>(n);
-            invokeEvent(this, new DLGuiCommonEvents.TextFilterRegexChangedEvent(regex));
+            invokeEvent(this, new DLRichTextLabel.TextFilterRegexChangedEvent(regex));
             try {
                 String rx = regex.get();
                 Pattern.compile(rx);
@@ -146,7 +156,7 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
         DLContextMenu contextMenu = new DLContextMenu(this::buildContextMenuContents);
 
         textElementClickEventId = addEventListener(DLGuiStandardEvents.MouseDownEvent.class, this::onTextElementClicked);
-        interactiveTextElementClickEventId = addEventListener(DLGuiCommonEvents.TextInteractiveElementClicked.class, this::onInteractiveElementClicked);
+        interactiveTextElementClickEventId = addEventListener(DLRichTextLabel.TextInteractiveElementClicked.class, this::onInteractiveElementClicked);
         hoverInteractableElementsEventId = addEventListener(DLGuiStandardEvents.MouseMoveEvent.class, (src, e) -> onHoverInteractiveElements(e.mouseX(), e.mouseY()));
         unhoverInteractableElementsEventId = addEventListener(DLGuiStandardEvents.MouseLeaveEvent.class, (src, e) -> onUnhover());
 
@@ -210,13 +220,13 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
     protected boolean onTextElementClicked(DLGuiComponent src, DLGuiStandardEvents.MouseDownEvent event) {
         if (text.get() != null && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             if (hoveredElement != null && hoveredElement.hasActionFromType(InteractiveElement.ClickAction.class)) {
-                invokeEvent(this, new DLGuiCommonEvents.TextInteractiveElementClicked(hoveredElement.getActionFromType(InteractiveElement.ClickAction.class)));
+                invokeEvent(this, new DLRichTextLabel.TextInteractiveElementClicked(hoveredElement.getActionFromType(InteractiveElement.ClickAction.class)));
             }
         }
         return false;
     }
 
-    protected boolean onInteractiveElementClicked(DLGuiComponent src, DLGuiCommonEvents.TextInteractiveElementClicked event) {
+    protected boolean onInteractiveElementClicked(DLGuiComponent src, DLRichTextLabel.TextInteractiveElementClicked event) {
         switch (event.action().actionName()) {
             case InteractiveElement.ClickAction.OPEN_URL: 
                 Util.getPlatform().openUri(event.action().value());
@@ -234,11 +244,11 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
         if (rtc != null) {
             rtc.setTextChangedCallback(() -> {
                 refresh();
-                invokeEvent(this, new DLGuiCommonEvents.TextChangedEvent(rtc));
+                invokeEvent(this, new DLRichTextLabel.TextChangedEvent(rtc));
             });
             rtc.setTextValidator((current, future, input) -> {
                 MutableHolder<String> ipt = new MutableHolder<>(input);
-                invokeEvent(this, new DLGuiCommonEvents.TextTextValidationEvent(current, future, ipt));
+                invokeEvent(this, new DLRichTextLabel.TextTextValidationEvent(current, future, ipt));
                 return ipt.get();
             });
         }

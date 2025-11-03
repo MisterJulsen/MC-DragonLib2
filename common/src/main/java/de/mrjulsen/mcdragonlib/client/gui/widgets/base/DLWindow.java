@@ -4,19 +4,21 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents.WindowCreatedEvent;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
 @SupportsEvents({
-    DLGuiCommonEvents.WindowCreatedEvent.class,
-    DLGuiCommonEvents.WindowFocusEvent.class,
+    DLWindow.WindowCreatedEvent.class,
+    DLWindow.WindowFocusEvent.class,
 })
 public abstract class DLWindow extends DLGuiComponent {
+
+    public record WindowCreatedEvent(DLWindowManager windowManager, ModalId id, int screenWidth, int screenHeight) implements IEvent {}
+    public record WindowFocusEvent(DLWindowManager windowManager, boolean focus) implements IEvent {}
 
     public static enum WindowPosition {
         CUSTOM,
@@ -46,6 +48,8 @@ public abstract class DLWindow extends DLGuiComponent {
                 anchor.set(windowedSettings.anchor());
             }
         });
+        
+    public final BooleanProperty topLevel = new BooleanProperty(false, false);
 
 
     private ModalId modal;
@@ -84,8 +88,8 @@ public abstract class DLWindow extends DLGuiComponent {
         super.setParent(parent);
     }
 
-    final void assignToModal(ModalId id) {
-        if (modal != null) {
+    final void assignToModal(ModalId id) {        
+        if (id != null && modal != null) {
             throw new IllegalStateException("Each window instance can only be shown once.");
         }
         this.modal = id;

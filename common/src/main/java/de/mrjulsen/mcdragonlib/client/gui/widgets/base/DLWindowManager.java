@@ -1,4 +1,3 @@
-
 package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
 import java.nio.file.Path;
@@ -31,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent.ConsumptionType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent.Flags;
@@ -43,12 +41,9 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.util.HitResult.ComponentHitCon
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.HitResult.ComponentSelectionState;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.RenderLayer;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerWrapper;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.events.IEventDispatcher;
-import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
@@ -91,6 +86,8 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     private final AbstractContainerMenu menu;
 
     private final Runnable close;
+
+    private boolean closeOnEscape = true;
 
     private double width;
     private double height;
@@ -253,8 +250,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             invokeEvent(this, new DLGuiStandardEvents.RenderEvent(graphics, mouseX, mouseY, layer, Rectangle.withSize(0, 0, getScreenWidth(), getScreenHeight())));
             graphics.poseStack().popPose();
         }
-
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, 1, 1, Minecraft.getInstance().fpsString, DLColor.WHITE, ETextAlignment.LEFT, true);
         
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
@@ -312,6 +307,14 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         return focusedComponent;
     }
 
+    public boolean shouldCloseOnEscape() {
+        return closeOnEscape;
+    }
+
+    public void setCloseOnEscape(boolean b) {
+        this.closeOnEscape = b;
+    }
+
 
 
 
@@ -348,11 +351,33 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         return !windows.isEmpty();
     }
 
+    /**
+     * Gibt das aktuell aktive (oberste) Fenster im aktuellen Modal zurück.
+     * Wenn es top-level Fenster gibt, wird das vorderste topLevel-Fenster zurückgegeben.
+     * Ansonsten das vorderste non-topLevel-Fenster.
+     */
     public DLWindow getCurrentActiveWindow() {
         if (!hasWindows()) {
             return null;
         }
-        return getCurrentModal().getLast();
+        ModalWindowStack current = getCurrentModal();
+        if (current == null) return null;
+        // Suche zuletzt eingefügtes topLevel-Fenster
+        List<DLWindow> ordered = orderedListForStack(current); // non-top then top
+        for (int i = ordered.size() - 1; i >= 0; i--) {
+            DLWindow w = ordered.get(i);
+            if (w.topLevel.get()) {
+                return w;
+            }
+        }
+        // Keine topLevel => letzte non-top
+        for (int i = ordered.size() - 1; i >= 0; i--) {
+            DLWindow w = ordered.get(i);
+            if (!w.topLevel.get()) {
+                return w;
+            }
+        }
+        return null;
     }
 
 
@@ -450,19 +475,28 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         ModalWindowStack stack = getModalById(id);
         T window = windowBuilder.build(this);
         stack.add(window);
-        window.invokeEvent(window, new DLGuiCommonEvents.WindowCreatedEvent(this, id, (int)width, (int)height));
+        window.invokeEvent(window, new DLWindow.WindowCreatedEvent(this, id, (int)width, (int)height));
         updateWindowFocus(false);
         return stack.id();
     }
 
     public void bringWindowToFront(DLWindow window) {
         ModalWindowStack stack = getCurrentModal();
+        if (stack == null) return;
+
         DLWindow previousWindow = stack.getLast();
         boolean windowChanged = previousWindow != window;
 
         if (windowChanged) {
-            stack.remove(window);
-            stack.addLast(window);
+            // Wenn topLevel -> ganz nach vorne (am Ende)
+            if (window.topLevel.get()) {
+                // einfache remove + addLast
+                stack.remove(window);
+                stack.addLast(window);
+            } else {
+                // non-top: wir wollen es vor den topLevel-Fenstern platzieren (am vordersten Platz der non-top Gruppe)
+                repositionNonTopWindowToFront(stack, window);
+            }
         }
         if (windowChanged || focusedWindow == null) {
             updateWindowFocus(false);
@@ -471,8 +505,93 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
     public void sendWindowToBack(DLWindow window) {
         ModalWindowStack stack = getCurrentModal();
+        if (stack == null) return;
+
+        // Entfernen + Einfügen an den Anfang der jeweiligen Gruppe
+        if (window.topLevel.get()) {
+            repositionTopLevelWindowToBack(stack, window);
+        } else {
+            repositionNonTopWindowToBack(stack, window);
+        }
+
+    }
+
+    private void repositionNonTopWindowToFront(ModalWindowStack stack, DLWindow window) {
+        // Entferne das Fenster
         stack.remove(window);
-        stack.addFirst(window);
+        // Erzeuge temporäre Reihenfolge: non-top (in order) then top-level (in order)
+        List<DLWindow> nonTop = new ArrayList<>();
+        List<DLWindow> top = new ArrayList<>();
+        for (DLWindow w : stack) {
+            if (w.topLevel.get()) top.add(w);
+            else nonTop.add(w);
+        }
+        // Füge nonTop (ohne das Fenster) ein, dann das Fenster an vorderste Stelle der nonTop-Gruppe,
+        // dann die Top-Windows.
+        ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
+        // alle nonTop außer dem window (window wurde bereits entfernt)
+        for (DLWindow w : nonTop) tmp.add(w);
+        // das gewünschte window ans Ende der nonTop-Gruppe (vorderster Platz in nonTop)
+        tmp.add(window);
+        // dann alle top-level windows
+        for (DLWindow w : top) tmp.add(w);
+
+        // Clear und rebuild stack
+        stack.clear();
+        stack.addAll(tmp);
+    }
+
+    private void repositionNonTopWindowToBack(ModalWindowStack stack, DLWindow window) {
+        stack.remove(window);
+        // put at the very first position among non-top windows
+        List<DLWindow> nonTop = new ArrayList<>();
+        List<DLWindow> top = new ArrayList<>();
+        for (DLWindow w : stack) {
+            if (w.topLevel.get()) top.add(w);
+            else nonTop.add(w);
+        }
+        ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
+        // add nonTop starting with this window
+        tmp.add(window);
+        for (DLWindow w : nonTop) tmp.add(w);
+        for (DLWindow w : top) tmp.add(w);
+
+        stack.clear();
+        stack.addAll(tmp);
+    }
+
+    private void repositionTopLevelWindowToBack(ModalWindowStack stack, DLWindow window) {
+        stack.remove(window);
+        // top-level windows should be at the end; placing this top-level window at the first position among top-level windows
+        List<DLWindow> nonTop = new ArrayList<>();
+        List<DLWindow> top = new ArrayList<>();
+        for (DLWindow w : stack) {
+            if (w.topLevel.get()) top.add(w);
+            else nonTop.add(w);
+        }
+        ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
+        // add non-top first
+        for (DLWindow w : nonTop) tmp.add(w);
+        // insert this top-level window first among top-levels (i.e., before other top-levels)
+        tmp.add(window);
+        for (DLWindow w : top) tmp.add(w);
+
+        stack.clear();
+        stack.addAll(tmp);
+    }
+
+    private List<DLWindow> orderedListForStack(ModalWindowStack stack) {
+        // non-top first, then top-level; preserving insertion order within each group
+        List<DLWindow> nonTop = new ArrayList<>();
+        List<DLWindow> top = new ArrayList<>();
+        for (DLWindow w : stack) {
+            if (w.topLevel.get()) top.add(w);
+            else nonTop.add(w);
+        }
+        List<DLWindow> result = new ArrayList<>(nonTop.size() + top.size());
+        result.addAll(nonTop);
+        result.addAll(top);
+        return result;
     }
 
     private boolean updateFocusLocked = false;
@@ -490,9 +609,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             if (unfocus) {
                 ModalWindowStack stack = getCurrentModal();
                 if (stack != null) {
-                    Iterator<DLWindow> wins = stack.descendingIterator();
-                    while (wins.hasNext()) {
-                        DLWindow win = wins.next();
+                    // Iterate in reverse order of drawing (thus from topmost to backmost)
+                    List<DLWindow> ordered = orderedListForStack(stack);
+                    for (int i = ordered.size() - 1; i >= 0; i--) {
+                        DLWindow win = ordered.get(i);
                         if (win.getPositionBox().collision(mouseXOnScreen(), mouseYOnScreen())) {
                             window.set(win);
                             break;
@@ -506,10 +626,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             focusedWindow = window.get();
             
             if (previouslyFocusedWindow != null) {
-                previouslyFocusedWindow.invokeEvent(previouslyFocusedWindow, new DLGuiCommonEvents.WindowFocusEvent(this, false));
+                previouslyFocusedWindow.invokeEvent(previouslyFocusedWindow, new DLWindow.WindowFocusEvent(this, false));
             }
             if (focusedWindow != null) {
-                focusedWindow.invokeEvent(focusedWindow, new DLGuiCommonEvents.WindowFocusEvent(this, true));
+                focusedWindow.invokeEvent(focusedWindow, new DLWindow.WindowFocusEvent(this, true));
             }
         }
     }
@@ -533,9 +653,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
         component.setFocus(true);
     }
-
-
-     // TODO Neues InputReceivedEvent, das durch irgeneinen dieser Inputs getriggert wird und Nutzer dann in ihren Components selbst bestimmen können was passieren soll. Aktuell werden feste Aktionen ausgeführt, z.b. setze Fokus.
 
 
     private void clearMouseInteractionData() {        
@@ -569,14 +686,14 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     
     private void iterateAllBackwards(BiFunction<DLWindow, Integer, Boolean> callback) {
         int i = 0;
-        Iterator<ModalWindowStack> stacks = windows.descendingIterator();
-        main: while (stacks.hasNext()) {
-            ModalWindowStack stack = stacks.next();
-            Iterator<DLWindow> wins = stack.descendingIterator();
-            while (wins.hasNext()) {
-                DLWindow win = wins.next();
+        // iterate modals from oldest to newest (as before) but within each modal iterate from topmost to backmost
+        // previous implementation iterated stacks in natural order; keep that but reverse windows order inside each stack
+        for (ModalWindowStack stack : windows) {
+            List<DLWindow> ordered = orderedListForStack(stack);
+            for (int j = ordered.size() - 1; j >= 0; j--) {
+                DLWindow win = ordered.get(j);
                 if (!callback.apply(win, i)) {
-                    break main;
+                    return;
                 }
                 i++;
             }
@@ -585,10 +702,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     
     private void iterateAllForwards(BiFunction<DLWindow, Integer, Boolean> callback) {
         int i = 0;
-        main: for (ModalWindowStack stack : windows) {
-            for (DLWindow win : stack) {
+        // iterate modals in natural order; within each modal: non-top windows first, then top-level windows
+        for (ModalWindowStack stack : windows) {
+            List<DLWindow> ordered = orderedListForStack(stack);
+            for (DLWindow win : ordered) {
                 if (!callback.apply(win, i)) {
-                    break main;
+                    return;
                 }
                 i++;
             }
@@ -599,10 +718,14 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         MutableBoolean consumed = new MutableBoolean();
         if (hasWindows()) {
             DLUtils.doIfNotNull(prepare, Runnable::run);
-            Iterator<DLWindow> windows = getCurrentModal().descendingIterator();
-            while (windows.hasNext()) {
-                DLWindow window = windows.next();
-                consumed.setValue(consumed.getValue() || callback.apply(window, consumed.getValue()));
+            ModalWindowStack current = getCurrentModal();
+            if (current != null) {
+                List<DLWindow> ordered = orderedListForStack(current);
+                // iterate topmost first (descending)
+                for (int i = ordered.size() - 1; i >= 0; i--) {
+                    DLWindow window = ordered.get(i);
+                    consumed.setValue(consumed.getValue() || callback.apply(window, consumed.getValue()));
+                }
             }
         }
         DLUtils.doIfNotNull(andThen, x -> x.accept(consumed.getValue()));
@@ -817,6 +940,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (shouldCloseOnEscape() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            close();
+            return true;
+        }
+
         if (interateManagerExtension((mgr) -> mgr.keyPressed(Phase.PRE, false, keyCode, scanCode, modifiers))) {
             return true;
         }

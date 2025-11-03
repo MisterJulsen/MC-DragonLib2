@@ -4,7 +4,6 @@ import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiCommonEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents.ClickEvent;
 import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
@@ -12,18 +11,21 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 
 @SupportsEvents({
-    DLGuiCommonEvents.CheckedChangedEvent.class
+    DLToggleButton.CheckedChangedEvent.class
 })
 public class DLToggleButton extends DLButton {
 
+    public record CheckedChangedEvent(boolean checked) implements IEvent {}
+
     public final BooleanProperty checked = new BooleanProperty(false, false)
-        .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLGuiCommonEvents.CheckedChangedEvent(x), true));
+        .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLToggleButton.CheckedChangedEvent(x), true));
     public final BooleanProperty radioButtonMode = new BooleanProperty(false, false);
 
     public DLToggleButton(int x, int y, int w, int h) {
