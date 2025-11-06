@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemEntry;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaTextBoxRenderer;
@@ -13,6 +12,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 public class DLRichTextEditBox extends DLAbstractRichTextInputField {
 

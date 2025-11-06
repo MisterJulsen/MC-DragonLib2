@@ -1,9 +1,9 @@
-package de.mrjulsen.mcdragonlib.client.gui.properties;
+package de.mrjulsen.mcdragonlib.util.properties;
 
 import java.util.Optional;
 
-import de.mrjulsen.mcdragonlib.client.gui.properties.AbstractSerializableProperty.IPropertyAfterUpdateCallback;
-import de.mrjulsen.mcdragonlib.client.gui.properties.AbstractSerializableProperty.IPropertyUpdateCallback;
+import de.mrjulsen.mcdragonlib.util.properties.AbstractSerializableProperty.IPropertyAfterUpdateCallback;
+import de.mrjulsen.mcdragonlib.util.properties.AbstractSerializableProperty.IPropertyUpdateCallback;
 
 public interface IProperty<T> {
     /**

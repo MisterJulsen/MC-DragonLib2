@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.properties;
+package de.mrjulsen.mcdragonlib.util.properties;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

@@ -35,7 +35,7 @@ public interface ITranslatableEnum extends StringRepresentable {
      */
     default MutableComponent getEnumTranslation() {
         Data data = getTranslationData();
-        return TextUtils.translate("enum.%s.%s", data.modid(), data.enumName());
+        return TextUtils.translate(String.format("enum.%s.%s", data.modid(), data.enumName()));
     }
     
     /**
@@ -44,7 +44,7 @@ public interface ITranslatableEnum extends StringRepresentable {
      */
     default MutableComponent getValueTranslation() {
         Data data = getTranslationData();
-        return TextUtils.translate("enum.%s.%s.%s", data.modid(), data.enumName(), data.valueName());
+        return TextUtils.translate(String.format("enum.%s.%s.%s", data.modid(), data.enumName(), data.valueName()));
     }
     
     /**
@@ -53,7 +53,7 @@ public interface ITranslatableEnum extends StringRepresentable {
      */
     default MutableComponent getEnumDescriptionTranslation() {
         Data data = getTranslationData();
-        return TextUtils.translate("enum.%s.%s.description", data.modid(), data.enumName());
+        return TextUtils.translate(String.format("enum.%s.%s.description", data.modid(), data.enumName()));
     }
     
     /**
@@ -62,6 +62,6 @@ public interface ITranslatableEnum extends StringRepresentable {
      */
     default MutableComponent getValueDescriptionTranslation() {
         Data data = getTranslationData();
-        return TextUtils.translate("enum.%s.%s.description.%s", data.modid(), data.enumName(), data.valueName());
+        return TextUtils.translate(String.format("enum.%s.%s.description.%s", data.modid(), data.enumName(), data.valueName()));
     }
 }

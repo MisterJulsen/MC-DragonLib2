@@ -7,8 +7,12 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.util.StringRepresentable;
 
+/**
+ * This class contains some useful utilities for text components. It uses its
+ * own methods to create text components and forms a unified wrapper around the
+ * Minecraft methods.
+ */
 public final class TextUtils {
     
     /** 🐉 */
@@ -36,83 +40,55 @@ public final class TextUtils {
     public static final Component TEXT_REFRESH = TextUtils.translate("text." + DragonLib.MODID + ".refresh");
     public static final Component TEXT_RELOAD = TextUtils.translate("text." + DragonLib.MODID + ".reload");
 
+    /**
+     * a predefined an immutable empty text component. Similar to {@link TextUtils#empty()}
+     */
     public static final Component EMPTY = empty();
     private static final Component TEXT_CONCAT = text("     ***     ");
     public static final String ELLIPSIS_STRING = "...";
     public static final Component ELLIPSIS_COMPONENT = TextUtils.text(ELLIPSIS_STRING);
-
-    public static enum Category implements StringRepresentable {
-        BLOCK("block"),
-        ITEM("item"),
-        ENTITY("entity"),
-        BIOME("biome"),
-        TAB("tab"),
-        GUI("gui"),
-        ENUM("enum"),
-        TEXT("text");
-
-        private final String name;
-
-        private Category(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getSerializedName() {
-            return name;
-        }
-    }
-
     
-
-    public static MutableComponent text(Category category, String modid, String path) {
-        return text(category.getSerializedName(), modid, path);
-    }
-
-    public static MutableComponent text(String category, String modid, String path) {
-        return text(String.format("%s.%s.%s", category, modid, path));
-    }
-
+    /**
+     * Creates a new text component with the specified text.
+     * @param text The literal text of the component.
+     * @return A new text component.
+     */
     public static MutableComponent text(String text) {
         return Component.literal(text);
     }
     
-    public static MutableComponent translate(Category category, String modid, String path, Object... args) {
-        return translate(category.getSerializedName(), modid, path, args);
-    }
-
-    public static MutableComponent translate(String category, String modid, String path, Object... args) {
-        return translate(String.format("%s.%s.%s", category, modid, path, args));
-    }
-
+    /**
+     * Creates a new translatable text component.
+     * @param text The translation key
+     * @param args Additional parameters for placeholders
+     * @return The translated text component
+     */
     public static MutableComponent translate(String text, Object... args) {
         return Component.translatable(text, args);
     }
-    
-    public static MutableComponent translate(Category category, String modid, String path) {
-        return translate(category.getSerializedName(), modid, path);
-    }
 
-    public static MutableComponent translate(String category, String modid, String path) {
-        return translate(String.format("%s.%s.%s", category, modid, path));
-    }
-
+    /**
+     * Creates a new translatable text component.
+     * @param text The translation key
+     * @return The translated text component
+     */
     public static MutableComponent translate(String text) {
         return Component.translatable(text);
     }
 
-    public static MutableComponent keybind(Category category, String modid, String path) {
-        return keybind(category.getSerializedName(), modid, path);
-    }
-
-    public static MutableComponent keybind(String category, String modid, String path) {
-        return keybind(String.format("%s.%s.%s", category, modid, path));
-    }
-
+    /**
+     * Creates a new keybind text component.
+     * @param text The keybind key
+     * @return The keybind component
+     */
     public static MutableComponent keybind(String key) {
         return Component.keybind(key);
     }
 
+    /**
+     * Creates an empty text component with {@code ""}.
+     * @return An enmpty text component.
+     */
     public static MutableComponent empty() {
         return text("");
     }

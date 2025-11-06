@@ -5,9 +5,6 @@ import java.util.List;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemEntry;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
@@ -21,6 +18,9 @@ import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 @SupportsEvents({
     DLNumberPicker.ValueChangedEvent.class,

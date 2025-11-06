@@ -9,8 +9,6 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.VirtualProperty;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orientation;
@@ -22,6 +20,8 @@ import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.VirtualProperty;
 import net.minecraft.client.Minecraft;
 
 @SupportsEvents({

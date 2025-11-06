@@ -2,6 +2,9 @@ package de.mrjulsen.mcdragonlib.util;
 
 import java.util.Objects;
 
+/**
+ * A simple wrapper for all kinds of objects.
+ */
 public class Holder<A> {
     protected A value1;
 
@@ -39,6 +42,9 @@ public class Holder<A> {
         return String.format("(%s)", get());
     }
     
+    /**
+     * A simple wrapper for all kinds of objects. The contents of this object can be changed at any time.
+     */
     public static class MutableHolder<A> extends Holder<A> {
 
         public MutableHolder(A value1) {

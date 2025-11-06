@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.properties;
+package de.mrjulsen.mcdragonlib.util.properties;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

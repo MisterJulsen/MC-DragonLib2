@@ -1,14 +1,14 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 
 @SupportsEvents({
     DLPanel.BackgroundColorChangedEvent.class,

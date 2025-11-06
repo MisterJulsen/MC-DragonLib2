@@ -9,7 +9,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents.ClickEvent;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLPopupWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
@@ -26,6 +25,7 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 
 public class DLComboBox<T> extends DLCycleButton<T> {

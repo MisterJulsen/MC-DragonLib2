@@ -8,11 +8,6 @@ import org.lwjgl.glfw.GLFW;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.InheritableProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaContainerScrollBarRenderer;
@@ -24,6 +19,11 @@ import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
+import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 /**
  * DLScrollBar is a GUI component that provides scroll functionality similar to

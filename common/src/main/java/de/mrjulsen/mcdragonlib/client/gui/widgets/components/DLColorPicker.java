@@ -9,9 +9,6 @@ import com.mojang.blaze3d.platform.NativeImage;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
@@ -27,6 +24,9 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.DLColor.ColorChannel;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 
 @SupportsEvents({

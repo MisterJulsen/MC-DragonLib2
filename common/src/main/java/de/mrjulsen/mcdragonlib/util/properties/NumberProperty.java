@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.properties;
+package de.mrjulsen.mcdragonlib.util.properties;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

@@ -4,10 +4,10 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.events.IEvent;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 

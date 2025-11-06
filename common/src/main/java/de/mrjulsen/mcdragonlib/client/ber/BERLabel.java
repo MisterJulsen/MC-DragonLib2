@@ -10,10 +10,6 @@ import org.joml.Vector3f;
 
 import com.mojang.blaze3d.font.GlyphInfo;
 
-import de.mrjulsen.mcdragonlib.client.gui.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.NumberProperty;
-import de.mrjulsen.mcdragonlib.client.gui.properties.Property;
 import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
 import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
@@ -23,6 +19,10 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.Pair;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
+import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.gui.Font;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
