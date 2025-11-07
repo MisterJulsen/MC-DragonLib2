@@ -83,8 +83,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     private final ConcurrentLinkedDeque<ModalWindowStack> windows = new ConcurrentLinkedDeque<>();
     private final PriorityQueue<IGuiManagementComponent> managementComponents = new PriorityQueue<>();
 
+    private boolean initialized = false;
     private final AbstractContainerMenu menu;
-
+    private final WindowBuilder<? extends DLWindow> initialWindowBuilder;
     private final Consumer<DLWindowManager> close;
 
     private boolean closeOnEscape = true;
@@ -111,7 +112,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         this.close = close;
         this.width = width;
         this.height = height;
-        createWindow(windowBuilder);
+        this.initialWindowBuilder = windowBuilder;
     }
     
 
@@ -151,6 +152,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         updatingLayout = true;
         setWidth(width);
         setHeight(height);
+        if (!initialized && initialWindowBuilder != null) {            
+            createWindow(initialWindowBuilder);
+            initialized = true;
+        }
         init();
         updatingLayout = false;
     }
@@ -494,7 +499,9 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         T window = windowBuilder.build(this);
         stack.add(window);
         window.invokeEvent(window, new DLWindow.WindowCreatedEvent(this, id, (int)width, (int)height));
-        updateWindowFocus(false);
+        if (window.focusOnSpawn.get()) {
+            updateWindowFocus(false);
+        }
         return stack.id();
     }
 
@@ -506,13 +513,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         boolean windowChanged = previousWindow != window;
 
         if (windowChanged) {
-            // Wenn topLevel -> ganz nach vorne (am Ende)
             if (window.topLevel.get()) {
-                // einfache remove + addLast
                 stack.remove(window);
                 stack.addLast(window);
             } else {
-                // non-top: wir wollen es vor den topLevel-Fenstern platzieren (am vordersten Platz der non-top Gruppe)
                 repositionNonTopWindowToFront(stack, window);
             }
         }
@@ -525,7 +529,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         ModalWindowStack stack = getCurrentModal();
         if (stack == null) return;
 
-        // Entfernen + Einfügen an den Anfang der jeweiligen Gruppe
         if (window.topLevel.get()) {
             repositionTopLevelWindowToBack(stack, window);
         } else {
@@ -535,33 +538,24 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     private void repositionNonTopWindowToFront(ModalWindowStack stack, DLWindow window) {
-        // Entferne das Fenster
         stack.remove(window);
-        // Erzeuge temporäre Reihenfolge: non-top (in order) then top-level (in order)
         List<DLWindow> nonTop = new ArrayList<>();
         List<DLWindow> top = new ArrayList<>();
         for (DLWindow w : stack) {
             if (w.topLevel.get()) top.add(w);
             else nonTop.add(w);
         }
-        // Füge nonTop (ohne das Fenster) ein, dann das Fenster an vorderste Stelle der nonTop-Gruppe,
-        // dann die Top-Windows.
         ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
-        // alle nonTop außer dem window (window wurde bereits entfernt)
         for (DLWindow w : nonTop) tmp.add(w);
-        // das gewünschte window ans Ende der nonTop-Gruppe (vorderster Platz in nonTop)
         tmp.add(window);
-        // dann alle top-level windows
         for (DLWindow w : top) tmp.add(w);
 
-        // Clear und rebuild stack
         stack.clear();
         stack.addAll(tmp);
     }
 
     private void repositionNonTopWindowToBack(ModalWindowStack stack, DLWindow window) {
         stack.remove(window);
-        // put at the very first position among non-top windows
         List<DLWindow> nonTop = new ArrayList<>();
         List<DLWindow> top = new ArrayList<>();
         for (DLWindow w : stack) {
@@ -569,7 +563,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             else nonTop.add(w);
         }
         ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
-        // add nonTop starting with this window
         tmp.add(window);
         for (DLWindow w : nonTop) tmp.add(w);
         for (DLWindow w : top) tmp.add(w);
@@ -580,7 +573,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
     private void repositionTopLevelWindowToBack(ModalWindowStack stack, DLWindow window) {
         stack.remove(window);
-        // top-level windows should be at the end; placing this top-level window at the first position among top-level windows
         List<DLWindow> nonTop = new ArrayList<>();
         List<DLWindow> top = new ArrayList<>();
         for (DLWindow w : stack) {
@@ -588,9 +580,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             else nonTop.add(w);
         }
         ConcurrentLinkedDeque<DLWindow> tmp = new ConcurrentLinkedDeque<>();
-        // add non-top first
         for (DLWindow w : nonTop) tmp.add(w);
-        // insert this top-level window first among top-levels (i.e., before other top-levels)
         tmp.add(window);
         for (DLWindow w : top) tmp.add(w);
 
@@ -599,7 +589,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     private List<DLWindow> orderedListForStack(ModalWindowStack stack) {
-        // non-top first, then top-level; preserving insertion order within each group
         List<DLWindow> nonTop = new ArrayList<>();
         List<DLWindow> top = new ArrayList<>();
         for (DLWindow w : stack) {
@@ -627,7 +616,6 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             if (unfocus) {
                 ModalWindowStack stack = getCurrentModal();
                 if (stack != null) {
-                    // Iterate in reverse order of drawing (thus from topmost to backmost)
                     List<DLWindow> ordered = orderedListForStack(stack);
                     for (int i = ordered.size() - 1; i >= 0; i--) {
                         DLWindow win = ordered.get(i);
