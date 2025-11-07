@@ -1010,31 +1010,50 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         boolean focusFound = flags.focusFound();
         boolean eventConsumed = flags.eventConsumed();
         boolean enabled = flags.enabled() && this.enabled.get();
+
+        // Lokale Mauskoordinaten (vor Skalierung)
         double localMouseX = (mouseX - xOffset) / parentScale;
         double localMouseY = (mouseY - yOffset) / parentScale;
+
+        // Scrolloffset muss ebenfalls skaliert werden!
+        double scrollOffsetX = getScrollOffsetX() * currentScale;
+        double scrollOffsetY = getScrollOffsetY() * currentScale;
+
+        // Die Mausposition muss den Scroll berücksichtigen:
+        double scrolledMouseX = mouseX + scrollOffsetX;
+        double scrolledMouseY = mouseY + scrollOffsetY;
+
         double scaledLocalMouseX = localMouseX / this.scale.get();
         double scaledLocalMouseY = localMouseY / this.scale.get();
 
         Rectangle newBounds = Rectangle.intersection(bounds, Rectangle.offset(getChildInteractionBounds(), xOffset, yOffset));
-        Rectangle childBounds = Rectangle.offset(newBounds, getScrollOffsetX(), getScrollOffsetY());
+        Rectangle childBounds = Rectangle.offset(newBounds, scrollOffsetX, scrollOffsetY);
 
         for (ListIterator<DLGuiComponent> children = getComponents().listIterator(componentsCount()); children.hasPrevious();) {
             DLGuiComponent component = children.previous();
             if (flags.ignoredComponents().contains(component))
                 continue;
 
-            HitResult hit = component.iterateComponents(mouseX, mouseY, xOffset + component.x() * currentScale, yOffset + component.y() * currentScale, childBounds,
+            HitResult hit = component.iterateComponents(
+                scrolledMouseX, scrolledMouseY,
+                xOffset + component.x() * currentScale,
+                yOffset + component.y() * currentScale,
+                childBounds,
                 new Flags(eventConsumed, focusFound, ignored, enabled, flags.ignoredComponents(), flags.nonConsumable()),
-                type, currentScale
+                type,
+                currentScale
             );
             result.addAll(hit.components());
-            if (childBounds.collision(mouseX, mouseY)) {
+            if (childBounds.collision(scrolledMouseX, scrolledMouseY)) {
                 eventConsumed |= hit.consumed();
                 focusFound |= result.isPresent();
             }
         }
 
-        boolean valid = isMouseOver(scaledLocalMouseX, scaledLocalMouseY) && newBounds.collision(mouseX, mouseY) && !ignored && !eventConsumed;
+        boolean valid = isMouseOver(scaledLocalMouseX, scaledLocalMouseY)
+            && newBounds.collision(mouseX, mouseY)
+            && !ignored && !eventConsumed;
+
         if (valid) {
             result.add(
                 enabled
@@ -1044,11 +1063,14 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             );
             result.consume(!flags.nonConsumable().contains(this) && inputConsumptionPolicy.get().test(type));
         } else {
-            result.add(ComponentSelectionState.UNSELECTED, new ComponentHitContext(this, scaledLocalMouseX, scaledLocalMouseY, (int) xOffset, (int) yOffset, enabled));
+            result.add(ComponentSelectionState.UNSELECTED,
+                new ComponentHitContext(this, scaledLocalMouseX, scaledLocalMouseY, (int) xOffset, (int) yOffset, enabled));
             result.consume(!flags.nonConsumable().contains(this) && eventConsumed);
         }
+
         return result;
     }
+
 
     public final void renderEvent(DLGuiGraphics graphics, double mouseX, double mouseY, RenderLayer layer, double xOffset, double yOffset, double scrollOffsetX, double scrollOffsetY, Rectangle scissorBounds, double globalScale) {
         double currentScale = this.scale.get();
