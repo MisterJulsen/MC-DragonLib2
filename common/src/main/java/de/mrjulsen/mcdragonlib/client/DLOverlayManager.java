@@ -98,7 +98,7 @@ public final class DLOverlayManager {
             throw new IllegalStateException("Player must be in game to use overlays.");
         }
         if (!initialized()) {
-            root = new DLWindowManager(null, builder, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), () -> root = null);
+            root = new DLWindowManager(null, builder, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), (mgr) -> root = null);
         } else {
             root.createWindow(builder);
         }

@@ -20,9 +20,10 @@ public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen imp
     
     public <T extends DLWindow> DLScreenWrapper(@Nullable M menu, WindowBuilder<T> window) {
         super(TextUtils.empty());
+        final Screen previousScreen = Minecraft.getInstance().screen;
         this.menu = menu;
-        this.root = new DLWindowManager(menu, window, width, height, () -> {
-            Minecraft.getInstance().setScreen(null);
+        this.root = new DLWindowManager(menu, window, width, height, (mgr) -> {
+            Minecraft.getInstance().setScreen(mgr.shouldShowPreviousScreenOnClose() ? previousScreen : null);
         });
     }
 
@@ -101,6 +102,11 @@ public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen imp
     @Override
     public void onClose() {
         root.onClose();
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return root.isPauseScreen();
     }
 
     @Override

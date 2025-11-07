@@ -85,9 +85,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
     private final AbstractContainerMenu menu;
 
-    private final Runnable close;
+    private final Consumer<DLWindowManager> close;
 
     private boolean closeOnEscape = true;
+    private boolean isPauseScreen = true;
+    private boolean showPreviousScreenOnClose = true;
 
     private double width;
     private double height;
@@ -104,7 +106,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     private DLWindow focusedWindow;
 
 
-    public <T extends DLWindow> DLWindowManager(AbstractContainerMenu menu, WindowBuilder<T> windowBuilder, double width, double height, Runnable close) {
+    public <T extends DLWindow> DLWindowManager(AbstractContainerMenu menu, WindowBuilder<T> windowBuilder, double width, double height, Consumer<DLWindowManager> close) {
         this.menu = menu;
         this.close = close;
         this.width = width;
@@ -313,6 +315,22 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
     public void setCloseOnEscape(boolean b) {
         this.closeOnEscape = b;
+    }
+
+    public boolean isPauseScreen() {
+        return this.isPauseScreen;
+    }
+
+    public void setPauseScreen(boolean b) {
+        this.isPauseScreen = b;
+    }
+
+    public boolean shouldShowPreviousScreenOnClose() {
+        return this.showPreviousScreenOnClose;
+    }
+
+    public void setShowPreviousScreenOnClose(boolean b) {
+        this.showPreviousScreenOnClose = b;
     }
 
 
@@ -636,7 +654,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
     private void closeInternal() {
         onClose();
-        close.run();
+        close.accept(this);
     }
 
     public void close() {
