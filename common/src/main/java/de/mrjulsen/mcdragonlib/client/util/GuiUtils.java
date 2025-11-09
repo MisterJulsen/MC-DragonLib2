@@ -155,6 +155,59 @@ public class GuiUtils {
     public static void resetTint() {
         RenderSystem.setShaderColor(1, 1, 1, 1);
     }
+    public static void renderTiledTexture(DLGuiGraphics graphics, Runnable bindTexture, int x, int y, int w, int h, float u, float v, float uW, float vH, int texWidth, int texHeight) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        bindTexture.run();
+
+        float minU = u / texWidth;
+        float minV = v / texHeight;
+        float maxU = (u + uW) / texWidth;
+        float maxV = (v + vH) / texHeight;
+        float uSpan = maxU - minU;
+        float vSpan = maxV - minV;
+
+        Matrix4f matrix = graphics.poseStack().last().pose();
+        Tesselator tess = Tesselator.getInstance();
+        BufferBuilder buffer = tess.getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+
+        int fullXTiles = w / (int)uW;
+        int fullYTiles = h / (int)vH;
+        float restX = w % uW;
+        float restY = h % vH;
+
+        float offsetY = 0f;
+        for (int yTile = 0; yTile <= fullYTiles; yTile++) {
+            float tileHeight = (yTile < fullYTiles) ? vH : restY;
+            if (tileHeight <= 0) break;
+
+            float offsetX = 0f;
+            for (int xTile = 0; xTile <= fullXTiles; xTile++) {
+                float tileWidth = (xTile < fullXTiles) ? uW : restX;
+                if (tileWidth <= 0) break;
+
+                float u0 = minU;
+                float v0 = minV;
+                float u1 = minU + uSpan * (tileWidth / uW);
+                float v1 = minV + vSpan * (tileHeight / vH);
+
+                float quadX0 = x + offsetX;
+                float quadY0 = y + offsetY;
+                float quadX1 = quadX0 + tileWidth;
+                float quadY1 = quadY0 + tileHeight;
+
+                buffer.vertex(matrix, quadX0, quadY1, 0).uv(u0, v1).endVertex();
+                buffer.vertex(matrix, quadX1, quadY1, 0).uv(u1, v1).endVertex();
+                buffer.vertex(matrix, quadX1, quadY0, 0).uv(u1, v0).endVertex();
+                buffer.vertex(matrix, quadX0, quadY0, 0).uv(u0, v0).endVertex();
+
+                offsetX += tileWidth;
+            }
+            offsetY += tileHeight;
+        }
+
+        tess.end();
+    }
 
     public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
         drawTexture(texture, graphics, x, y, w, h, u, v, uW, vH, mode, 256, 256);
@@ -162,34 +215,14 @@ public class GuiUtils {
 
     public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
-            case TILE -> {
-                int i = (int)Math.ceil((float)w / (float)uW);
-                int k = (int)Math.ceil((float)h / (float)vH);
-                for (int a = 0; a < i; a++) {
-                    for (int b = 0; b < k; b++) {
-                        int mW = Math.min((a + 1) * uW, w) - (a * uW);
-                        int mH = Math.min((b + 1) * vH, h) - (b * vH);
-                        graphics.graphics().blit(texture, x + (uW * a), y + (vH * b), mW, mH, u, v, mW, mH, textureWidth, textureHeight);
-                    }
-                }
-            }
+            case TILE -> renderTiledTexture(graphics, () -> RenderSystem.setShaderTexture(0, texture), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
             default -> graphics.graphics().blit(texture, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
         }
     }
 
     public static void drawTexture(int textureId, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
-            case TILE -> {
-                int i = (int)Math.ceil((float)w / (float)uW);
-                int k = (int)Math.ceil((float)h / (float)vH);
-                for (int a = 0; a < i; a++) {
-                    for (int b = 0; b < k; b++) {
-                        int mW = Math.min((a + 1) * uW, w) - (a * uW);
-                        int mH = Math.min((b + 1) * vH, h) - (b * vH);
-                        blit(graphics.graphics(), textureId, x + (uW * a), y + (vH * b), mW, mH, u, v, mW, mH, textureWidth, textureHeight);
-                    }
-                }
-            }
+            case TILE -> renderTiledTexture(graphics, () -> RenderSystem.setShaderTexture(0, textureId), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
             default -> blit(graphics.graphics(), textureId, x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
         }
         
