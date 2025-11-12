@@ -189,7 +189,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public void send(N sender, CompletableFuture<O> responseCallback) {
             long requestId = System.nanoTime();
             callbacks.put(requestId, responseCallback);
-            sendInternal(requestId, sender, null);
+            sendInternal(requestId, sender, new CompoundTag());
         }
     } 
 
