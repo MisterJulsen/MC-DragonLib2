@@ -61,7 +61,9 @@ import com.google.common.collect.ImmutableSet;
  * </p>
  */
 @SupportsEvents({
+        DLGuiStandardEvents.RenderPreEvent.class,
         DLGuiStandardEvents.RenderEvent.class,
+        DLGuiStandardEvents.RenderPostEvent.class,
         DLGuiStandardEvents.ClickEvent.class,
         DLGuiStandardEvents.RightClickEvent.class,
         DLGuiStandardEvents.MultiClickEvent.class,
@@ -1077,6 +1079,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         globalScale *= currentScale;
         graphics.poseStack().scale((float) currentScale, (float) currentScale, (float) currentScale);
         graphics.poseStack().pushPose();
+        
+        invokeEvent(this, new DLGuiStandardEvents.RenderPreEvent(graphics, mouseX, mouseY, layer, scissorBounds), true);
 
         final boolean useScissor = !layer.isSpecial() && layer != RenderLayer.FRONT;
         final int maxWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
@@ -1134,6 +1138,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
         if (useScissor)
             GuiUtils.disableScissor(graphics);
+            
+        invokeEvent(this, new DLGuiStandardEvents.RenderPostEvent(graphics, mouseX, mouseY, layer, scissorBounds), true);
+
         graphics.poseStack().popPose();
     }
 

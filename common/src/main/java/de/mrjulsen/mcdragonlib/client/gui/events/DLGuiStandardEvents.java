@@ -109,6 +109,8 @@ public final class DLGuiStandardEvents {
     public record ComponentsClearEvent(Phase order, MutableBoolean cancel) implements IEvent {}
     public record ParentChangedEvent(Optional<DLGuiComponent> oldParent, Optional<DLGuiComponent> newParent) implements IEvent {}
     @NotCancellable public record WindowManagerChangeEvent(DLWindowManager oldWindowManager, DLWindowManager newWindowManager) implements IEvent {}
+    public record RenderPreEvent(DLGuiGraphics graphics, double mouseX, double mouseY, RenderLayer layer, Rectangle renderBounds) implements IEvent {}
     public record RenderEvent(DLGuiGraphics graphics, double mouseX, double mouseY, RenderLayer layer, Rectangle renderBounds) implements IEvent {}
+    public record RenderPostEvent(DLGuiGraphics graphics, double mouseX, double mouseY, RenderLayer layer, Rectangle renderBounds) implements IEvent {}
     @NotCancellable public record CloseEvent() implements IEvent {}
 }
