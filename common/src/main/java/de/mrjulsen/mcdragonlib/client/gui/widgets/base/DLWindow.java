@@ -51,6 +51,7 @@ public abstract class DLWindow extends DLGuiComponent {
         
     public final BooleanProperty topLevel = new BooleanProperty(false, false);
     public final BooleanProperty focusOnSpawn = new BooleanProperty(true, false);
+    public final BooleanProperty pauseGame = new BooleanProperty(false, false);
 
 
     private ModalId modal;

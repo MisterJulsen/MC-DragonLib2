@@ -323,7 +323,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     }
 
     public boolean isPauseScreen() {
-        return this.isPauseScreen;
+        return this.isPauseScreen || getFocusedWindow().pauseGame.get();
     }
 
     public void setPauseScreen(boolean b) {
