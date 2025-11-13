@@ -290,7 +290,7 @@ public class GuiUtils {
     public static void fillGradient(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor colorA, DLColor colorB, EAlign align) {
         DLColor[] vertexColors = new DLColor[4];
         for (int i = 0; i < vertexColors.length; i++) {
-            vertexColors[(align.ordinal() + i) % vertexColors.length] = (i < 2 ? colorA : colorB);
+            vertexColors[(align.getOrder() + i) % vertexColors.length] = (i < 2 ? colorA : colorB);
         }
 
         RenderSystem.disableDepthTest();

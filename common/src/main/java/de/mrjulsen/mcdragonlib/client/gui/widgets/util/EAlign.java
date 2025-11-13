@@ -11,11 +11,12 @@ import de.mrjulsen.mcdragonlib.data.IIterableEnum;
 import de.mrjulsen.mcdragonlib.data.ITranslatableEnum;
 
 public enum EAlign implements BitflagEnum, ITranslatableEnum, IIterableEnum<EAlign> {
-    TOP("top", 0b0001, AffectedTransformtion.POSITION, true),
-    LEFT("left", 0b0010, AffectedTransformtion.POSITION, false),
-    RIGHT("right", 0b0100, AffectedTransformtion.SIZE, false),
-    BOTTOM("bottom", 0b1000, AffectedTransformtion.SIZE, true);
+    TOP((byte)0, "top", 0b0001, AffectedTransformtion.POSITION, true),
+    LEFT((byte)1,"left", 0b0010, AffectedTransformtion.POSITION, false),
+    RIGHT((byte)3, "right", 0b0100, AffectedTransformtion.SIZE, false),
+    BOTTOM((byte)2, "bottom", 0b1000, AffectedTransformtion.SIZE, true);
 
+    private final byte order;
     private final String name;
     private final int bit;
     private final AffectedTransformtion transform;
@@ -30,11 +31,16 @@ public enum EAlign implements BitflagEnum, ITranslatableEnum, IIterableEnum<EAli
         valueMap = ImmutableMap.copyOf(map);
     }
 
-    private EAlign(String name, int bit, AffectedTransformtion transform, boolean isVertical) {
+    private EAlign(byte order, String name, int bit, AffectedTransformtion transform, boolean isVertical) {
+        this.order = order;
         this.name = name;
         this.bit = bit;
         this.transform = transform;
         this.isVertical = isVertical;
+    }
+
+    public byte getOrder() {
+        return order;
     }
 
     public String getName() {
