@@ -243,6 +243,10 @@ public class DLScrollBar extends DLGuiComponent {
         });
     }
 
+    public boolean canScroll() {
+        return screenSize.get() < max.get();
+    }
+
     protected int getScrollAreaSize() {
         return switch (orientation) {
             case HORIZONTAL -> width() - (SCROLL_AREA_BORDER * 2) - (showButtons.get() ? BUTTON_SIZE * 2 : 0);
@@ -255,11 +259,15 @@ public class DLScrollBar extends DLGuiComponent {
     }
 
     protected int calculateAutoScrollerSize() {
+        if (!canScroll()) {
+            return 0;
+        }
+
         int scrollerSize = this.scrollerSize.get();
         if (scrollerSize > 0) {
             return scrollerSize;
         }
-        double screenSizes = Math.min((double)screenSize.get() / (double)max.get(), 1);
+        double screenSizes = max.get() <= 0 ? 0 : Math.min((double)screenSize.get() / (double)max.get(), 1);
         int area = getScrollAreaSize();
         switch (orientation) {
             case VERTICAL -> {
@@ -276,7 +284,11 @@ public class DLScrollBar extends DLGuiComponent {
         return Math.max(5, scrollerSize);
     }
 
-    protected void updateScrollValueOnScroll(double deltaX, double deltaY) {        
+    protected void updateScrollValueOnScroll(double deltaX, double deltaY) {
+        if (!canScroll()) {
+            this.value.set(0D);
+        }
+
         this.value.set(switch (orientation) {
             case VERTICAL -> this.value.get() + deltaY * scrollSteps.get();
             case HORIZONTAL -> this.value.get() + deltaX * scrollSteps.get();
@@ -284,6 +296,10 @@ public class DLScrollBar extends DLGuiComponent {
     }
 
     protected void updateScrollValueOnDrag(double mouseX, double mouseY) {
+        if (!canScroll()) {
+            this.value.set(0D);
+        }
+
         int scrollerSize = calculateAutoScrollerSize();
         int area = getScrollAreaSize();
         switch (orientation) {
@@ -329,6 +345,10 @@ public class DLScrollBar extends DLGuiComponent {
     }
 
     public void scrollTo(double position) {
+        if (!canScroll()) {
+            this.value.set(0D);
+        }
+
         int scrollerSize = calculateAutoScrollerSize();
         int area = getScrollAreaSize();
         switch (orientation) {
@@ -362,35 +382,37 @@ public class DLScrollBar extends DLGuiComponent {
             ScrollBarState.BACKGROUND
         );
 
-        int scrollerSize = calculateAutoScrollerSize();
-        int area = getScrollAreaSize();
+        if (canScroll()) {
+            int scrollerSize = calculateAutoScrollerSize();
+            int area = getScrollAreaSize();
 
-        ScrollBarState state;
+            ScrollBarState state;
 
-        switch (orientation) {
-            case VERTICAL -> {
-                state = ScrollBarState.SCROLLER_VERTICAL_NORMAL;
-                if (!enabled.get()) {
-                    state = ScrollBarState.SCROLLER_VERTICAL_DISABLED;
-                } else if (isMouseDown() && getWindowManager().getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                    state = ScrollBarState.SCROLLER_VERTICAL_DOWN_SELECTED;
-                } else if (isSelected()) {
-                    state = ScrollBarState.SCROLLER_VERTICAL_SELECTED;
+            switch (orientation) {
+                case VERTICAL -> {
+                    state = ScrollBarState.SCROLLER_VERTICAL_NORMAL;
+                    if (!enabled.get()) {
+                        state = ScrollBarState.SCROLLER_VERTICAL_DISABLED;
+                    } else if (isMouseDown() && getWindowManager().getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                        state = ScrollBarState.SCROLLER_VERTICAL_DOWN_SELECTED;
+                    } else if (isSelected()) {
+                        state = ScrollBarState.SCROLLER_VERTICAL_SELECTED;
+                    }
+                    int d = (int)((double)(area - scrollerSize) / max.get() * value.get());
+                    componentRenderer.get().renderSprite(graphics, SCROLL_AREA_BORDER, d + getScrollAreaOffset(), width() - SCROLL_AREA_BORDER * 2, scrollerSize, this, state);
                 }
-                int d = (int)((double)(area - scrollerSize) / max.get() * value.get());
-                componentRenderer.get().renderSprite(graphics, SCROLL_AREA_BORDER, d + getScrollAreaOffset(), width() - SCROLL_AREA_BORDER * 2, scrollerSize, this, state);
-            }
-            case HORIZONTAL -> {
-                state = ScrollBarState.SCROLLER_HORIZONTAL_NORMAL;
-                if (!enabled.get()) {
-                    state = ScrollBarState.SCROLLER_HORIZONTAL_DISABLED;
-                } else if (isMouseDown() && getWindowManager().getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                    state = ScrollBarState.SCROLLER_HORIZONTAL_DOWN_SELECTED;
-                } else if (isSelected()) {
-                    state = ScrollBarState.SCROLLER_HORIZONTAL_SELECTED;
+                case HORIZONTAL -> {
+                    state = ScrollBarState.SCROLLER_HORIZONTAL_NORMAL;
+                    if (!enabled.get()) {
+                        state = ScrollBarState.SCROLLER_HORIZONTAL_DISABLED;
+                    } else if (isMouseDown() && getWindowManager().getMouseDownButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                        state = ScrollBarState.SCROLLER_HORIZONTAL_DOWN_SELECTED;
+                    } else if (isSelected()) {
+                        state = ScrollBarState.SCROLLER_HORIZONTAL_SELECTED;
+                    }
+                    int d = (int)((double)(area - scrollerSize) / max.get() * value.get());
+                    componentRenderer.get().renderSprite(graphics, d + getScrollAreaOffset(), SCROLL_AREA_BORDER, scrollerSize, height() - SCROLL_AREA_BORDER * 2, this, state);
                 }
-                int d = (int)((double)(area - scrollerSize) / max.get() * value.get());
-                componentRenderer.get().renderSprite(graphics, d + getScrollAreaOffset(), SCROLL_AREA_BORDER, scrollerSize, height() - SCROLL_AREA_BORDER * 2, this, state);
             }
         }
 
