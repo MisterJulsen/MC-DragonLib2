@@ -287,6 +287,7 @@ public class DLScrollBar extends DLGuiComponent {
     protected void updateScrollValueOnScroll(double deltaX, double deltaY) {
         if (!canScroll()) {
             this.value.set(0D);
+            return;
         }
 
         this.value.set(switch (orientation) {
@@ -298,6 +299,7 @@ public class DLScrollBar extends DLGuiComponent {
     protected void updateScrollValueOnDrag(double mouseX, double mouseY) {
         if (!canScroll()) {
             this.value.set(0D);
+            return;
         }
 
         int scrollerSize = calculateAutoScrollerSize();
@@ -347,6 +349,7 @@ public class DLScrollBar extends DLGuiComponent {
     public void scrollTo(double position) {
         if (!canScroll()) {
             this.value.set(0D);
+            return;
         }
 
         int scrollerSize = calculateAutoScrollerSize();
