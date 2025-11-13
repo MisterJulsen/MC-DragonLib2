@@ -428,7 +428,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             closeInternal();
         }
 
-        if (wins.contains(focusedWindow)) {
+        if (focusedWindow != null && wins.contains(focusedWindow)) {
             focusedWindow = null;
         }
         updateWindowFocus(false);
@@ -441,6 +441,8 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             }
             win.setWindowManager(null);
         }
+
+        mouseMoved(focusedWindow, false, mouseXOnScreen(), mouseYOnScreen());
     }
 
     public void closeModal(ModalId id) {
