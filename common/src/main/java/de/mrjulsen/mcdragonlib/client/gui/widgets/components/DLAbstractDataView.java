@@ -27,7 +27,7 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
     }
     
 
-    protected static abstract class DLDataViewItem<T, L extends DLAbstractDataView<T, ?>> extends DLAbstractCollectionComponent.DLCollectionItem<T, L> {        
+    public static abstract class DLDataViewItem<T, L extends DLAbstractDataView<T, ?>> extends DLAbstractCollectionComponent.DLCollectionItem<T, L> {        
             
         protected final DLPanel contentPanel;
 
