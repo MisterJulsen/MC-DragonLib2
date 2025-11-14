@@ -8,12 +8,13 @@ import org.lwjgl.glfw.GLFW;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLBasicDataView;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCheckBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLComboBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCycleButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemSelectionBox;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLEditableLabel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLPanel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar;
@@ -21,6 +22,9 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLToggleButton;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlot;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.SizeMode;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlotComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar.ProgressBarStyle;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orientation;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
@@ -49,6 +53,7 @@ public class DLTestWindow extends DLWindow {
     public DLTestWindow(DLWindowManager manager) {
         super(manager);
         anchor.set(EAlign.values());
+        fullscreen.set(true);
         
         addEventListener(DLGuiStandardEvents.KeyPressEvent.class, (s, e) -> {
             if (e.keyCode() == GLFW.GLFW_KEY_ESCAPE) {
@@ -160,7 +165,37 @@ public class DLTestWindow extends DLWindow {
         progressBar.style.set(ProgressBarStyle.CONTINUOUS);
         progressBar.value.set(0.3d);
         addComponent(progressBar);
+
+        DLBasicDataView<String> dataView = new DLBasicDataView<>(360, 50, 200, 150);
+        dataView.dataSlots.add(new DataSlot("slot1", TextUtils.text("Slot 1"), 50, SizeMode.FIXED));
+        dataView.dataSlots.add(new DataSlot("slot2", TextUtils.text("Slot 2"), 20, SizeMode.FIXED));
+        dataView.dataSlots.add(new DataSlot("slot3", TextUtils.text("Slot 3"), 70, SizeMode.PERCENTAGE));
+        dataView.dataSlots.add(new DataSlot("slot4", TextUtils.text("Slot 4"), 30, SizeMode.PERCENTAGE));
+        dataView.items.addAll(List.of("Salz 1", "Salz 2", "Salz 3", "Salz 4", "Salz 5"));
+        dataView.itemBuilder.set((in) -> {
+            DLBasicDataView.DLBasicItem<String> item = new DLBasicDataView.DLBasicItem<>(dataView, in);
+            DLEditableLabel lbl1 = new DLEditableLabel(0, 0, 1, 20);
+            lbl1.text.set(in);
+            lbl1.editable.set(true);
+            DLEditableLabel lbl2 = new DLEditableLabel(0, 0, 1, 20);
+            lbl2.text.set("Gemüsesalz");
+            lbl2.editable.set(true);
+            DLEditableLabel lbl3 = new DLEditableLabel(0, 0, 1, 20);
+            lbl3.text.set("Drache");
+            lbl3.editable.set(true);
+            DLEditableLabel lbl4 = new DLEditableLabel(0, 0, 1, 20);
+            lbl4.text.set("SooS");
+            lbl4.editable.set(true);
+            item.subComponents.add(new DataSlotComponent("slot1", lbl1));
+            item.subComponents.add(new DataSlotComponent("slot2", lbl2));
+            item.subComponents.add(new DataSlotComponent("slot3", lbl3));
+            item.subComponents.add(new DataSlotComponent("slot4", lbl4));
+            return item;
+        });
+        dataView.resizable.set(true);
+        addComponent(dataView);
         
+        /*
         DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(360, 50, 150, 150);
         listBox.scale.set(0.75d);
         listBox.multiselect.set(true);
@@ -170,6 +205,7 @@ public class DLTestWindow extends DLWindow {
         }
         //listBox.selectedItems.set(List.of("Test 5"));
         addComponent(listBox);
+        */
 
         DLComboBox<String> comboBox = new DLComboBox<>(100, 225, 80, 20);
         for (int i = 0; i < 50; i++) {
