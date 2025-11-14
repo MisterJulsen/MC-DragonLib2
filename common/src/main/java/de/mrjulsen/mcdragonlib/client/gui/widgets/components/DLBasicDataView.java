@@ -7,6 +7,8 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 
 public class DLBasicDataView<T> extends DLAbstractDataView<T, DLBasicDataView.DLBasicItem<T>> {
 
+    private int requiredHeight = 0;
+
     public DLBasicDataView(int x, int y, int w, int h) {
         super(x, y, w, h);
     }
@@ -26,7 +28,12 @@ public class DLBasicDataView<T> extends DLAbstractDataView<T, DLBasicDataView.DL
             setItemY(item, currentY);
             setItemWidth(item, width());
             currentY += item.height();
-        }        
+        }
+        requiredHeight = currentY;
+    }
+
+    public int getRequiredHeight() {
+        return requiredHeight;
     }
 
     @Override
@@ -38,11 +45,6 @@ public class DLBasicDataView<T> extends DLAbstractDataView<T, DLBasicDataView.DL
     public static class DLBasicItem<T> extends DLAbstractDataView.DLDataViewItem<T, DLBasicDataView<T>> {
         public DLBasicItem(DLBasicDataView<T> collectionComponentRef, T item) {
             super(collectionComponentRef, item);
-        }
-
-        @Override
-        public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-            GuiUtils.fill(graphics, getRenderBounds(), DLColor.GREEN);
         }
     }
 }

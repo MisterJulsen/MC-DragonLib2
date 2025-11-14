@@ -2,15 +2,23 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import java.util.function.Function;
 
+import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
+import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.events.IEventListener;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.ListProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
+@SupportsEvents({
+    DLAbstractCollectionComponent.ListLayoutChangedEvent.class
+})
 public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractCollectionComponent.DLCollectionItem<T, ?>> extends DLGuiComponent {
+    
+    public record ListLayoutChangedEvent() implements IEvent {}
+
 
     protected static abstract class DLCollectionItem<T, L extends DLAbstractCollectionComponent<T, ?>> extends DLGuiComponent {
     
@@ -30,7 +38,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
                 throw new IllegalStateException("Cannot change the size of list items after they have been created.");
             }
             super.setHeight(height);
-            collectionComponentRef.layoutComponents();
+            collectionComponentRef.layoutComponentsInternal();
         }
         
         @Override
@@ -39,7 +47,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
                 throw new IllegalStateException("Cannot change the size of list items after they have been created.");
             }
             super.setWidth(width);
-            collectionComponentRef.layoutComponents();
+            collectionComponentRef.layoutComponentsInternal();
         }
 
         @Override
@@ -74,13 +82,13 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
     public final ListProperty<T> items = new ListProperty<T>()
         .withAfterPropertyChangedCallback((o, val) -> {
             createComponents();
-            layoutComponents();
+            layoutComponentsInternal();
         });
 
     public final Property<Function<T, I>> itemBuilder = new Property<Function<T, I>>(this::defaultItemBuilder)
         .withAfterPropertyChangedCallback((a, b) -> {
             createComponents();
-            layoutComponents();
+            layoutComponentsInternal();
         });
 
     public final BooleanProperty itemResizeAllowed = new BooleanProperty(false, false);
@@ -97,7 +105,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
         addComponent(contentPanel);
 
         final IEventListener<DLGuiComponent, DLGuiStandardEvents.ComponentPosAndSizeChanged> resizeEvent = (src, event) -> {
-            layoutComponents();
+            layoutComponentsInternal();
             return false;
         };
 
@@ -111,6 +119,11 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             I listItem = itemBuilder.get().apply(item);
             contentPanel.addComponent(listItem);
         }
+    }
+
+    protected final void layoutComponentsInternal() {
+        layoutComponents();
+        invokeEvent(this, new ListLayoutChangedEvent());
     }
 
     protected abstract void layoutComponents();
