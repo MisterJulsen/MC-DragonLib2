@@ -42,18 +42,18 @@ public abstract class BlockModelDeserializerMixin {
 		List<BlockElement> elements = model.getElements();
 		if (geometry != null) {
 			elements.clear();
-			((BlockModelExtensions)model).setCustomGeometry(geometry);
+			((BlockModelExtensions)model).dragonlib$setCustomGeometry(geometry);
 		}
 
 		if (jsonobject.has("transform")) {
 			JsonObject transform = GsonHelper.getAsJsonObject(jsonobject, "transform");
-			((BlockModelExtensions)model).setRootTransform(deserializationContext.deserialize(transform, Transformation.class));
+			((BlockModelExtensions)model).dragonlib$setRootTransform(deserializationContext.deserialize(transform, Transformation.class));
 		}
 
 		if (jsonobject.has("visibility")) {
 			JsonObject visibility = GsonHelper.getAsJsonObject(jsonobject, "visibility");
 			for (Map.Entry<String, JsonElement> part : visibility.entrySet()) {
-				((BlockModelExtensions)model).getVisibilityData().setVisibilityState(part.getKey(), part.getValue().getAsBoolean());
+				((BlockModelExtensions)model).dragonlib$getVisibilityData().setVisibilityState(part.getKey(), part.getValue().getAsBoolean());
 			}
 		}
 

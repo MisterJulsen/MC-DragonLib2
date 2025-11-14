@@ -14,31 +14,31 @@ import java.util.function.Function;
 
 public interface BlockModelExtensions {
 
-	default ItemOverrides getOverrides(ModelBaker pModelBakery, BlockModel pModel, Function<Material, TextureAtlasSprite> textureGetter) {
+	default ItemOverrides dragonlib$getOverrides(ModelBaker pModelBakery, BlockModel pModel, Function<Material, TextureAtlasSprite> textureGetter) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default void setCustomGeometry(IUnbakedGeometry<?> geometry) {
+	default void dragonlib$setCustomGeometry(IUnbakedGeometry<?> geometry) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default IUnbakedGeometry<?> getCustomGeometry() {
+	default IUnbakedGeometry<?> dragonlib$getCustomGeometry() {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default boolean isComponentVisible(String part, boolean fallback) {
+	default boolean dragonlib$isComponentVisible(String part, boolean fallback) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default VisibilityData getVisibilityData() {
+	default VisibilityData dragonlib$getVisibilityData() {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default Transformation getRootTransform() {
+	default Transformation dragonlib$getRootTransform() {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default void setRootTransform(Transformation rootTransform) {
+	default void dragonlib$setRootTransform(Transformation rootTransform) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 }

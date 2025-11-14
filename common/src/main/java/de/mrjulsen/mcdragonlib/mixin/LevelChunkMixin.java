@@ -17,7 +17,7 @@ public class LevelChunkMixin {
         LevelChunk self = (LevelChunk)(Object)this;
         for (BlockEntity be : self.getBlockEntities().values()) {
             if (be instanceof IBlockEntityExtension bext) {
-                bext.onChunkUnloaded();
+                bext.dragonlib$onChunkUnloaded();
             }
         }
     }
@@ -27,7 +27,7 @@ public class LevelChunkMixin {
         LevelChunk self = (LevelChunk)(Object)this;
         for (BlockEntity be : self.getBlockEntities().values()) {
             if (be instanceof IBlockEntityExtension bext) {
-                bext.onBlockEntityLoad();
+                bext.dragonlib$onBlockEntityLoad();
             }
         }
     }

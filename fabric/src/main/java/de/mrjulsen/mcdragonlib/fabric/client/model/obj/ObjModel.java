@@ -186,9 +186,9 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 			quadBaker.material(shadeQuads ? defaultMaterial : diffuseMaterial);
 		}
 
-		boolean hasTransform = !((TransformationExtensions)(Object)transform).isIdentity();
+		boolean hasTransform = !((TransformationExtensions)(Object)transform).dragonlib$isIdentity();
 		
-		Transformation transformation = hasTransform ? ((TransformationExtensions)(Object)transform).blockCenterToCorner() : transform;
+		Transformation transformation = hasTransform ? ((TransformationExtensions)(Object)transform).dragonlib$blockCenterToCorner() : transform;
 
 		Vector4f[] pos = new Vector4f[4];
 		Vector3f[] norm = new Vector3f[4];
@@ -202,8 +202,8 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 			Vector4f color = index.length >= 4 && colors.size() > 0 ? colors.get(index[3]) : COLOR_WHITE;
 			if (hasTransform) {
 				normal = new Vector3f(norm0);
-				((TransformationExtensions)(Object)transformation).transformPosition(position);
-				((TransformationExtensions)(Object)transformation).transformNormal(normal);
+				((TransformationExtensions)(Object)transformation).dragonlib$transformPosition(position);
+				((TransformationExtensions)(Object)transformation).dragonlib$transformNormal(normal);
 			}
 			Vector4f tintedColor = new Vector4f(
 					color.x() * colorTint.x(),
@@ -344,7 +344,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		public void buildMeshes(BlockModel owner, MeshBuilder meshBuilder, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ResourceLocation modelLocation) {
 			super.buildMeshes(owner, meshBuilder, baker, spriteGetter, modelTransform, modelLocation);
 
-			parts.values().stream().filter(part -> ((BlockModelExtensions)owner).isComponentVisible(part.name(), true))
+			parts.values().stream().filter(part -> ((BlockModelExtensions)owner).dragonlib$isComponentVisible(part.name(), true))
 					.forEach(part -> part.buildMeshes(owner, meshBuilder, baker, spriteGetter, modelTransform, modelLocation));
 		}
 
@@ -387,8 +387,8 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 			int tintIndex = mat.diffuseTintIndex;
 			Vector4f colorTint = mat.diffuseColor;
 
-			var rootTransform = owner != null ? ((BlockModelExtensions)owner).getRootTransform() : Transformation.identity();
-			var transform = ((TransformationExtensions)(Object)rootTransform).isIdentity() ? modelTransform.getRotation() : modelTransform.getRotation().compose(rootTransform);
+			var rootTransform = owner != null ? ((BlockModelExtensions)owner).dragonlib$getRootTransform() : Transformation.identity();
+			var transform = ((TransformationExtensions)(Object)rootTransform).dragonlib$isIdentity() ? modelTransform.getRotation() : modelTransform.getRotation().compose(rootTransform);
 			for (int[][] face : faces) {
 				makeQuad(meshBuilder, face, tintIndex, colorTint, mat.ambientColor, texture, transform);
 			}

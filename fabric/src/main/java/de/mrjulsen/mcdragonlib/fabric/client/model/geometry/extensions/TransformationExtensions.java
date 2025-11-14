@@ -9,36 +9,36 @@ import com.mojang.math.Transformation;
 import net.minecraft.core.Direction;
 
 public interface TransformationExtensions {
-		default Transformation applyOrigin(Vector3f origin) {
+		default Transformation dragonlib$applyOrigin(Vector3f origin) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default Matrix3f getNormalMatrix() {
+	default Matrix3f dragonlib$getNormalMatrix() {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default void transformPosition(Vector4f position) {
+	default void dragonlib$transformPosition(Vector4f position) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default Direction rotateTransform(Direction facing) {
+	default Direction dragonlib$rotateTransform(Direction facing) {
 		throw new RuntimeException("this should be overridden via mixin. what?");
 	}
 
-	default boolean isIdentity() {
+	default boolean dragonlib$isIdentity() {
 		return this.equals(Transformation.identity());
 	}
 
-	default void transformNormal(Vector3f normal) {
-		normal.mul(getNormalMatrix());
+	default void dragonlib$transformNormal(Vector3f normal) {
+		normal.mul(dragonlib$getNormalMatrix());
 		normal.normalize();
 	}
 
-		default Transformation blockCenterToCorner() {
-		return applyOrigin(new Vector3f(.5f, .5f, .5f));
+	default Transformation dragonlib$blockCenterToCorner() {
+		return dragonlib$applyOrigin(new Vector3f(.5f, .5f, .5f));
 	}
 
-		default Transformation blockCornerToCenter() {
-		return applyOrigin(new Vector3f(-.5f, -.5f, -.5f));
+	default Transformation dragonlib$blockCornerToCenter() {
+		return dragonlib$applyOrigin(new Vector3f(-.5f, -.5f, -.5f));
 	}
 }

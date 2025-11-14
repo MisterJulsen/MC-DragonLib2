@@ -12,7 +12,7 @@ public interface IItemExtension {
      * @param stack the item stack
      * @param player the player wearing the armor
      */
-    default void tickArmor(ItemStack stack, Player player) {
+    default void dragonlib$tickArmor(ItemStack stack, Player player) {
     }
     
     /**
@@ -21,7 +21,7 @@ public interface IItemExtension {
      * @return the {@link EquipmentSlot}, return {@code null} to default to vanilla's {@link net.minecraft.world.entity.Mob#getEquipmentSlotForItem(ItemStack)}
      */
     @Nullable
-    default EquipmentSlot getCustomEquipmentSlot(ItemStack stack) {
+    default EquipmentSlot dragonlib$getCustomEquipmentSlot(ItemStack stack) {
         return null;
     }
 }

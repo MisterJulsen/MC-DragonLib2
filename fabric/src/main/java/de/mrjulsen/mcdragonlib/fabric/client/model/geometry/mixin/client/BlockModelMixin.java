@@ -54,9 +54,9 @@ public class BlockModelMixin implements BlockModelExtensions {
 	)
 	public void handleCustomModels(ModelBaker modelBaker, BlockModel ownerModel, Function<Material, TextureAtlasSprite> spriteGetter,
 								   ModelState modelTransform, ResourceLocation modelLocation, boolean guiLight3d, CallbackInfoReturnable<BakedModel> cir) {
-		IUnbakedGeometry<?> geometry = getCustomGeometry();
+		IUnbakedGeometry<?> geometry = dragonlib$getCustomGeometry();
 		if (geometry != null) {
-			ItemOverrides overrides = getOverrides(modelBaker, ownerModel, spriteGetter);
+			ItemOverrides overrides = dragonlib$getOverrides(modelBaker, ownerModel, spriteGetter);
 			cir.setReturnValue(geometry.bake(
 					(BlockModel) (Object) this, modelBaker, spriteGetter, modelTransform, overrides, modelLocation, guiLight3d
 			));
@@ -65,42 +65,42 @@ public class BlockModelMixin implements BlockModelExtensions {
 
 	@Inject(method = "resolveParents", at = @At("HEAD"))
 	private void handleCustomResolveParents(Function<ResourceLocation, UnbakedModel> function, CallbackInfo ci) {
-		if (getCustomGeometry() != null)
-			getCustomGeometry().resolveParents(function, (BlockModel)self());
+		if (dragonlib$getCustomGeometry() != null)
+			dragonlib$getCustomGeometry().resolveParents(function, (BlockModel)self());
 	}
 
 	@Override
-	public ItemOverrides getOverrides(ModelBaker p_250138_, BlockModel p_251800_, Function<Material, TextureAtlasSprite> spriteGetter) {
+	public ItemOverrides dragonlib$getOverrides(ModelBaker p_250138_, BlockModel p_251800_, Function<Material, TextureAtlasSprite> spriteGetter) {
 		return this.overrides.isEmpty() ? ItemOverrides.EMPTY : new ItemOverrides(p_250138_, p_251800_, this.overrides/*, spriteGetter*/);
 	}
 
 	@Override
-	public void setCustomGeometry(IUnbakedGeometry<?> geometry) {
+	public void dragonlib$setCustomGeometry(IUnbakedGeometry<?> geometry) {
 		this.customModel = geometry;
 	}
 
 	@Override
-	public IUnbakedGeometry<?> getCustomGeometry() {
-		return this.parent != null && customModel == null ? ((BlockModelExtensions)(Object)this.parent).getCustomGeometry() : customModel;
+	public IUnbakedGeometry<?> dragonlib$getCustomGeometry() {
+		return this.parent != null && customModel == null ? ((BlockModelExtensions)(Object)this.parent).dragonlib$getCustomGeometry() : customModel;
 	}
 
 	@Override
-	public VisibilityData getVisibilityData() {
+	public VisibilityData dragonlib$getVisibilityData() {
 		return this.visibilityData;
 	}
 
 	@Override
-	public boolean isComponentVisible(String part, boolean fallback) {
+	public boolean dragonlib$isComponentVisible(String part, boolean fallback) {
 		return selfParent() != null && !visibilityData.hasCustomVisibility(part) ?
-				selfParent().isComponentVisible(part, fallback) :
+				selfParent().dragonlib$isComponentVisible(part, fallback) :
 				visibilityData.isVisible(part, fallback);
 	}
 
 	@Override
-	public Transformation getRootTransform() {
+	public Transformation dragonlib$getRootTransform() {
 		if (rootTransform != null)
 			return rootTransform;
-		return selfParent() != null ? selfParent().getRootTransform() : Transformation.identity();
+		return selfParent() != null ? selfParent().dragonlib$getRootTransform() : Transformation.identity();
 	}
 
 	public void setRootTransform(Transformation rootTransform) {

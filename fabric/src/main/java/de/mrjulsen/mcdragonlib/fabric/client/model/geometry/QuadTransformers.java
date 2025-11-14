@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.mojang.math.Transformation;
 
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.extensions.TransformationExtensions;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.LightTexture;
@@ -30,7 +29,7 @@ public final class QuadTransformers {
 
 		public static RenderContext.QuadTransform applying(Transformation transform) {
 		TransformationExtensions transformExt = (TransformationExtensions)(Object)transform;
-		if (transformExt.isIdentity())
+		if (transformExt.dragonlib$isIdentity())
 			return empty();
 		return quad -> {
 			for (int i = 0; i < 4; i++) {
@@ -39,7 +38,7 @@ public final class QuadTransformers {
 				float z = quad.z(i);
 
 				Vector4f pos = new Vector4f(x, y, z, 1);
-				transformExt.transformPosition(pos);
+				transformExt.dragonlib$transformPosition(pos);
 				pos.div(pos.w);
 
 				quad.pos(i, pos.x(), pos.y(), pos.z());
@@ -52,7 +51,7 @@ public final class QuadTransformers {
 					float z = quad.normalZ(i);
 
 					Vector3f pos = new Vector3f(x, y, z);
-					transformExt.transformNormal(pos);
+					transformExt.dragonlib$transformNormal(pos);
 
 					quad.normal(i, pos);
 				}

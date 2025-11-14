@@ -68,7 +68,7 @@ public class UnbakedGeometryHelper {
 		
 		
 		
-		Transformation transform = ((TransformationExtensions)(Object)modelState.getRotation()).applyOrigin(new Vector3f(.5F, .5F, .5F));
+		Transformation transform = ((TransformationExtensions)(Object)modelState.getRotation()).dragonlib$applyOrigin(new Vector3f(.5F, .5F, .5F));
 		return QuadTransformers.applying(transform.compose(rootTransform).compose(transform.inverse()));
 	}
 
@@ -157,7 +157,7 @@ public class UnbakedGeometryHelper {
 		public static ModelState composeRootTransformIntoModelState(ModelState modelState, Transformation rootTransform) {
 		
 		
-		rootTransform = ((TransformationExtensions)(Object)rootTransform).applyOrigin(new Vector3f(-.5F, -.5F, -.5F));
+		rootTransform = ((TransformationExtensions)(Object)rootTransform).dragonlib$applyOrigin(new Vector3f(-.5F, -.5F, -.5F));
 		return new SimpleModelState(modelState.getRotation().compose(rootTransform), modelState.isUvLocked());
 	}
 }
