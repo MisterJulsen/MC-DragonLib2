@@ -56,17 +56,89 @@ public final class DLGuiStandardEvents {
      * @param mouseY The local mouse Y position on the component.
      */
     public record MouseLeaveEvent(double mouseX, double mouseY) implements IEvent {}
+    
+    /**
+     * Triggered when the mouse is moved above the component's bounds.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     */
     public record MouseMoveEvent(double mouseX, double mouseY) implements IEvent {}
+    
+    /**
+     * Triggered when the mouse leaves the component's bounds.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     */
     public record MouseReleaseEvent(double mouseX, double mouseY, int button) implements IEvent {}
+    
+    /**
+     * Triggered when the a mouse button is pressed. This event is very similar to {@link ClickEvent} with the difference, that this event is fired every time any mouse button is pressed.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     * @param button The mouse button pressed.
+     */
     public record MousePressedEvent(double mouseX, double mouseY, int button) implements IEvent {}
+    
+    /**
+     * Triggered when the left mouse button is pressed. This event is a simplified version of {@link MousePressedEvent}. For simplified right click detection, check {@link RightClickEvent}.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     */
     public record ClickEvent(double mouseX, double mouseY) implements IEvent {}
+    
+    /**
+     * Triggered when the right mouse button is pressed. This event is a simplified version of {@link MousePressedEvent}. For simplified left click detection, check {@link ClickEvent}.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     */
     public record RightClickEvent(double mouseX, double mouseY) implements IEvent {}
+    
+    /**
+     * This event is triggered when a mouse button is clicked multiple times in succession. It can be used for double-click detection, for example, but allows for significantly
+     * more consecutive mouse clicks (e.g. triple clicks).
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse Y position on the component.
+     * @param button The mouse button pressed.
+     * @param clickCount How many times the button has been clicked in a row.
+     */
     public record MultiClickEvent(double mouseX, double mouseY, int button, byte clickCount) implements IEvent {}
+
+    /**
+     * Triggered when the user scrolls with the mouse wheel.
+     * @param mouseX The local mouse x position on the component.
+     * @param mouseY The local mouse y position on the component.
+     * @param deltaX The scroll value on the x axis.
+     * @param deltaY The scroll value on the y axis.
+     */
     public record ScrollEvent(double mouseX, double mouseY, double deltaX, double deltaY) implements IEvent {}
+    
+    /**
+     * Triggered every game tick.
+     */
     public record TickEvent() implements IEvent {}
+    
+    /**
+     * Triggered every time a new component is added to this component.
+     * @param child The new component.
+     */
     public record ComponentAddedEvent(DLGuiComponent child) implements IEvent {}
+    
+    /**
+     * Triggered every time a child component is removed from this component.
+     * @param child The child component to be removed.
+     */
     public record ComponentRemovedEvent(DLGuiComponent child) implements IEvent {}
+    
+    /**
+     * Triggered when the focus of this component changes.
+     * @param focus The new focus state.
+     */
     public record FocusChangedEvent(boolean focus) implements IEvent {}
+    
+    /**
+     * Triggered every time a new component is added to this component.
+     * @param child The new component.
+     */
     public record DragBeginEvent(double mouseX, double mouseY, int button) implements IEvent {}
     public record DragEvent(double mouseX, double mouseY, int button, double screenMouseOriginX, double screenMouseOriginY, double localMouseOriginX, double localMouseOriginY, double dragX, double dragY) implements IEvent {}
     public record DragEndEvent(double mouseX, double mouseY, int button, double screenMouseOriginX, double screenMouseOriginY, double localMouseOriginX, double localMouseOriginY) implements IEvent {}
