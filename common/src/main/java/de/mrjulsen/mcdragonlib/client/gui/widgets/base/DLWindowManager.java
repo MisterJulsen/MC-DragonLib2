@@ -659,7 +659,10 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         if (focusedComponent != null) {
             focusedComponent.setFocus(false);
         }
-        component.setFocus(true);
+        focusedComponent = component;
+        if (component != null) {
+            component.setFocus(true);
+        }
     }
 
 
@@ -774,7 +777,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             for (Map.Entry<ComponentSelectionState, LinkedList<ComponentHitContext>> e : result.components().entrySet()) {
                 for (ComponentHitContext c : e.getValue()) {
                     c.component().setFocus(e.getKey() == ComponentSelectionState.FOCUSED);
-                    if (e.getKey().isHit()) {                        
+                    if (e.getKey().isHit()) {
                         c.component().setMouseDown(true, c.mouseX(), c.mouseY(), button);
                         mouseDownComponents.add(c.component());
                     }
