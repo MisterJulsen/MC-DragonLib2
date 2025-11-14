@@ -17,7 +17,6 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
         protected final L collectionComponentRef;
         protected final T item;
 
-
         protected DLCollectionItem(L collectionComponentRef, T item, int w, int h) {
             super(0, 0, w, h);
             inputConsumptionPolicy.set((type) -> type != ConsumptionType.SCROLL);
@@ -77,7 +76,13 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             createComponents();
             layoutComponents();
         });
-    public final Property<Function<T, I>> itemBuilder = new Property<>(this::defaultItemBuilder);
+
+    public final Property<Function<T, I>> itemBuilder = new Property<Function<T, I>>(this::defaultItemBuilder)
+        .withAfterPropertyChangedCallback((a, b) -> {
+            createComponents();
+            layoutComponents();
+        });
+
     public final BooleanProperty itemResizeAllowed = new BooleanProperty(false, false);
 
 
@@ -110,6 +115,8 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
 
     protected abstract void layoutComponents();
     protected abstract I defaultItemBuilder(T item);
+
+    
 
     protected final void setItemX(I item, int x) {
         item.setCollectionX(x);

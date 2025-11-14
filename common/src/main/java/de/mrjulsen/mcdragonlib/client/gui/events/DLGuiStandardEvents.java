@@ -159,7 +159,26 @@ public final class DLGuiStandardEvents {
      * @param newWidth The new width.
      * @param newHeight The new height.
      */
-    public record ComponentPosAndSizeChanged(int newX, int newY, int newWidth, int newHeight) implements IEvent {}
+    public record ComponentPosAndSizeChanged(int oldX, int newX, int oldY, int newY, int oldWidth, int newWidth, int oldHeight, int newHeight) implements IEvent {
+        public boolean widthChanged() {
+            return oldWidth != newWidth;
+        }
+        public boolean heightChanged() {
+            return oldHeight != newHeight;
+        }
+        public boolean xChanged() {
+            return oldX != newX;
+        }
+        public boolean yChanged() {
+            return oldY != newY;
+        }
+        public boolean positionChanged() {
+            return xChanged() || yChanged();
+        }
+        public boolean sizeChanged() {
+            return widthChanged() || heightChanged();
+        }
+    }
     public record DragComponentBeginEvent(double mouseX, double mouseY, int button, List<DLGuiComponent> draggedOverComponents) implements IEvent {}
     public record DragComponentEvent(double mouseX, double mouseY, int button, int newX, int newY, double dragX, double dragY, List<DLGuiComponent> draggedOverComponents) implements IEvent {}
     public record DragComponentEndEvent(double mouseX, double mouseY, int button, int newX, int newY, List<DLGuiComponent> draggedOverComponents, MutableBoolean cancel) implements IEvent {}

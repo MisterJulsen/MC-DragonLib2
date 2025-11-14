@@ -296,17 +296,17 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     public void setX(double x) {
+        double oldX = x;
         this.x = x;
         invalidateGlobalCoordinates(true, false);
-        invokeEvent(this,
-                new DLGuiStandardEvents.ComponentPosAndSizeChanged((int) x, (int) y, (int) width, (int) height));
+        invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)oldX, (int)x, (int)y, (int)y, (int)width, (int)width, (int)height, (int)height));
     }
 
     public void setY(double y) {
+        double oldY = x;
         this.y = y;
         invalidateGlobalCoordinates(false, true);
-        invokeEvent(this,
-                new DLGuiStandardEvents.ComponentPosAndSizeChanged((int) x, (int) y, (int) width, (int) height));
+        invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)oldY, (int)y, (int)width, (int)width, (int)height, (int)height));
     }
 
     public void setLeft(double x) {
@@ -342,8 +342,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
                 }
             }
         }
-        invokeEvent(this,
-                new DLGuiStandardEvents.ComponentPosAndSizeChanged((int) x, (int) y, (int) width, (int) height));
+        invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)y, (int)y, (int)oldWidth, (int)width, (int)height, (int)height));
     }
 
     public void setHeight(double height) {
@@ -368,8 +367,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             }
         }
 
-        invokeEvent(this,
-                new DLGuiStandardEvents.ComponentPosAndSizeChanged((int) x, (int) y, (int) width, (int) height));
+        invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)y, (int)y, (int)width, (int)width, (int)oldHeight, (int)height));
     }
 
     public void setPosition(double x, double y) {

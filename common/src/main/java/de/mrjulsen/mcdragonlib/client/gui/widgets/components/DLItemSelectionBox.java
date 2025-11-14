@@ -152,28 +152,8 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         }
     }
 
-    @Override
-    protected void layoutComponents() {
-        int currentY = 0;
-        int currentX = 0;
-        for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
-            DLListBoxItem<T> item = (DLListBoxItem<T>)itm;
-            if (currentX > 0 && currentX + 40 > contentPanel.width()) {
-                currentY += 25;
-                currentX = 0;
-            }
-            setItemX(item, currentX);
-            setItemY(item, currentY);
-            setItemWidth(item, 40);
-            setItemHeight(item, 25);
-            currentX += item.width();
-        }
-        int maxScroll = currentY - contentPanel.height();
-        scrollBar.visible.set(maxScroll > 0);
-        scrollBar.max.set(maxScroll);
-        scrollBar.screenSize.set(contentPanel.height());
-    }
-    /*
+    
+    @SuppressWarnings("unchecked")
     @Override
     protected void layoutComponents() {
         int currentY = 0;
@@ -189,7 +169,6 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         scrollBar.max.set(maxScroll);
         scrollBar.screenSize.set(contentPanel.height());
     }
-        */
 
     @Override
     protected DLListBoxItem<T> defaultItemBuilder(T item) {

@@ -36,6 +36,9 @@ import net.minecraft.sounds.SoundEvents;
 })
 public class DLButton extends DLGuiComponent {
     
+    /**
+     * 
+     */
     public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
     public record TextColorChangedEvent(DLColor color) implements IEvent {}
     public record CaptionChangedEvent(Component text) implements IEvent {}
