@@ -20,6 +20,8 @@ import de.mrjulsen.mcdragonlib.network.packet.NetworkPacker;
 import de.mrjulsen.mcdragonlib.network.packet.PacketHeaderInfo;
 import de.mrjulsen.mcdragonlib.network.packet.PacketType;
 import de.mrjulsen.mcdragonlib.util.DLStatistics;
+import dev.architectury.utils.Env;
+import dev.architectury.utils.EnvExecutor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
@@ -40,6 +42,14 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.direction = direction.getDirection();
         this.sendFactory = sendFactory;
         this.responseFactory = responseFactory;
+    }
+
+    protected static void runSafe(Env environment, Supplier<Runnable> action) {
+        if (environment == Env.CLIENT) {
+            EnvExecutor.runInEnv(environment, action);
+        } else {
+            action.get().run();
+        }
     }
     
     abstract void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in);
@@ -125,7 +135,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            handler.execute(in, context);
+            context.queue(() -> {                
+                runSafe(context.getEnvironment(), () -> () -> {
+                    handler.execute(in, context);
+                });
+            });
         }
 
         @Override
@@ -160,12 +174,16 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, NetworkPacketData.Empty in) {
-            try {
-                O data = handler.execute(context);
-                respondInternal(info, context, data.serializeNbt());
-            } catch (Exception e) {
-                respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
-            }
+            context.queue(() -> {                
+                runSafe(context.getEnvironment(), () -> () -> {
+                    try {
+                        O data = handler.execute(context);
+                        respondInternal(info, context, data.serializeNbt());
+                    } catch (Exception e) {
+                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                    }
+                });
+            });
         }
 
         @Override
@@ -216,12 +234,16 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            try {
-                O data = handler.execute((I)in, context);
-                respondInternal(info, context, data.serializeNbt());
-            } catch (Exception e) {
-                respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
-            }
+            context.queue(() -> {                
+                runSafe(context.getEnvironment(), () -> () -> {
+                    try {
+                        O data = handler.execute((I)in, context);
+                        respondInternal(info, context, data.serializeNbt());
+                    } catch (Exception e) {
+                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                    }
+                });
+            });
         }
 
         @Override
@@ -280,35 +302,45 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            try {
-                O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in, context);
-                if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
-                    outputCache.remove(info.requestId());
-                }
-                respondInternal(info, context, data.serializeNbt());
-            } catch (Exception e) {
-                respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
-                outputCache.remove(info.requestId());
-            }
+            context.queue(() -> {                
+                runSafe(context.getEnvironment(), () -> () -> {
+                    try {
+                        O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in, context);
+                        if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
+                            outputCache.remove(info.requestId());
+                        }
+                        respondInternal(info, context, data.serializeNbt());
+                    } catch (Exception e) {
+                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                        outputCache.remove(info.requestId());
+                    }
+                });
+            });
+            
         }
 
         @Override
         void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, O in) {
-            try {
-                I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(false, Optional.of(in), Optional.of(context));
-                RequestData<N, O> requestData = ((RequestData<N, O>)callbacks.get(info.requestId()));
-                if (!in.getStatus().isDone()) {
-                    sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
-                }
-                if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
-                    callbacks.remove(info.requestId()).callback().accept(data.getStatus());
-                    inputCache.remove(info.requestId());
-                }
-            } catch (Exception e) {
-                sendInternal(info.requestId(), (N)context.buildDirection(), createEmptyInputData(DLStatus.error(e)).serializeNbt());
-                callbacks.remove(info.requestId()).callback().accept(DLStatus.error(e));
-                inputCache.remove(info.requestId());
-            }
+            context.queue(() -> {                
+                runSafe(context.getEnvironment(), () -> () -> {
+                    try {
+                        I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(false, Optional.of(in), Optional.of(context));
+                        RequestData<N, O> requestData = ((RequestData<N, O>)callbacks.get(info.requestId()));
+                        if (!in.getStatus().isDone()) {
+                            sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
+                        }
+                        if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
+                            callbacks.remove(info.requestId()).callback().accept(data.getStatus());
+                            inputCache.remove(info.requestId());
+                        }
+                    } catch (Exception e) {
+                        sendInternal(info.requestId(), (N)context.buildDirection(), createEmptyInputData(DLStatus.error(e)).serializeNbt());
+                        callbacks.remove(info.requestId()).callback().accept(DLStatus.error(e));
+                        inputCache.remove(info.requestId());
+                    }
+                });
+            });
+            
         }
         
         
