@@ -20,7 +20,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
     public record ListLayoutChangedEvent() implements IEvent {}
 
 
-    protected static abstract class DLCollectionItem<T, L extends DLAbstractCollectionComponent<T, ?>> extends DLGuiComponent {
+    public static abstract class DLCollectionItem<T, L extends DLAbstractCollectionComponent<T, ?>> extends DLGuiComponent {
     
         protected final L collectionComponentRef;
         protected final T item;
@@ -60,19 +60,19 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             throw new IllegalStateException("Cannot change the position of list items after they have been created.");
         }
 
-        void setCollectionX(int x) {
+        protected void setCollectionX(int x) {
             super.setX(x);
         }
 
-        void setCollectionY(int y) {
+        protected void setCollectionY(int y) {
             super.setY(y);
         }
 
-        void setCollectionW(int w) {
+        protected void setCollectionW(int w) {
             super.setWidth(w);
         }
 
-        void setCollectionH(int h) {
+        protected void setCollectionH(int h) {
             super.setHeight(h);
         }
     }
@@ -105,7 +105,9 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
         addComponent(contentPanel);
 
         final IEventListener<DLGuiComponent, DLGuiStandardEvents.ComponentPosAndSizeChanged> resizeEvent = (src, event) -> {
-            layoutComponentsInternal();
+            if (event.positionChanged() || event.sizeChanged()) {
+                layoutComponentsInternal();
+            }
             return false;
         };
 
