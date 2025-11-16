@@ -32,22 +32,22 @@ import net.minecraft.client.renderer.RenderType;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.glfw.GLFW;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -131,7 +131,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public static final int MOUSE_DOWN_INITIAL_DELAY = 10;
 
     // Container
-    private final List<DLGuiComponent> components = new LinkedList<>();
+    private final ConcurrentLinkedQueue<DLGuiComponent> components = new ConcurrentLinkedQueue<>();
 
     // Widget
     private DLWindowManager windowManager = null;
@@ -635,7 +635,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     public List<DLGuiComponent> getComponents() {
-        return Collections.unmodifiableList(components);
+        return ImmutableList.copyOf(components);
     }
 
     public List<DLGuiComponent> getComponentsMatching(Predicate<DLGuiComponent> predicate) {
