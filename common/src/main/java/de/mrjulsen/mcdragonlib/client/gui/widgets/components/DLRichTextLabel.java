@@ -126,7 +126,7 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
         });
 
     public final ColorProperty clickAreaColor = new ColorProperty(DLColor.fromInt(0x403399FF), DLColor.TRANSPARENT);
-    public final Property<Padding> contentPadding = new Property<>(new Padding(0, 2, 0, 2));
+    public final Property<Padding> contentPadding = new Property<>(new Padding(0, 3, 0, 3));
 
     private final List<EffectBatch> effects = Lists.newLinkedList();
     protected InteractiveElement hoveredElement = null;
