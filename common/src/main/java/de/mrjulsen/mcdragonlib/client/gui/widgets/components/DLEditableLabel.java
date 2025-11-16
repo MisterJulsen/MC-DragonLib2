@@ -39,8 +39,8 @@ public class DLEditableLabel extends DLGuiComponent {
     public final BooleanProperty editable = new BooleanProperty(true, false);
 
 
-    private boolean isEditing = false;
-    private final DLRichTextEditBox editBox;
+    protected final DLRichTextEditBox editBox;
+    protected boolean isEditing = false;
 
     public DLEditableLabel(int x, int y, int w, int h) {
         super(x, y, w, h);
@@ -66,12 +66,16 @@ public class DLEditableLabel extends DLGuiComponent {
                 this.isEditing = true;
                 this.editBox.visible.set(true);
                 this.editBox.text.get().set(text.get());
-                this.editBox.contentPadding.set(new Padding(0, 2, 0, 2));
+                this.editBox.contentPadding.set(new Padding(0, 3, 0, 3));
                 getWindowManager().focusComponent(this.editBox);
                 invokeEvent(this, new EditModeChangedEvent(true));
             }
             return false;
         });
+    }
+
+    public boolean isEditing() {
+        return isEditing;
     }
 
     @Override
