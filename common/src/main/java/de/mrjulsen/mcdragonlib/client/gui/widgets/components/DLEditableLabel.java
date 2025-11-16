@@ -53,16 +53,18 @@ public class DLEditableLabel extends DLGuiComponent {
         editBox.addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
             if (isEditing && !e.focus()) {
                 this.isEditing = false;
-                this.text.set(this.editBox.text.get().getPlainText());
                 this.editBox.visible.set(false);
-                invokeEvent(this, new EditModeChangedEvent(false));
-                invokeEvent(this, new TextEditedEvent(this.text.get()));
+                if (editable.get()) {
+                    this.text.set(this.editBox.text.get().getPlainText());
+                    invokeEvent(this, new EditModeChangedEvent(false));
+                    invokeEvent(this, new TextEditedEvent(this.text.get()));
+                }
             }
             return false;
         });
 
         addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
-            if (!isEditing) {
+            if (editable.get() && !isEditing) {
                 this.isEditing = true;
                 this.editBox.visible.set(true);
                 this.editBox.text.get().set(text.get());
