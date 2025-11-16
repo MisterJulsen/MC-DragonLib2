@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
 public class ListProperty<T> extends Property<List<T>> implements List<T> {
 
     public static enum ListOperation {
-        ADD, REMOVE, RETAIN, CLEAR;
+        ADD, REMOVE, RETAIN, CLEAR, REPLACE;
     }
 
     @FunctionalInterface
@@ -115,6 +115,13 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
         boolean b = this.getList().addAll(index, modifyInput(ImmutableList.copyOf(c)));
         runAfterChange(ListOperation.ADD);
         return b;
+    }
+
+    public void setAll(Collection<? extends T> c) {
+        List<T> newValues = modifyInput(ImmutableList.copyOf(c));
+        this.getList().clear();
+        this.getList().addAll(newValues);
+        runAfterChange(ListOperation.REPLACE);
     }
 
     @Override
