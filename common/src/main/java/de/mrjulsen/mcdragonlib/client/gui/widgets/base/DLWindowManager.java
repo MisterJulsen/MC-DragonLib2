@@ -241,6 +241,13 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                     graphics.poseStack().popPose();
                     return true;
                 });
+            } else if (layer == RenderLayer.SCREEN_SPACE) {
+                iterateAll(false, (win, i) -> {
+                    graphics.poseStack().pushPose();
+                    win.renderOnScreenEvent(graphics, mouseX, mouseY);
+                    graphics.poseStack().popPose();
+                    return true;
+                });
             } else if (layer == RenderLayer.OVERLAY) {
                 renderInputOverlayComponents.forEach(x -> {
                     graphics.poseStack().pushPose();
@@ -250,10 +257,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                 });
             }
             graphics.poseStack().popPose();
+
             interateManagerExtension((mgr) -> {
                 mgr.render(Phase.POST, graphics, mouseX, mouseY, layer);
                 return false;
             });
+
             invokeEvent(this, new DLGuiStandardEvents.RenderEvent(graphics, mouseX, mouseY, layer, Rectangle.withSize(0, 0, getScreenWidth(), getScreenHeight())));
             graphics.poseStack().popPose();
         }
@@ -442,7 +451,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             win.setWindowManager(null);
         }
 
-        mouseMoved(focusedWindow, false, mouseXOnScreen(), mouseYOnScreen());
+        mouseMovedInternal(focusedWindow, false, mouseXOnScreen(), mouseYOnScreen());
     }
 
     public void closeModal(ModalId id) {
@@ -504,6 +513,14 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         if (window.focusOnSpawn.get()) {
             updateWindowFocus(false);
         }
+
+        iterateModals((st, win, consumed) -> {
+            if (st.id().equals(getCurrentModalId())) {
+                return true;
+            }
+            mouseMovedInternal(win, true, mouseXOnScreen(), mouseYOnScreen());
+            return true;
+        }, null, null);
         return stack.id();
     }
 
@@ -725,6 +742,33 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         }
     }
 
+    private static interface IModalIterator {
+        boolean run(ModalWindowStack stack, DLWindow window, boolean consumed);
+    }
+
+    public boolean iterateModals(IModalIterator callback, Runnable prepare, Consumer<Boolean> andThen) {
+        MutableBoolean consumed = new MutableBoolean();
+        if (hasWindows()) {
+            DLUtils.doIfNotNull(prepare, Runnable::run);
+            Iterator<ModalWindowStack> stack = windows.descendingIterator();
+            boolean firstDone = false;
+            while (stack.hasNext()) {
+                consumed.setValue(firstDone || consumed.getValue());
+                ModalWindowStack current = stack.next();
+                if (current != null && !current.isEmpty()) {
+                    firstDone = true;
+                    List<DLWindow> ordered = orderedListForStack(current);
+                    for (int i = ordered.size() - 1; i >= 0; i--) {
+                        DLWindow window = ordered.get(i);
+                        consumed.setValue(callback.run(current, window, consumed.getValue()) || consumed.getValue());
+                    }
+                }
+            }
+        }
+        DLUtils.doIfNotNull(andThen, x -> x.accept(consumed.getValue()));
+        return false;//consumed.getValue();
+    }
+
     public boolean iterateCurrentModal(BiFunction<DLWindow, Boolean, Boolean> callback, Runnable prepare, Consumer<Boolean> andThen) {
         MutableBoolean consumed = new MutableBoolean();
         if (hasWindows()) {
@@ -735,7 +779,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                 // iterate topmost first (descending)
                 for (int i = ordered.size() - 1; i >= 0; i--) {
                     DLWindow window = ordered.get(i);
-                    consumed.setValue(consumed.getValue() || callback.apply(window, consumed.getValue()));
+                    consumed.setValue(callback.apply(window, consumed.getValue()) || consumed.getValue());
                 }
             }
         }
@@ -804,7 +848,12 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         return interateManagerExtension((mgr) -> mgr.mouseClicked(Phase.POST, eventResult, mouseX, mouseY, button)) || eventResult;
     }
 
-    public boolean mouseMoved(DLWindow window, boolean consumed, double mouseX, double mouseY) {
+    public boolean mouseMoved(double mouseX, double mouseY) {
+        boolean result = iterateModals((stack, win, consumed) -> mouseMovedInternal(win, consumed, mouseX, mouseY), null, null);
+        return result;
+    }
+
+    private boolean mouseMovedInternal(DLWindow window, boolean consumed, double mouseX, double mouseY) {
         if (interateManagerExtension((mgr) -> mgr.mouseMoved(Phase.PRE, false, mouseX, mouseY))) {
             return true;
         }
@@ -834,7 +883,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
 
         clearMouseInteractionData();
         isMouseDown = false;
-        iterateCurrentModal((win, consumed) -> mouseMoved(win, consumed, mouseX, mouseY), null, null);
+        iterateCurrentModal((win, consumed) -> mouseMovedInternal(win, consumed, mouseX, mouseY), null, null);
     }
 
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
@@ -890,7 +939,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                     }
                 }
             }
-            mouseMoved(win, consumed, mouseX, mouseY);
+            mouseMovedInternal(win, consumed, mouseX, mouseY);
             return result.consumed();
         }, null, null);
 

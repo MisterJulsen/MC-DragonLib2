@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.lwjgl.glfw.GLFW;
@@ -141,6 +142,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
             protected DLComboboxDropDownItem(DLComboBoxDropDownList<T> collectionComponentRef, T item, boolean selected, int w, int h) {
                 super(collectionComponentRef, item, w, h);
                 this.selected = selected;
+                this.tooltip.set(new DLTooltip(List.of(TextUtils.text(item.toString())), 100));
                 addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
                     collectionComponentRef.combobox.selectedItem.set(Optional.ofNullable(item));
                     collectionComponentRef.closeMenu();

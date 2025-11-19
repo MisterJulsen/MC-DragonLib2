@@ -4,6 +4,7 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.container.IMenuGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.Align;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
@@ -19,6 +20,7 @@ import de.mrjulsen.mcdragonlib.events.IEventDispatcher;
 import de.mrjulsen.mcdragonlib.events.IEvent.Phase;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
+import de.mrjulsen.mcdragonlib.util.math.Point;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.math.Size;
 import de.mrjulsen.mcdragonlib.util.properties.BitflagProperty;
@@ -64,6 +66,7 @@ import com.google.common.collect.ImmutableSet;
         DLGuiStandardEvents.RenderPreEvent.class,
         DLGuiStandardEvents.RenderEvent.class,
         DLGuiStandardEvents.RenderPostEvent.class,
+        DLGuiStandardEvents.RenderOnScreenEvent.class,
         DLGuiStandardEvents.ClickEvent.class,
         DLGuiStandardEvents.RightClickEvent.class,
         DLGuiStandardEvents.MultiClickEvent.class,
@@ -188,6 +191,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public final Property<Size> minSize = new Property<Size>(Size.of(5, 5));
     public final Property<Size> maxSize = new Property<>(Size.INFINITY);
     public final NumberProperty<Double> scale = new NumberProperty<>(1D, 0.01D, 10D);
+    public final Property<DLTooltip> tooltip = new Property<DLTooltip>(DLTooltip.EMPTY);
 
     
     protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + (dX() * getParent().map(p -> p.scale.get()).orElse(1D)));
@@ -208,6 +212,14 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
                 case FRONT -> renderFrontLayer(e.graphics(), e.mouseX(), e.mouseY(), e.renderBounds());
                 case OVERLAY -> renderSpecialOverlay(e.graphics(), e.mouseX(), e.mouseY(), e.renderBounds());
             }
+            return false;
+        });
+
+        addEventListener(DLGuiStandardEvents.RenderOnScreenEvent.class, (src, e) -> {                
+            if (isSelected() && tooltip.get() != DLTooltip.EMPTY) {
+                tooltip.get().render(e.graphics(), (int)e.mouseX(), (int)e.mouseY());
+            }
+            renderOnScreen(e.graphics(), e.mouseX(), e.mouseY());
             return false;
         });
     }
@@ -282,6 +294,18 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public double getYOnScreen() {
         return globalY.get();
     }
+
+    public Point toScreenCoordinates() {
+        Point local = Point.of(
+            dX() - getScrollOffsetX(),
+            dY() - getScrollOffsetY()
+        );
+
+        return getParent()
+            .map(parent -> parent.toScreenCoordinates().add(local))
+            .orElse(local);
+    }
+
 
     public double getGlobalScale() {
         return getParent().map(x -> x.getGlobalScale()).orElse(1D) * scale.get();
@@ -1080,7 +1104,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         
         invokeEvent(this, new DLGuiStandardEvents.RenderPreEvent(graphics, mouseX, mouseY, layer, scissorBounds), true);
 
-        final boolean useScissor = !layer.isSpecial() && layer != RenderLayer.FRONT;
+        final boolean useScissor = !layer.isSpecial() && layer != RenderLayer.FRONT && layer != RenderLayer.SCREEN_SPACE;
         final int maxWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         final int maxHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
 
@@ -1141,6 +1165,18 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
         graphics.poseStack().popPose();
     }
+    
+    public final void renderOnScreenEvent(DLGuiGraphics graphics, double mouseX, double mouseY) {        
+        invokeEvent(this, new DLGuiStandardEvents.RenderOnScreenEvent(graphics, mouseX, mouseY), true);
+        for (DLGuiComponent child : getComponents()) {
+            if (!child.visible.get())
+                continue;
+            graphics.poseStack().pushPose();
+            child.renderOnScreenEvent(graphics, mouseX, mouseY);
+            graphics.poseStack().popPose();
+        }
+    }
+
 
     public final void updateLayoutEvent(int screenWidth, int screenHeight) {
         invokeEvent(this, new DLGuiStandardEvents.LayoutUpdateEvent(Phase.PRE), true);
@@ -1172,6 +1208,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     public void renderFrontLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
+    }
+
+    public void renderOnScreen(DLGuiGraphics graphics, double mouseX, double mouseY) {
     }
 
     public void renderSpecialOverlay(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {

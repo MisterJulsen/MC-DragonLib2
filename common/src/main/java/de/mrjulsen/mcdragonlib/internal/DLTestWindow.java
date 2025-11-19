@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.lwjgl.glfw.GLFW;
 
+import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
@@ -22,6 +23,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLToggleButton;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlot;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.SizeMode;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlotComponent;
@@ -33,6 +35,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.network.chat.Component;
@@ -65,6 +68,7 @@ public class DLTestWindow extends DLWindow {
         DLButton closeBtn = new DLButton(100, 0, 80, 20);
         //closeBtn.anchor.set2(EAlign.TOP, EAlign.RIGHT);
         closeBtn.text.set(TextUtils.text("Close"));
+        closeBtn.tooltip.set(new DLTooltip(List.of(TextUtils.text("Close")), 100));
         closeBtn.icon.set(new DLSprite(new ItemStack(Blocks.BARRIER), 16, false));
         closeBtn.addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
             getWindowManager().close();
@@ -77,15 +81,20 @@ public class DLTestWindow extends DLWindow {
             entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 1"), new DLSprite(new ItemStack(Blocks.RAIL, 27), 16, true), true, () -> {}, (pX, pY) -> {
                 return List.of(new DLContextMenu.ItemEntry(TextUtils.text("Testitem 435"), DLSprite.empty(), true, () -> {}, null));
             }));
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 2"), DLSprite.empty(), false, () -> {}, null));
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("Item 2"), DLSprite.empty(), true, () -> {                
+                getWindowManager().createWindow((mgr) -> new DLColorPickerWindow(mgr, false, DLColor.BLACK, (c) -> {}));
+            }, null));
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("item 3"), DLSprite.empty(), true, () -> {}, (pX, pY) -> entries));
+            entries.add(new DLContextMenu.ItemEntry(TextUtils.text("item 3"), DLSprite.empty(), true, () -> {                
+                getWindowManager().createModal((mgr) -> new DLColorPickerWindow(mgr, false, DLColor.BLACK, (c) -> {}));
+            }, (pX, pY) -> entries));
             return entries;
         });
 
         btnTest = new DLButton(20, 20);
         btnTest.textAlignment.set(ETextAlignment.CENTER);
         btnTest.iconAlignment.set(ETextAlignment.CENTER);
+        btnTest.tooltip.set(new DLTooltip(List.of(TextUtils.text("Open Menu")), 100));
         btnTest.addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
             contextMenu.open(getWindowManager());
             return false;
@@ -171,20 +180,20 @@ public class DLTestWindow extends DLWindow {
         dataView.dataSlots.add(new DataSlot("slot2", TextUtils.text("Slot 2"), 20, SizeMode.FIXED));
         dataView.dataSlots.add(new DataSlot("slot3", TextUtils.text("Slot 3"), 70, SizeMode.PERCENTAGE));
         dataView.dataSlots.add(new DataSlot("slot4", TextUtils.text("Slot 4"), 30, SizeMode.PERCENTAGE));
-        dataView.items.addAll(List.of("Salz 1", "Salz 2", "Salz 3", "Salz 4", "Salz 5"));
+        dataView.items.addAll(List.of("Test 1", "Test 2", "Test 3", "Test 4", "Test 5"));
         dataView.itemBuilder.set((in) -> {
             DLBasicDataView.DLBasicItem<String> item = new DLBasicDataView.DLBasicItem<>(dataView, in);
             DLEditableLabel lbl1 = new DLEditableLabel(0, 0, 1, 20);
             lbl1.text.set(in);
             lbl1.editable.set(true);
             DLEditableLabel lbl2 = new DLEditableLabel(0, 0, 1, 20);
-            lbl2.text.set("Gemüsesalz");
+            lbl2.text.set("Test Text A");
             lbl2.editable.set(true);
             DLEditableLabel lbl3 = new DLEditableLabel(0, 0, 1, 20);
-            lbl3.text.set("Drache");
+            lbl3.text.set("Text B");
             lbl3.editable.set(true);
             DLEditableLabel lbl4 = new DLEditableLabel(0, 0, 1, 20);
-            lbl4.text.set("SooS");
+            lbl4.text.set("C Text");
             lbl4.editable.set(true);
             item.subComponents.add(new DataSlotComponent("slot1", lbl1));
             item.subComponents.add(new DataSlotComponent("slot2", lbl2));

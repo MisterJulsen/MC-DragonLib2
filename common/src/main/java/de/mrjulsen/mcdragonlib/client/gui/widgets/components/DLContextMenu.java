@@ -39,9 +39,9 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
             setSize(menu.width(), menu.height());
             anchor.set(EAlign.values());
             addEventListener(DLWindow.WindowFocusEvent.class, (src, e) -> {
-                if (!e.focus()) {
+                if (getWindowManager() != null && getAssignedModal().isPresent() && !e.focus()) {
                     for (DLWindow win : getWindowManager().getWindows(this.getAssignedModal().get())) {
-                        if (win instanceof DLContextMenuWindow && getWindowManager().getFocusedWindow() == win)
+                        if (win instanceof DLContextMenuWindow && (getWindowManager() == null || getWindowManager().getFocusedWindow() == win))
                             return false;
                     }
                     getWindowManager().closeModal(this.getAssignedModal().get());
@@ -118,17 +118,22 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         int h = 0;
         int w = 5;
         for (ItemEntry item : menuBuilder.buildContextMenuContents(posX, posY)) {
-            DLContextMenuItem listItem = itemBuilder.get().apply(item);
+            final ItemEntry itm = item;
+            DLContextMenuItem listItem = itemBuilder.get().apply(itm);
             listItem.addEventListener(DLGuiStandardEvents.MouseEnterEvent.class, (src, event) -> {
                 if (hoveredItem == src) {
                     return false;
                 }
-                hoveredItem = src;
-                if (subMenu != null)
+
+                if (subMenu != null) {
                     subMenu.closeSubMenu();
+                    subMenu = null;
+                    hoveredItem = null;
+                }
               
-                if (item.subMenu() != null) {
-                    subMenu = new DLContextMenu(item.subMenu(), getRootMenu(), this);
+                hoveredItem = src;
+                if (itm.subMenu() != null) {
+                    subMenu = new DLContextMenu(itm.subMenu(), getRootMenu(), this);
                     subMenu.open(getWindowManager(), (int)(listItem.getXOnScreen() + listItem.width() - 2), (int)(listItem.getYOnScreen() - BORDER_SIZE - ITEM_TOP_MARGIN));
                 }
                 return false;
@@ -162,7 +167,7 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         }
     }
 
-    public void closeMenu() {            
+    public void closeMenu() {
         if (getWindowManager() != null) {
             getWindowManager().closeModal(getRootMenu().windowId);
             this.window = null;
@@ -193,6 +198,8 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         protected static final int TEXT_TO_ICON_MARGIN = 4;
         protected static final int RIGHT_MARGIN = 2;
 
+        protected DLColor color = DLColor.TRANSPARENT;
+
         protected DLContextMenuItem(DLContextMenu collectionComponentRef, ItemEntry item) {
             super(collectionComponentRef, item, 1, 0);
             this.enabled.set(item.enabled());
@@ -216,6 +223,8 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
             if (item.subMenu() != null) {
                 GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - RIGHT_MARGIN, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, ">", DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR, ETextAlignment.RIGHT, false);
             }
+
+            GuiUtils.fill(graphics, 0, 0, width(), height(), color);
         }
 
         public int requiredWidth() {

@@ -80,7 +80,7 @@ public final class DLOverlayManager {
 
     public static void mouseMoved(double mouseX, double mouseY) {
         if (!initialized()) return;
-        root.iterateCurrentModal((win, consumed) -> root.mouseMoved(win, consumed, mouseX, mouseY), null, null);
+        root.mouseMoved(mouseX, mouseY);
     }
 
     public static boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {

@@ -750,6 +750,10 @@ public final class DLGuiStandardEvents {
             RenderLayer layer, Rectangle renderBounds) implements IEvent {
     }
 
+    
+    public record RenderOnScreenEvent(DLGuiGraphics graphics, double mouseX, double mouseY) implements IEvent {
+    }
+
     /**
      * Represents an event triggered when a component or window is closed.
      * <p>

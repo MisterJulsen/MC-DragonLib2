@@ -62,7 +62,7 @@ public class DLScreenWrapper<M extends AbstractContainerMenu> extends Screen imp
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
-        root.iterateCurrentModal((win, consumed) -> root.mouseMoved(win, consumed, mouseX, mouseY), null, null);
+        root.mouseMoved(mouseX, mouseY);
     }
 
     @Override

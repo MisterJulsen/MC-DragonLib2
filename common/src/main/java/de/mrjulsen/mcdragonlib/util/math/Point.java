@@ -37,6 +37,10 @@ public class Point {
         return new Point(mX, mY);
     }
 
+    public Point add(Point p) {
+        return new Point(x + p.x, y + p.y);
+    }
+
     public double x() {
         return x;
     }
