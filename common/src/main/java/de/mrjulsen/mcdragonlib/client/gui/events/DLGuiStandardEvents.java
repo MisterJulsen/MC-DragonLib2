@@ -653,7 +653,11 @@ public final class DLGuiStandardEvents {
      * @param order the phase of the layout update
      */
     @NotCancellable
-    public record LayoutUpdateEvent(Phase order) implements IEvent {
+    public record ScreenLayoutUpdatedEvent(Phase order) implements IEvent {
+    }
+    
+    @NotCancellable
+    public record ComponentLayoutUpdatedEvent() implements IEvent {
     }
 
     /**

@@ -29,6 +29,8 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlotComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar.ProgressBarStyle;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orientation;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
@@ -175,7 +177,7 @@ public class DLTestWindow extends DLWindow {
         progressBar.value.set(0.3d);
         addComponent(progressBar);
 
-        DLBasicDataView<String> dataView = new DLBasicDataView<>(360, 50, 200, 150);
+        DLBasicDataView<String> dataView = new DLBasicDataView<>(2, 2, 200 - 4, 150 - 4);
         dataView.dataSlots.add(new DataSlot("slot1", TextUtils.text("Slot 1"), 50, SizeMode.FIXED));
         dataView.dataSlots.add(new DataSlot("slot2", TextUtils.text("Slot 2"), 20, SizeMode.FIXED));
         dataView.dataSlots.add(new DataSlot("slot3", TextUtils.text("Slot 3"), 70, SizeMode.PERCENTAGE));
@@ -203,6 +205,23 @@ public class DLTestWindow extends DLWindow {
         });
         dataView.resizable.set(true);
         addComponent(dataView);
+        
+        DLPanel pnl = new DLPanel(360, 50, 200, 150);
+        pnl.backgroundTint.set(DLColor.RED);
+        DLPanel pnl2 = new DLPanel(2, 2, 200 - 4, 150 - 4);
+        FlowLayout layout = new FlowLayout();
+        layout.fillCrossAxis.set(true);
+        layout.wrap.set(false);
+        layout.verticalGap.set(2);
+        layout.flowDirection.set(Direction.VERTICAL);
+        pnl2.layout.set(layout);
+        for (int i = 0; i < 30; i++) {
+            pnl2.addComponent(new DLButton(0, 0, 20, 20));
+        }
+        pnl.resizable.set(true);
+        pnl2.anchor.set(EAlign.values());
+        pnl.addComponent(pnl2);
+        addComponent(pnl);
         
         /*
         DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(360, 50, 150, 150);

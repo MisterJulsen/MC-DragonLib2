@@ -5,6 +5,8 @@ import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.container.IMenuGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLTooltip;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.ILayoutManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.NoLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.Align;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
@@ -105,7 +107,8 @@ import com.google.common.collect.ImmutableSet;
         DLGuiStandardEvents.MovableChangedEvent.class,
         DLGuiStandardEvents.ParentChangedEvent.class,
         DLGuiStandardEvents.ComponentsClearEvent.class,
-        DLGuiStandardEvents.LayoutUpdateEvent.class,
+        DLGuiStandardEvents.ScreenLayoutUpdatedEvent.class,
+        DLGuiStandardEvents.ComponentLayoutUpdatedEvent.class,
         DLGuiStandardEvents.DropComponentEvent.class,
         DLGuiStandardEvents.DragAndDropFilesEvent.class,
         DLGuiStandardEvents.WindowManagerChangeEvent.class,
@@ -192,10 +195,19 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public final Property<Size> maxSize = new Property<>(Size.INFINITY);
     public final NumberProperty<Double> scale = new NumberProperty<>(1D, 0.01D, 10D);
     public final Property<DLTooltip> tooltip = new Property<DLTooltip>(DLTooltip.EMPTY);
+    public final Property<ILayoutManager> layout = new Property<ILayoutManager>(NoLayout.INSTANCE)
+        .withAfterPropertyChangedCallback((o, v) -> v.arrangeComponents(this));
+
+    public final Property<Object> layoutContraint = new Property<>(null);
+
+    public final Property<Object> customData = new Property<>(null);
 
     
     protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + (dX() * getParent().map(p -> p.scale.get()).orElse(1D)));
     protected final Cache<Double> globalY = new Cache<>(() -> getParent().map(p -> p.getYOnScreen()).orElse(0D) + (dY() * getParent().map(p -> p.scale.get()).orElse(1D)));
+
+    private boolean layoutLoopFix = false;
+    private boolean applyingLayout = false;
 
     public DLGuiComponent(int x, int y, int w, int h) {
         this.x = x;
@@ -211,6 +223,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
                 case MAIN -> renderMainLayer(e.graphics(), e.mouseX(), e.mouseY(), e.renderBounds());
                 case FRONT -> renderFrontLayer(e.graphics(), e.mouseX(), e.mouseY(), e.renderBounds());
                 case OVERLAY -> renderSpecialOverlay(e.graphics(), e.mouseX(), e.mouseY(), e.renderBounds());
+                default -> {}
             }
             return false;
         });
@@ -222,9 +235,42 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             renderOnScreen(e.graphics(), e.mouseX(), e.mouseY());
             return false;
         });
+
+        addEventListener(DLGuiStandardEvents.ComponentPosAndSizeChanged.class, (s, e) -> {
+            if (layoutLoopFix) return false;
+            layoutLoopFix = true;
+            getParent().ifPresent(p -> p.applyLayout());
+            applyLayout();
+            layoutLoopFix = false;
+            return false;
+        });
+        addEventListener(DLGuiStandardEvents.ParentChangedEvent.class, (s, e) -> {
+            applyLayout();
+            return false;
+        });
+        addEventListener(DLGuiStandardEvents.ComponentAddedEvent.class, (s, e) -> {
+            applyLayout();
+            return false;
+        });
+        addEventListener(DLGuiStandardEvents.ComponentRemovedEvent.class, (s, e) -> {
+            applyLayout();
+            return false;
+        });
+        addEventListener(DLGuiStandardEvents.ScreenLayoutUpdatedEvent.class, (s, e) -> {
+            applyLayout();
+            return false;
+        });
     }
 
-    protected void updateLayout() {
+    protected final void applyLayout() {
+        if (applyingLayout) return;
+        applyingLayout = true;
+        this.layout.get().arrangeComponents(this);
+        invokeEvent(this, new DLGuiStandardEvents.ComponentLayoutUpdatedEvent());
+        applyingLayout = false;
+    }
+
+    protected void updateScreenLayout() {
     }
 
     @Override
@@ -1179,10 +1225,10 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
 
     public final void updateLayoutEvent(int screenWidth, int screenHeight) {
-        invokeEvent(this, new DLGuiStandardEvents.LayoutUpdateEvent(Phase.PRE), true);
+        invokeEvent(this, new DLGuiStandardEvents.ScreenLayoutUpdatedEvent(Phase.PRE), true);
         invalidateGlobalCoordinates(true, true);
-        updateLayout();
-        invokeEvent(this, new DLGuiStandardEvents.LayoutUpdateEvent(Phase.POST), true);
+        updateScreenLayout();
+        invokeEvent(this, new DLGuiStandardEvents.ScreenLayoutUpdatedEvent(Phase.POST), true);
         for (DLGuiComponent child : getComponents()) {
             child.updateLayoutEvent(screenWidth, screenHeight);
         }

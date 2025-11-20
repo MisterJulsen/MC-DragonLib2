@@ -103,11 +103,11 @@ public class DLColorPicker extends DLGuiComponent {
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new ColorChangedEvent(a), false));
     public final Property<HSVSlots> hsvSlots = new Property<>(new HSVSlots(HSVSlot.S, HSVSlot.V, HSVSlot.H));
     public final Property<EAlign> sliderAlign = new Property<>(EAlign.RIGHT)
-        .withAfterPropertyChangedCallback((o, a) -> updateLayout());
+        .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
     public final BooleanProperty showColorSlider = new BooleanProperty(true, false)
-        .withAfterPropertyChangedCallback((o, a) -> updateLayout());
+        .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
     public final BooleanProperty showAlphaSlider = new BooleanProperty(false, false)
-        .withAfterPropertyChangedCallback((o, a) -> updateLayout());
+        .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
     
     
     private float selectedHue = 0f;
@@ -258,7 +258,7 @@ public class DLColorPicker extends DLGuiComponent {
             this.selectedBrightness = color.get().getBrightness();
             this.selectedSaturation = color.get().getSaturation();
             this.selectedAlpha = color.get().getAlphaF();
-            updateLayout();
+            updateScreenLayout();
             return false;
         });
         
@@ -271,7 +271,7 @@ public class DLColorPicker extends DLGuiComponent {
     }
 
     @Override
-    public void updateLayout() {
+    public void updateScreenLayout() {
         resetQuadTexture();
         resetSliderTexture();
         quadArea.clear();
