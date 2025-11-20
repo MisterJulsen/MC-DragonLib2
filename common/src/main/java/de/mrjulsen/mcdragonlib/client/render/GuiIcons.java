@@ -60,10 +60,10 @@ public enum GuiIcons {
     }
 
     public void render(DLGuiGraphics graphics, int x, int y) {
-        GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, getU(), getV(), ICON_SIZE, ICON_SIZE);
+        GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, ICON_SIZE, ICON_SIZE, getU(), getV());
     }
 
     public DLSprite getAsSprite(int renderWidth, int renderHeight) {
-        return new DLSprite(ICON_TEXTURE, getU(), getV(), ICON_SIZE, ICON_SIZE, renderWidth, renderHeight);
+        return new DLSprite(ICON_TEXTURE, ICON_SIZE, ICON_SIZE, getU(), getV(), renderWidth, renderHeight);
     }
 }
