@@ -8,6 +8,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.LayoutResult;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.RenderLayer;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.events.IEvent;
@@ -657,7 +658,7 @@ public final class DLGuiStandardEvents {
     }
     
     @NotCancellable
-    public record ComponentLayoutUpdatedEvent() implements IEvent {
+    public record ComponentLayoutUpdatedEvent(LayoutResult layoutResult) implements IEvent {
     }
 
     /**

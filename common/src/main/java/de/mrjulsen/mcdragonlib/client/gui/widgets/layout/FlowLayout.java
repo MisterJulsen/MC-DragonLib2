@@ -1,11 +1,12 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.layout;
 
 import java.util.List;
-import org.joml.Math;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
+
+import java.lang.Math; 
 
 public class FlowLayout implements ILayoutManager {
     public enum Direction { VERTICAL, HORIZONTAL }
@@ -15,12 +16,16 @@ public class FlowLayout implements ILayoutManager {
     public final BooleanProperty wrap = new BooleanProperty(true, false);
     public final NumberProperty<Integer> horizontalGap = new NumberProperty<>(0); 
     public final NumberProperty<Integer> verticalGap = new NumberProperty<>(0);
-
     public final BooleanProperty fillCrossAxis = new BooleanProperty(false, false);
 
     @Override
-    public void arrangeComponents(DLGuiComponent host) {
+    public LayoutResult arrangeComponents(DLGuiComponent host) {
         List<DLGuiComponent> children = host.getComponents();
+        
+        if (children.isEmpty()) {
+            return LayoutResult.EMPTY;
+        }
+
         boolean isHorizontal = flowDirection.get() == Direction.HORIZONTAL;
         boolean shouldFill = fillCrossAxis.get() && !wrap.get();
         
@@ -33,9 +38,14 @@ public class FlowLayout implements ILayoutManager {
         int endY = host.height();        
         int currentLineMaxThickness = 0;
 
+        // Tracking Variablen für das Resultat
+        int maxContentX = 0;
+        int maxContentY = 0;
+
         for (DLGuiComponent child : children) {
             FlowConstraint constraint = getConstraintOrDefault(child, FlowConstraint.START);
             
+            // Fill Logic
             if (shouldFill) {
                 if (isHorizontal) {
                     child.setHeight(host.height());
@@ -49,6 +59,7 @@ public class FlowLayout implements ILayoutManager {
             int cw = child.width();
             int ch = child.height();
 
+            // Positionierung
             if (isHorizontal) {
                 if (constraint == FlowConstraint.END) {
                     endX -= cw;
@@ -65,7 +76,7 @@ public class FlowLayout implements ILayoutManager {
                     startX += cw + gapX;
                     currentLineMaxThickness = Math.max(currentLineMaxThickness, ch);
                 }
-            } else {
+            } else { // VERTICAL
                 if (constraint == FlowConstraint.END) {
                     endY -= ch;
                     child.setPosition(startX, endY);
@@ -82,7 +93,16 @@ public class FlowLayout implements ILayoutManager {
                     currentLineMaxThickness = Math.max(currentLineMaxThickness, cw);
                 }
             }
+
+            int childRightEdge = child.x() + child.width();
+            int childBottomEdge = child.y() + child.height();
+
+            if (childRightEdge > maxContentX) maxContentX = childRightEdge;
+            if (childBottomEdge > maxContentY) maxContentY = childBottomEdge;
         }
+
+        // Gib die berechneten Dimensionen zurück
+        return new LayoutResult(maxContentX, maxContentY);
     }
     
     private FlowConstraint getConstraintOrDefault(DLGuiComponent child, FlowConstraint def) {

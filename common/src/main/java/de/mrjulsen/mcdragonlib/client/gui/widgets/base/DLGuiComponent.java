@@ -6,6 +6,7 @@ import de.mrjulsen.mcdragonlib.client.gui.container.IMenuGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.ILayoutManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.LayoutResult;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.NoLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.Align;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
@@ -44,7 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -137,7 +138,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public static final int MOUSE_DOWN_INITIAL_DELAY = 10;
 
     // Container
-    private final ConcurrentLinkedQueue<DLGuiComponent> components = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedDeque<DLGuiComponent> components = new ConcurrentLinkedDeque<>();
 
     // Widget
     private DLWindowManager windowManager = null;
@@ -265,8 +266,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     protected final void applyLayout() {
         if (applyingLayout) return;
         applyingLayout = true;
-        this.layout.get().arrangeComponents(this);
-        invokeEvent(this, new DLGuiStandardEvents.ComponentLayoutUpdatedEvent());
+        LayoutResult result = this.layout.get().arrangeComponents(this);
+        invokeEvent(this, new DLGuiStandardEvents.ComponentLayoutUpdatedEvent(result));
         applyingLayout = false;
     }
 
@@ -448,6 +449,24 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     public void setSize(double width, double height) {
         setWidth(width);
         setHeight(height);
+    }
+
+    public boolean bringToFront(DLGuiComponent component) {
+        if (components.contains(component)) {
+            components.remove(component);
+            components.addLast(component);
+            return true;
+        }
+        return false;
+    }    
+
+    public boolean sendToBack(DLGuiComponent component) {
+        if (components.contains(component)) {
+            components.remove(component);
+            components.addFirst(component);
+            return true;
+        }
+        return false;
     }
 
     public void setScrollOffsetX(double scrollOffsetX) {

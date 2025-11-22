@@ -9,6 +9,7 @@ public class NoLayout implements ILayoutManager {
     private NoLayout() {}
 
     @Override
-    public void arrangeComponents(DLGuiComponent host) {
+    public LayoutResult arrangeComponents(DLGuiComponent host) {
+        return new LayoutResult(0, 0);
     }    
 }

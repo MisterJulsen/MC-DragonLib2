@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.layout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import java.util.List;
+import java.lang.Math;
 
 public class GridLayout implements ILayoutManager {
 
@@ -16,8 +17,13 @@ public class GridLayout implements ILayoutManager {
     }
 
     @Override
-    public void arrangeComponents(DLGuiComponent host) {
+    public LayoutResult arrangeComponents(DLGuiComponent host) {
         List<DLGuiComponent> children = host.getComponents();
+        
+        if (children.isEmpty()) {
+            return LayoutResult.EMPTY;
+        }
+
         int cols = Math.max(1, columns.get());
         int w = slotWidth.get();
         int h = slotHeight.get();
@@ -25,6 +31,9 @@ public class GridLayout implements ILayoutManager {
 
         int xOffset = 0;
         int yOffset = 0;
+
+        int maxGridX = 0;
+        int maxGridY = 0;
 
         for (int i = 0; i < children.size(); i++) {
             DLGuiComponent child = children.get(i);
@@ -36,6 +45,13 @@ public class GridLayout implements ILayoutManager {
             int yPos = yOffset + rowIndex * (h + g);
             
             child.setPosition(xPos, yPos);
+            int currentRightEdge = xPos + w;
+            int currentBottomEdge = yPos + h;
+
+            if (currentRightEdge > maxGridX) maxGridX = currentRightEdge;
+            if (currentBottomEdge > maxGridY) maxGridY = currentBottomEdge;
         }
+
+        return new LayoutResult(maxGridX, maxGridY);
     }
 }

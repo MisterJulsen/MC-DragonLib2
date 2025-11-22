@@ -1,8 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.layout;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
-
 import java.util.List;
+import java.lang.Math;
 
 public class BorderLayout implements ILayoutManager {
 
@@ -19,17 +19,26 @@ public class BorderLayout implements ILayoutManager {
     }
 
     @Override
-    public void arrangeComponents(DLGuiComponent host) {
+    public LayoutResult arrangeComponents(DLGuiComponent host) {
         List<DLGuiComponent> children = host.getComponents();
+        
+        if (children.isEmpty()) {
+            return LayoutResult.EMPTY;
+        }
         
         int top = 0;
         int bottom = host.height();
         int left = 0;
         int right = host.width();
         
+        int maxContentX = 0;
+        int maxContentY = 0;
+
         for (DLGuiComponent child : children) {
             BorderPosition pos = getConstraintOrDefault(child, BorderPosition.CENTER);
-            if (pos == null) pos = BorderPosition.CENTER;
+            if (pos == null) pos = BorderPosition.CENTER; 
+
+            if (pos == BorderPosition.CENTER) continue;
 
             if (pos == BorderPosition.NORTH) {
                 child.setPosition(left, top);
@@ -53,15 +62,27 @@ public class BorderLayout implements ILayoutManager {
                 child.setHeight(bottom - top);
                 right -= (w + hGap);
             }
+
+            maxContentX = Math.max(maxContentX, child.x() + child.width());
+            maxContentY = Math.max(maxContentY, child.y() + child.height());
         }
 
         for (DLGuiComponent child : children) {
             BorderPosition pos = getConstraintOrDefault(child, BorderPosition.CENTER);
+            
             if (pos == BorderPosition.CENTER || pos == null) {
+                int remainingW = Math.max(0, right - left);
+                int remainingH = Math.max(0, bottom - top);
+
                 child.setPosition(left, top);
-                child.setSize(Math.max(0, right - left), Math.max(0, bottom - top));
+                child.setSize(remainingW, remainingH);
+
+                maxContentX = Math.max(maxContentX, child.x() + child.width());
+                maxContentY = Math.max(maxContentY, child.y() + child.height());
             }
         }
+
+        return new LayoutResult(maxContentX, maxContentY);
     }
 
     private BorderPosition getConstraintOrDefault(DLGuiComponent child, BorderPosition def) {
