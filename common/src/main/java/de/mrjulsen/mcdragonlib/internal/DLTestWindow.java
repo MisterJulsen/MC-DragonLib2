@@ -187,11 +187,11 @@ public class DLTestWindow extends DLWindow {
                     return false;
                 });
                 List<String> suggestions = new ArrayList<>();
-                for (int i = 0; i < 50; i++) {
+                for (int i = 0; i < 54; i++) {
                     suggestions.add("Test " + i);
                 }
                 win.suggestions.set(suggestions);
-                win.filter.set(item -> item.toLowerCase().startsWith(autocompleteBox.text.get().getPlainText().toLowerCase()));
+                win.filter.set(item -> item.toLowerCase().contains(autocompleteBox.text.get().getPlainText().toLowerCase()));
                 return win;
             });
         };
@@ -212,7 +212,7 @@ public class DLTestWindow extends DLWindow {
                 spawnWindow.accept(s);
             }            
             if (win != null) {
-                win.filter.set(item -> item.toLowerCase().startsWith(e.text().getPlainText().toLowerCase()));
+                win.filter.set(item -> item.toLowerCase().contains(e.text().getPlainText().toLowerCase()));
             }
             return false;
         });

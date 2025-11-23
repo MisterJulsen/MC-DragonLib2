@@ -4,8 +4,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
+import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.LayoutResult;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.events.IEvent;
@@ -19,7 +21,7 @@ import de.mrjulsen.mcdragonlib.util.properties.Property;
 })
 public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractCollectionComponent.DLCollectionItem<T, ?>> extends DLGuiComponent {
     
-    public record ListLayoutChangedEvent() implements IEvent {}
+    public record ListLayoutChangedEvent(LayoutResult layoutResult) implements IEvent {}
     public record FilterChangedEvent() implements IEvent {}
 
 
@@ -59,6 +61,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             createComponents();
             invokeEvent(this, new FilterChangedEvent());
         });
+        
 
 
     protected final DLPanel contentPanel;
@@ -73,7 +76,11 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
         layout.wrap.set(false);
         layout.fillCrossAxis.set(true);
         layout.flowDirection.set(Direction.VERTICAL);
-        this.layout.set(layout);
+        this.contentPanel.layout.set(layout);
+        this.contentPanel.addEventListener(DLGuiStandardEvents.ComponentLayoutUpdatedEvent.class, (s, e) -> {
+            invokeEvent(contentPanel, new ListLayoutChangedEvent(e.layoutResult()));
+            return false;
+        });
         addComponent(contentPanel);
     }
 

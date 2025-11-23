@@ -8,6 +8,7 @@ import org.lwjgl.glfw.GLFW;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
@@ -38,6 +39,7 @@ public class DLAutocompleteWindow<T> extends DLWindow {
         topLevel.set(true);
         
         this.listBox = addComponent(new DLAutocompleteListBox<>(this, parentComponent, 1, 1, width() - 2, height() - 2));
+        listBox.anchor.set(EAlign.values());
 
         this.filter = new VirtualProperty<Predicate<T>>(item -> true,
             () -> listBox.filter.get(),
@@ -58,14 +60,21 @@ public class DLAutocompleteWindow<T> extends DLWindow {
 
         keyEventId = parentComponent.addEventListener(DLGuiStandardEvents.KeyPressEvent.class, (s, e) -> {
             switch (e.keyCode()) {
-                case GLFW.GLFW_KEY_UP -> {
+                case GLFW.GLFW_KEY_UP:
                     changeIndex(-1);
                     return true;
-                }
-                case GLFW.GLFW_KEY_DOWN -> {
+                case GLFW.GLFW_KEY_DOWN:
                     changeIndex(1);
-                    return true;                    
-                }
+                    return true;
+                case GLFW.GLFW_KEY_TAB:
+                case GLFW.GLFW_KEY_ENTER:
+                    supressTextUpdate = true;
+                    if (!listBox.selectedItems.get().isEmpty()) {
+                        parentComponent.text.get().set(listBox.textFormat.get().apply(listBox.selectedItems.get().get(0)).getString());
+                    }
+                    getWindowManager().closeWindow(this);
+                    supressTextUpdate = false;
+                    return true;
             };
             return false;
         }, 100);

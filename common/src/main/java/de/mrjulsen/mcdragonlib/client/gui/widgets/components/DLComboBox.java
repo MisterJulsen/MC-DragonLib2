@@ -1,6 +1,5 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.lwjgl.glfw.GLFW;
@@ -67,12 +66,19 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         DLWindow win = getWindowManager().getWindows(id)[0];
 
         DLComboBoxDropDownList<T> list = dropDownBuilder.get().build(id, win.width(), win.height());
-        list.items.addAll(items);
         list.anchor.set(EAlign.values());
         win.addComponent(list);
-        win.setHeight(MathUtils.clamp(2 + list.getRequiredHeight(), 8, getWindowManager().getScreenHeight() / 3));
-        win.setY(Math.min(win.y() + win.height(), getWindowManager().getScreenHeight()) - win.height());
 
+        list.addEventListener(DLAbstractCollectionComponent.ListLayoutChangedEvent.class, (s, e) -> {
+            win.setHeight(MathUtils.clamp(2 + e.layoutResult().contentHeight(), 8, getWindowManager().getScreenHeight() / 3));
+            win.setY(Math.min(win.y() + win.height(), getWindowManager().getScreenHeight()) - win.height());
+            list.scrollBar.visible.set(e.layoutResult().causesOverflowY(list.contentPanel.height()));
+            list.scrollBar.max.set(e.layoutResult().contentHeight());
+            list.scrollBar.screenSize.set(list.contentPanel.height());
+            return false;
+        });
+
+        list.items.addAll(items);
         return false;
     }
 
@@ -122,20 +128,21 @@ public class DLComboBox<T> extends DLCycleButton<T> {
             this.id = id;
             this.combobox = combobox;
             
-            this.scrollBar = new DLScrollBar(width() - 7, 0, 7, height(), Orientation.VERTICAL);
+            this.scrollBar = new DLScrollBar(width() - 1 - 7, 1, 7, height() - 2, Orientation.VERTICAL);
             scrollBar.componentRenderer.set(VanillaListScrollBarRenderer.VANILLA_SCROLLBAR);
             scrollBar.inputConsumptionPolicy.set((type) -> true);
             scrollBar.anchor.set2(EAlign.TOP, EAlign.BOTTOM, EAlign.RIGHT);
             addComponent(scrollBar);
 
             this.contentPanel.setPosition(1, 1);
-            this.contentPanel.setSize(width() - scrollBar.width() - 2, height() - 2);
+            this.contentPanel.setSize(width() - 2, height() - 2);
 
             scrollBar.addEventListener(DLScrollBar.ValueChangedEvent.class, (src, event) -> {
                 contentPanel.setScrollOffsetY(scrollBar.value.get());
                 return false;
             });
-            addEventListener(DLGuiStandardEvents.ScrollEvent.class, scrollBar::invokeEvent);
+            addEventListener(DLGuiStandardEvents.ScrollEvent.class, scrollBar::invokeEvent);            
+
         }
 
         public static class DLComboboxDropDownItem<T> extends DLAbstractCollectionComponent.DLCollectionItem<T, DLComboBoxDropDownList<T>> {
@@ -164,23 +171,6 @@ public class DLComboBox<T> extends DLCycleButton<T> {
 
         }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        protected void layoutComponents() {
-            int currentY = 0;
-            for (DLComboboxDropDownItem<T> item : contentPanel.getComponentsOfType(DLComboboxDropDownItem.class, true)) {
-                setItemWidth(item, width() - scrollBar.width() - 2);
-                setItemX(item, 0);
-                setItemY(item, currentY);
-                currentY += item.height();
-            }
-            this.totalItemHeight = currentY;
-            int maxScroll = currentY - contentPanel.height();
-            scrollBar.visible.set(maxScroll > 0);
-            scrollBar.max.set(maxScroll);
-            scrollBar.screenSize.set(contentPanel.height());
-        }
-
         @Override
         protected DLComboboxDropDownItem<T> defaultItemBuilder(T item) {
             return new DLComboboxDropDownItem<>(this, item, combobox.selectedItem.get().map(x -> x == item).orElse(false), width(), Minecraft.getInstance().font.lineHeight + 2);
@@ -189,10 +179,6 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         public final void closeMenu() {
             if (getWindowManager() == null) return;
             getWindowManager().closeModal(id);
-        }
-
-        public int getRequiredHeight() {
-            return totalItemHeight;
         }
 
         @Override

@@ -1,6 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.layout;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding; // Import hinzugefügt
+
 import java.util.List;
 import java.lang.Math;
 
@@ -12,10 +14,16 @@ public class BorderLayout implements ILayoutManager {
     
     private int hGap = 0;
     private int vGap = 0;
+    
+    private Padding padding = Padding.ZERO;
 
     public BorderLayout(int hGap, int vGap) {
         this.hGap = hGap;
         this.vGap = vGap;
+    }
+    
+    public void setPadding(Padding padding) {
+        this.padding = padding;
     }
 
     @Override
@@ -26,10 +34,10 @@ public class BorderLayout implements ILayoutManager {
             return LayoutResult.EMPTY;
         }
         
-        int top = 0;
-        int bottom = host.height();
-        int left = 0;
-        int right = host.width();
+        int top = padding.top();
+        int bottom = host.height() - padding.bottom();
+        int left = padding.left();
+        int right = host.width() - padding.right();
         
         int maxContentX = 0;
         int maxContentY = 0;
@@ -82,7 +90,7 @@ public class BorderLayout implements ILayoutManager {
             }
         }
 
-        return new LayoutResult(maxContentX, maxContentY);
+        return new LayoutResult(maxContentX + padding.right(), maxContentY + padding.bottom());
     }
 
     private BorderPosition getConstraintOrDefault(DLGuiComponent child, BorderPosition def) {

@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import java.lang.Math;
 
 public class TableLayout implements ILayoutManager {
@@ -31,6 +33,7 @@ public class TableLayout implements ILayoutManager {
 
     private final List<TableColumn> columns = new ArrayList<>();    
     public final NumberProperty<Integer> columnGap = new NumberProperty<>(0);
+    public final Property<Padding> padding = new Property<>(Padding.ZERO);
 
     public TableLayout addColumn(String name, double size, ColumnSizeMode mode) {
         this.columns.add(new TableColumn(name, size, mode));
@@ -45,7 +48,9 @@ public class TableLayout implements ILayoutManager {
              return LayoutResult.EMPTY;
         }
 
-        int totalWidth = host.width();
+        Padding p = padding.get();
+
+        int totalAvailableWidth = Math.max(0, host.width() - p.left() - p.right());
         int gap = columnGap.get();
         
         Map<String, DLGuiComponent> columnMap = new HashMap<>();
@@ -78,7 +83,7 @@ public class TableLayout implements ILayoutManager {
         }
 
         int totalGaps = Math.max(0, (columns.size() - 1) * gap);
-        double availableForPercent = Math.max(0, totalWidth - usedWidth - totalGaps);
+        double availableForPercent = Math.max(0, totalAvailableWidth - usedWidth - totalGaps);
 
         for (TableColumn col : columns) {
             if (col.mode == ColumnSizeMode.PERCENTAGE) {
@@ -88,8 +93,9 @@ public class TableLayout implements ILayoutManager {
             }
         }
 
-        int currentX = 0;
+        int currentX = p.left();
         int maxContentY = 0;
+        int childHeight = Math.max(0, host.height() - p.top() - p.bottom());
 
         for (TableColumn col : columns) {
             int colW = calculatedWidths.getOrDefault(col.name, 0);
@@ -97,18 +103,18 @@ public class TableLayout implements ILayoutManager {
 
             if (child != null) {
                 child.setX(currentX);
-                child.setY(0); 
+                child.setY(p.top()); 
                 child.setWidth(colW);                
-                child.setHeight(host.height());
-                maxContentY = Math.max(maxContentY, child.height());
+                child.setHeight(childHeight);
+                maxContentY = Math.max(maxContentY, child.y() + child.height());
             }
 
             currentX += colW + gap;
         }
 
-        int contentWidth = (columns.size() > 0) ? (currentX - gap) : 0;
+        int finalRightEdge = (columns.size() > 0) ? (currentX - gap) : p.left();
 
-        return new LayoutResult(contentWidth, maxContentY);
+        return new LayoutResult(finalRightEdge + p.right(), maxContentY + p.bottom());
     }
 
     private String getSlotName(DLGuiComponent child) {

@@ -261,6 +261,10 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         addEventListener(DLGuiStandardEvents.ScreenLayoutUpdatedEvent.class, (s, e) -> {
             applyLayout();
             return false;
+        });        
+        addEventListener(DLGuiStandardEvents.ComponentsClearEvent.class, (s, e) -> {
+            applyLayout();
+            return false;
         });
     }
 

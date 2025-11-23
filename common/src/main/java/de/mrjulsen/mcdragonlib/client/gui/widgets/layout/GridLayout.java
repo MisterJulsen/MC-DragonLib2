@@ -1,7 +1,9 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.layout;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import java.util.List;
 import java.lang.Math;
 
@@ -11,6 +13,7 @@ public class GridLayout implements ILayoutManager {
     public final NumberProperty<Integer> slotWidth = new NumberProperty<>(18, 0, Integer.MAX_VALUE);
     public final NumberProperty<Integer> slotHeight = new NumberProperty<>(18, 0, Integer.MAX_VALUE);
     public final NumberProperty<Integer> gap = new NumberProperty<>(0);
+    public final Property<Padding> padding = new Property<>(Padding.ZERO);
 
     public GridLayout(int columns) {
         this.columns.set(columns);
@@ -24,13 +27,15 @@ public class GridLayout implements ILayoutManager {
             return LayoutResult.EMPTY;
         }
 
+        Padding p = padding.get();
+
         int cols = Math.max(1, columns.get());
         int w = slotWidth.get();
         int h = slotHeight.get();
         int g = gap.get();
 
-        int xOffset = 0;
-        int yOffset = 0;
+        int xOffset = p.left();
+        int yOffset = p.top();
 
         int maxGridX = 0;
         int maxGridY = 0;
@@ -52,6 +57,6 @@ public class GridLayout implements ILayoutManager {
             if (currentBottomEdge > maxGridY) maxGridY = currentBottomEdge;
         }
 
-        return new LayoutResult(maxGridX, maxGridY);
+        return new LayoutResult(maxGridX + p.right(), maxGridY + p.bottom());
     }
 }

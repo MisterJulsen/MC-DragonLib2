@@ -19,7 +19,6 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
     public final ListProperty<DataSlot> dataSlots = new ListProperty<DataSlot>()
         .withAfterPropertyChangedCallback((o, val) -> {
             createComponents();
-            layoutComponentsInternal();
         });
 
     public DLAbstractDataView(int x, int y, int w, int h) {
@@ -84,7 +83,7 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
                 }
                 x += w;
             }
-            setCollectionH(maxH);
+            setHeight(maxH);
         }
     }
 }

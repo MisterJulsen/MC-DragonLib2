@@ -9,6 +9,8 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.ModalId;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.WindowBuilder;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
@@ -60,7 +62,6 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
     protected static final int ITEM_TOP_MARGIN = 2;
     protected static final int ITEM_BOTTOM_MARGIN = 2;
 
-    protected final DLPanel contentPanel;
     protected final DLContextMenu rootMenu;
     protected final DLContextMenu parentMenu;
 
@@ -81,10 +82,16 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         this.menuBuilder = builder;
         this.rootMenu = rootMenu;
         this.parentMenu = parentMenu;
+        this.contentPanel.setPosition(1, 1);
+        this.contentPanel.setSize(width() - 2, height() - 2);
+        if (this.contentPanel.layout.get() instanceof FlowLayout flow) {
+            flow.padding.set(new Padding(ITEM_TOP_MARGIN, 0, ITEM_BOTTOM_MARGIN, 0));
+        }
 
-        this.contentPanel = new DLPanel(BORDER_SIZE, BORDER_SIZE, width() - BORDER_SIZE * 2, height() - BORDER_SIZE * 2);
-        this.contentPanel.anchor.set(EAlign.values());
-        this.addComponent(this.contentPanel);
+        addEventListener(DLAbstractCollectionComponent.ListLayoutChangedEvent.class, (s, e) -> {
+            setHeight(e.layoutResult().contentHeight() + BORDER_SIZE * 2);
+            return false;
+        });
     }
     
     public void open(DLWindowManager windowManager) {
@@ -96,7 +103,6 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
         this.posY = y;
         contentPanel.clearComponents();
         createComponents();
-        layoutComponents();
 
         WindowBuilder<?> builder = (root) -> {
             DLContextMenuWindow win = new DLContextMenuWindow(root, this);
@@ -115,7 +121,6 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
     @Override
     protected void createComponents() {
         contentPanel.clearComponents();
-        int h = 0;
         int w = 5;
         for (ItemEntry item : menuBuilder.buildContextMenuContents(posX, posY)) {
             final ItemEntry itm = item;
@@ -139,23 +144,10 @@ public class DLContextMenu extends DLAbstractCollectionComponent<DLContextMenu.I
                 return false;
             });
             contentPanel.addComponent(listItem);
-            setItemHeight(listItem, listItem.requiredHeight());
-            h += listItem.height();
+            listItem.setHeight(listItem.requiredHeight());
             w = Math.max(listItem.requiredWidth(), w);
         }        
-        setSize(w + BORDER_SIZE * 2, h + ITEM_TOP_MARGIN + ITEM_BOTTOM_MARGIN + BORDER_SIZE * 2);
-    }
-
-    @Override
-    protected void layoutComponents() {
-        int currentY = ITEM_TOP_MARGIN;
-        for (DLContextMenuItem item : contentPanel.getComponentsOfType(DLContextMenuItem.class, true)) {
-            setItemX(item, 0);
-            setItemY(item, currentY);
-            setItemWidth(item, contentPanel.width());
-            currentY += item.height();
-        }
-        currentY += ITEM_BOTTOM_MARGIN;
+        setWidth(w + BORDER_SIZE * 2);
     }
 
     public void closeSubMenu() {

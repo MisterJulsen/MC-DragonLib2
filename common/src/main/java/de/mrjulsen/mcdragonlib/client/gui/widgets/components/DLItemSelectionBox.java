@@ -13,6 +13,7 @@ import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orientation;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.LayoutResult;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
@@ -63,7 +64,6 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
     public final Property<Function<T, FormattedText>> textFormat = new Property<Function<T, FormattedText>>((item) -> TextUtils.text(String.valueOf(item)))
         .withAfterPropertyChangedCallback((a, b) -> {
             createComponents();
-            layoutComponentsInternal();
         });
 
     protected final DLScrollBar scrollBar;
@@ -81,10 +81,9 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
 
         this.contentPanel.setPosition(1, 1);
         this.contentPanel.setSize(width() - 2 - scrollBar.width(), height() - 2);
-        this.contentPanel.addEventListener(DLGuiStandardEvents.ComponentPosAndSizeChanged.class, (s, e) -> {
-            if (e.heightChanged()) {
-                layoutComponents();
-            }
+
+        this.contentPanel.addEventListener(DLGuiStandardEvents.ComponentLayoutUpdatedEvent.class, (s, e) -> {
+            layoutComponents(e.layoutResult());
             return false;
         });
 
@@ -183,19 +182,9 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    protected void layoutComponents() {
-        int currentY = 0;
-        for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
-            DLListBoxItem<T> item = (DLListBoxItem<T>)itm;
-            setItemX(item, 0);
-            setItemY(item, currentY);
-            setItemWidth(item, contentPanel.width());
-            currentY += item.height();
-        }
-        scrollBar.visible.set(currentY > contentPanel.height());
-        scrollBar.max.set(currentY);
+    protected void layoutComponents(LayoutResult result) {
+        scrollBar.visible.set(result.causesOverflowY(contentPanel.height()));
+        scrollBar.max.set(result.contentHeight());
         scrollBar.screenSize.set(contentPanel.height());
     }
 

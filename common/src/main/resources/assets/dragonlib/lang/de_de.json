@@ -56,6 +56,7 @@
     "gui.dragonlib.menu.select_all": "Alles auswählen",
     "gui.dragonlib.menu.decrement": "Reduzieren",
     "gui.dragonlib.menu.increment": "Erhöhen",
+    "gui.dragonlib.autocomplete.no_results": "Keine Ergebnisse",
     
     "gui.dragonlib.scrollbar.here": "Hierher scrollen",
     "gui.dragonlib.scrollbar.top": "Oberer Rand",
