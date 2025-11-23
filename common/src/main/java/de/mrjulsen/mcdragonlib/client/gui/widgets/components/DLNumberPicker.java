@@ -6,6 +6,7 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemEntry;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaSimpleButtonRenderer;
@@ -40,6 +41,7 @@ public class DLNumberPicker extends DLGuiComponent {
 
     public final BooleanProperty showButtons = new BooleanProperty(true, false);
     public final NumberProperty<Double> step = new NumberProperty<Double>(1D);
+    public final NumberProperty<Double> shiftStep = new NumberProperty<>(5D);
     public final NumberProperty<Double> min = new NumberProperty<Double>(0D);
     public final NumberProperty<Double> max = new NumberProperty<Double>(100D);
     public final NumberProperty<Double> value = new NumberProperty<Double>(0D, () -> min.get(), () -> max.get())
@@ -61,11 +63,11 @@ public class DLNumberPicker extends DLGuiComponent {
                 if (!readOnly.get()) {
                     entries.add(DLContextMenu.ItemEntry.SEPARATOR);
                     entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".menu.increment"), DLSprite.empty(), value.get() < max.get(), () -> {
-                        value.set(value.get() + step.get());
+                        addToValue(1);
                     }, null));
                     
                     entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".menu.decrement"), DLSprite.empty(), value.get() > min.get(), () -> {
-                        value.set(value.get() - step.get());
+                        addToValue(-1);
                     }, null));
                 }
                 return entries;
@@ -87,7 +89,7 @@ public class DLNumberPicker extends DLGuiComponent {
         addBtn.text.set(TextUtils.text("+"));
         addBtn.componentRenderer.set(buttonsComponentRenderer.get());
         addBtn.addEventListener(DLGuiStandardEvents.MouseHoldDownEvent.class, (src, event) -> {
-            this.value.set(this.value.get() + this.step.get());
+            addToValue(1);
             return true;
         });
         addBtn.inputConsumptionPolicy.set((type) -> {
@@ -99,7 +101,7 @@ public class DLNumberPicker extends DLGuiComponent {
         subBtn.text.set(TextUtils.text("-"));
         subBtn.componentRenderer.set(buttonsComponentRenderer.get());
         subBtn.addEventListener(DLGuiStandardEvents.MouseHoldDownEvent.class, (src, event) -> {
-            this.value.set(this.value.get() - this.step.get());
+            addToValue(-1);
             return true;
         });
         subBtn.inputConsumptionPolicy.set((type) -> {
@@ -112,7 +114,7 @@ public class DLNumberPicker extends DLGuiComponent {
             return false;
         });
         addEventListener(DLGuiStandardEvents.ScrollEvent.class, (src, event) -> {
-            this.value.set(this.value.get() - (Math.signum(event.deltaY()) * step.get()));
+            addToValue(Math.signum(event.deltaY()));
             updateTextboxValue();
             return false;
         });
@@ -154,6 +156,10 @@ public class DLNumberPicker extends DLGuiComponent {
         textboxComponentRenderer.withAfterPropertyChangedCallback((o, val) -> {
             textBox.componentRenderer.set(val);
         });
+    }
+
+    protected void addToValue(double fac) {
+        this.value.set(this.value.get() + (DLWindowManager.hasShiftDown() ? this.shiftStep.get() : this.step.get()) * fac);
     }
 
     protected void updateTextboxValue() {

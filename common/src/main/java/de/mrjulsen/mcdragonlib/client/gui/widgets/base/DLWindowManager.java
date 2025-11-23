@@ -83,6 +83,8 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
     private final ConcurrentLinkedDeque<ModalWindowStack> windows = new ConcurrentLinkedDeque<>();
     private final PriorityQueue<IGuiManagementComponent> managementComponents = new PriorityQueue<>();
 
+    private final Queue<Runnable> delayedTasks = new ConcurrentLinkedQueue<>();
+
     private boolean initialized = false;
     private final AbstractContainerMenu menu;
     private final WindowBuilder<? extends DLWindow> initialWindowBuilder;
@@ -680,6 +682,16 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
         if (component != null) {
             component.setFocus(true);
         }
+        
+        focusedComponent.getParent().ifPresent(p -> {
+            if (p.scrollToFocus.get()) {
+                p.scrollIntoView(focusedComponent);
+            }
+        });
+    }
+
+    public void invokeLater(Runnable task) {
+        this.delayedTasks.add(task);
     }
 
 
@@ -766,6 +778,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             }
         }
         DLUtils.doIfNotNull(andThen, x -> x.accept(consumed.getValue()));
+        
+        while (!delayedTasks.isEmpty()) {
+            delayedTasks.poll().run();
+        }
+        
         return false;//consumed.getValue();
     }
 
@@ -784,6 +801,11 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             }
         }
         DLUtils.doIfNotNull(andThen, x -> x.accept(consumed.getValue()));
+        
+        while (!delayedTasks.isEmpty()) {
+            delayedTasks.poll().run();
+        }
+
         return false;//consumed.getValue();
     }
 
@@ -843,6 +865,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
             if (!consumed) {
                 updateWindowFocus(true);
             }
+
         });
         
         return interateManagerExtension((mgr) -> mgr.mouseClicked(Phase.POST, eventResult, mouseX, mouseY, button)) || eventResult;

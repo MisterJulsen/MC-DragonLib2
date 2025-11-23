@@ -200,8 +200,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         .withAfterPropertyChangedCallback((o, v) -> v.arrangeComponents(this));
 
     public final Property<Object> layoutContraint = new Property<>(null);
-
     public final Property<Object> customData = new Property<>(null);
+    
+    public final BooleanProperty scrollToFocus = new BooleanProperty(true, false);
 
     
     protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + (dX() * getParent().map(p -> p.scale.get()).orElse(1D)));
@@ -483,6 +484,24 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     public double getScrollOffsetY() {
         return scrollOffsetY;
+    }
+
+    public void scrollIntoView(DLGuiComponent child) {
+        if (!components.contains(child)) {
+            return;
+        }
+
+        if (child.x() + child.width() > getScrollOffsetX() + width()) {
+            this.setScrollOffsetX(child.x() + child.width() - width());
+        } else if (child.x() < getScrollOffsetX()) {
+            setScrollOffsetX(child.x());
+        }
+
+        if (child.y() + child.height() > getScrollOffsetY() + height()) {
+            this.setScrollOffsetY(child.y() + child.height() - height());
+        } else if (child.y() < getScrollOffsetY()) {
+            setScrollOffsetY(child.y());
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -19,46 +20,22 @@ import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
+import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
+import de.mrjulsen.mcdragonlib.util.properties.Property;
 import de.mrjulsen.mcdragonlib.util.properties.VirtualProperty;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.FormattedText;
 
 @SupportsEvents({
     DLItemSelectionBox.ItemSelectionChangeEvent.class,
 })
 public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLItemSelectionBox.DLListBoxItem<T>> {
     
-    public record ItemSelectionChangeEvent<E extends DLCollectionItem<?, ?>>(E item, MutableBoolean selected) implements IEvent {}
+    private boolean loopFix = false;
 
-
-    public static class DLListBoxItem<T> extends DLAbstractCollectionComponent.DLCollectionItem<T, DLItemSelectionBox<T>> {
-
-        public final BooleanProperty selected = new BooleanProperty(false, false);
-
-        protected DLListBoxItem(DLItemSelectionBox<T> collectionComponentRef, T item, int w, int h) {
-            super(collectionComponentRef, item, w, h);
-
-            addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
-                MutableBoolean select = new MutableBoolean(this.selected.get());
-                collectionComponentRef.invokeEvent((DLGuiComponent)collectionComponentRef, new ItemSelectionChangeEvent<DLCollectionItem<T, ?>>(this, select));
-                this.selected.set(select.getValue());
-                return false;
-            });
-        }
-
-        @Override
-        public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-            if (selected.get()) {
-                GuiUtils.fill(graphics, 0, 0, width(), height(), DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR);
-                GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, DLColor.BLACK);
-            } else if (isSelected()) {
-                GuiUtils.fill(graphics, 0, 0, width(), height(), DLColor.fromInt(0x22FFFFFF));
-            }
-            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, String.valueOf(item), selected.get() ? DragonLib.VANILLA_BUTTON_HIGHLIGHTED_FONT_COLOR : DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR, ETextAlignment.LEFT, false);
-        }
-
-    }
+    public record ItemSelectionChangeEvent(DLListBoxItem<?> item, MutableBoolean selected) implements IEvent {}
 
     public final BooleanProperty multiselect = new BooleanProperty(false, false);
 
@@ -72,13 +49,26 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
             }
             return Collections.unmodifiableList(selectedItems);
         }, (selectedItems) -> {
-            for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
-                itm.selected.set(selectedItems.contains(itm.item));
+            boolean prevLoop = loopFix;
+            loopFix = true;
+            try {
+                for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
+                    itm.selected.set(selectedItems.contains(itm.item));
+                }
+            } finally {
+                loopFix = prevLoop;
             }
         });
 
-    private final DLScrollBar scrollBar;
+    public final Property<Function<T, FormattedText>> textFormat = new Property<Function<T, FormattedText>>((item) -> TextUtils.text(String.valueOf(item)))
+        .withAfterPropertyChangedCallback((a, b) -> {
+            createComponents();
+            layoutComponentsInternal();
+        });
+
+    protected final DLScrollBar scrollBar;
     private DLCollectionItem<?, ?> previouslyClickedItem;
+
 
     public DLItemSelectionBox(int x, int y, int w, int h) {
         super(x, y, w, h);
@@ -91,6 +81,12 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
 
         this.contentPanel.setPosition(1, 1);
         this.contentPanel.setSize(width() - 2 - scrollBar.width(), height() - 2);
+        this.contentPanel.addEventListener(DLGuiStandardEvents.ComponentPosAndSizeChanged.class, (s, e) -> {
+            if (e.heightChanged()) {
+                layoutComponents();
+            }
+            return false;
+        });
 
         scrollBar.addEventListener(DLScrollBar.ValueChangedEvent.class, (src, event) -> {
             contentPanel.setScrollOffsetY(scrollBar.value.get());
@@ -100,44 +96,79 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         addEventListener(DLGuiStandardEvents.ScrollEvent.class, scrollBar::invokeEvent);
         addEventListener(DLGuiStandardEvents.KeyPressEvent.class, (src, event) -> {
             if (DLWindowManager.isSelectAll(event.keyCode())) {
-                for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
-                    itm.selected.set(true);
-                }
+                selectAll();
             }
             return false;
         });
+
         addEventListener(ItemSelectionChangeEvent.class, (src, event) -> {
-            List<DLListBoxItem<T>> itemComponents = getSelectedComponent();
-            boolean isSelected = event.selected().getValue();
-            
-            if (multiselect.get() && DLWindowManager.hasShiftDown()) {
-                int a = previouslyClickedItem == null ? 0 : Math.max(0, contentPanel.getComponents().indexOf(previouslyClickedItem));
-                int b = Math.max(0, contentPanel.getComponents().indexOf(event.item()));
-                int startIdx = Math.min(a, b);
-                int endIdx = Math.max(a, b);
-                for (int i = startIdx; i < endIdx; i++) {
-                    if (contentPanel.getComponents().get(i) instanceof DLListBoxItem itm) {
-                        itm.selected.set(true);
-                    }
-                }
-            }            
-
-            if (!multiselect.get() || (!DLWindowManager.hasControlDown() && !DLWindowManager.hasShiftDown())) {
-                for (DLListBoxItem<T> itm : itemComponents) {
-                    if (itm != event.item()) {
-                        itm.selected.set(false);
-                    }
-                }
+            if (loopFix) return false;
+            loopFix = true;
+            try {
+                defaultItemSelection(event);
+            } finally {
+                loopFix = false;
             }
-
-            previouslyClickedItem = event.item();
-
-            if (isSelected && getSelectedComponent().size() <= 1) {
-                return false;
-            }
-            event.selected().setValue(!isSelected);
             return false;
         });
+    }
+
+    protected void selectAll() {
+        boolean prevLoop = loopFix;
+        loopFix = true;
+        try {
+            for (DLListBoxItem<?> itm : contentPanel.getComponentsOfType(DLListBoxItem.class, true)) {
+                itm.selected.set(true);
+            }
+        } finally {
+            loopFix = prevLoop;
+        }
+    }
+    
+    protected void defaultItemSelection(ItemSelectionChangeEvent event) {
+        DLListBoxItem<?> clickedItem = event.item();
+        boolean ctrl = DLWindowManager.hasControlDown();
+        boolean shift = DLWindowManager.hasShiftDown();
+
+        List<DLListBoxItem<T>> allItems = contentPanel.getComponentsOfType(DLListBoxItem.class, true).stream().map(x -> (DLListBoxItem<T>)x).toList();
+
+        if (!multiselect.get()) {
+            for (DLListBoxItem<T> itm : allItems) {
+                if (itm != clickedItem) itm.selected.set(false);
+            }
+            event.selected().setValue(true);
+        } else {
+            if (shift && previouslyClickedItem != null) {
+                int idxA = Math.max(0, contentPanel.getComponents().indexOf(previouslyClickedItem));
+                int idxB = Math.max(0, contentPanel.getComponents().indexOf(clickedItem));
+                int start = Math.min(idxA, idxB);
+                int end = Math.max(idxA, idxB);
+
+                if (start < 0 || end < 0 || start >= contentPanel.getComponents().size() || end >= contentPanel.getComponents().size()) {
+                    for (DLListBoxItem<T> itm : allItems) {
+                        if (itm != clickedItem) itm.selected.set(false);
+                    }
+                    event.selected().setValue(true);
+                } else {
+                    for (int i = start; i <= end; i++) {
+                        var comp = contentPanel.getComponents().get(i);
+                        if (comp instanceof DLListBoxItem<?> itm) {
+                            itm.selected.set(true);
+                        }
+                    }
+                    event.selected().setValue(true);
+                }
+            } else if (ctrl) {
+                event.selected().setValue(!clickedItem.selected.get());
+            } else {
+                for (DLListBoxItem<T> itm : allItems) {
+                    if (itm != clickedItem) itm.selected.set(false);
+                }
+                event.selected().setValue(true);
+            }
+        }
+
+        previouslyClickedItem = clickedItem;
     }
 
     protected List<DLListBoxItem<T>> getSelectedComponent() {
@@ -152,7 +183,6 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
         }
     }
 
-    
     @SuppressWarnings("unchecked")
     @Override
     protected void layoutComponents() {
@@ -164,9 +194,8 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
             setItemWidth(item, contentPanel.width());
             currentY += item.height();
         }
-        int maxScroll = currentY - contentPanel.height();
-        scrollBar.visible.set(maxScroll > 0);
-        scrollBar.max.set(maxScroll);
+        scrollBar.visible.set(currentY > contentPanel.height());
+        scrollBar.max.set(currentY);
         scrollBar.screenSize.set(contentPanel.height());
     }
 
@@ -178,5 +207,36 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
     @Override
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         GuiUtils.drawBox(graphics, Rectangle.withSize(0, 0, width(), height()), DLColor.fromInt(0x66000000), DLColor.WHITE);
-    }  
+    }
+
+    public static class DLListBoxItem<T> extends DLAbstractCollectionComponent.DLCollectionItem<T, DLItemSelectionBox<T>> {
+
+        public final BooleanProperty selected = new BooleanProperty(false, false)
+            .withModificationCallback((o, n) -> {
+                MutableBoolean sel = new MutableBoolean(n);
+                collectionComponentRef.invokeEvent((DLGuiComponent)collectionComponentRef, new ItemSelectionChangeEvent(this, sel));
+                return sel.getValue();
+            });
+
+        protected DLListBoxItem(DLItemSelectionBox<T> collectionComponentRef, T item, int w, int h) {
+            super(collectionComponentRef, item, w, h);
+
+            addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
+                this.selected.set(true);
+                return false;
+            });
+        }
+
+        @Override
+        public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
+            if (selected.get()) {
+                GuiUtils.fill(graphics, 0, 0, width(), height(), DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR);
+                GuiUtils.fill(graphics, 1, 1, width() - 2, height() - 2, DLColor.BLACK);
+            } else if (isSelected()) {
+                GuiUtils.fill(graphics, 0, 0, width(), height(), DLColor.fromInt(0x22FFFFFF));
+            }
+            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, collectionComponentRef.textFormat.get().apply(item), selected.get() ? DragonLib.VANILLA_BUTTON_HIGHLIGHTED_FONT_COLOR : DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR, ETextAlignment.LEFT, false);
+        }
+
+    }
 }

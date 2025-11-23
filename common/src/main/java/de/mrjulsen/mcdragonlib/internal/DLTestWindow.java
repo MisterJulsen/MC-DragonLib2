@@ -2,13 +2,16 @@ package de.mrjulsen.mcdragonlib.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAutocompleteWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLBasicDataView;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCheckBox;
@@ -16,10 +19,13 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLComboBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLEditableLabel;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemPicker;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemSelectionBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLPanel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextLabel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLToggleButton;
@@ -32,6 +38,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orienta
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.DLAbstractRichTextInputField;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
@@ -54,6 +61,7 @@ public class DLTestWindow extends DLWindow {
     private Component txt = TextUtils.empty();
 
     
+    private DLAutocompleteWindow<String> win;
 
     public DLTestWindow(DLWindowManager manager) {
         super(manager);
@@ -157,7 +165,7 @@ public class DLTestWindow extends DLWindow {
         });
         addComponent(textbox);
 
-        DLRichTextEditBox searchBox = new DLRichTextEditBox(100, 200, 150, 16);
+        DLRichTextEditBox searchBox = new DLRichTextEditBox(100, 200, 80, 16);
         searchBox.readOnly.set(true);
         searchBox.multiline.set(false);
         searchBox.contentPadding.set(new Padding(0, 2, 0, 2));
@@ -165,6 +173,56 @@ public class DLTestWindow extends DLWindow {
         searchBox.lineSpacing.set(2);
         searchBox.filterRegex.set("^-?\\d+$");
         addComponent(searchBox);
+        
+        DLRichTextEditBox autocompleteBox = new DLRichTextEditBox(200, 200, 150, 16);
+        autocompleteBox.multiline.set(false);
+        addComponent(autocompleteBox);  
+        
+        final Consumer<DLGuiComponent> spawnWindow = (s) -> {
+            getWindowManager().createWindow(mgr -> {
+                win = new DLAutocompleteWindow<>(mgr, autocompleteBox);
+                win.setPosition(s.getXOnScreen(), s.getYOnScreen() + s.height());
+                win.addEventListener(DLGuiStandardEvents.CloseEvent.class, (c, e) -> {
+                    win = null;
+                    return false;
+                });
+                List<String> suggestions = new ArrayList<>();
+                for (int i = 0; i < 50; i++) {
+                    suggestions.add("Test " + i);
+                }
+                win.suggestions.set(suggestions);
+                win.filter.set(item -> item.toLowerCase().startsWith(autocompleteBox.text.get().getPlainText().toLowerCase()));
+                return win;
+            });
+        };
+        final Runnable closeWindow = () -> {
+            if (win != null) {
+                getWindowManager().closeWindow(win);
+            }
+        };
+
+        autocompleteBox.addEventListener(DLRichTextLabel.TextChangedEvent.class, (s, e) -> {
+            if (win != null && win.supressTextUpdate()) {
+                return false;
+            }
+
+            if (e.text().getPlainText().isEmpty()) {
+                closeWindow.run();
+            } else if (win == null) {
+                spawnWindow.accept(s);
+            }            
+            if (win != null) {
+                win.filter.set(item -> item.toLowerCase().startsWith(e.text().getPlainText().toLowerCase()));
+            }
+            return false;
+        });
+        autocompleteBox.addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
+            if (e.focus() && win == null) {
+                spawnWindow.accept(s);
+            }
+            return false;
+        });
+        
 
         DLNumberPicker number = new DLNumberPicker(100, 225, 80, 20);
         number.min.set(-100D);
@@ -204,7 +262,7 @@ public class DLTestWindow extends DLWindow {
             return item;
         });
         dataView.resizable.set(true);
-        addComponent(dataView);
+        //addComponent(dataView);
         
         DLPanel pnl = new DLPanel(360, 50, 200, 150);
         pnl.backgroundTint.set(DLColor.RED);
@@ -221,11 +279,9 @@ public class DLTestWindow extends DLWindow {
         pnl.resizable.set(true);
         pnl2.anchor.set(EAlign.values());
         pnl.addComponent(pnl2);
-        addComponent(pnl);
+        //addComponent(pnl);
         
-        /*
         DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(360, 50, 150, 150);
-        listBox.scale.set(0.75d);
         listBox.multiselect.set(true);
         listBox.resizable.set(true);
         for (int i = 0; i < 50; i++) {
@@ -233,7 +289,6 @@ public class DLTestWindow extends DLWindow {
         }
         //listBox.selectedItems.set(List.of("Test 5"));
         addComponent(listBox);
-        */
 
         DLComboBox<String> comboBox = new DLComboBox<>(100, 225, 80, 20);
         for (int i = 0; i < 50; i++) {
@@ -241,6 +296,14 @@ public class DLTestWindow extends DLWindow {
         }
         //comboBox.selectedIndex.set(17);
         addComponent(comboBox);
+
+        
+        DLItemPicker<String> picker = new DLItemPicker<>(200, 225, 80, 20);
+        for (int i = 0; i < 50; i++) {
+            picker.items.add("Test " + i);
+        }
+        //comboBox.selectedIndex.set(17);
+        addComponent(picker);
     }
 
     @Override

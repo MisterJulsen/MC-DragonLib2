@@ -12,6 +12,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaContainerScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaSimpleButtonRenderer;
+import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
@@ -233,7 +234,8 @@ public class DLScrollBar extends DLGuiComponent {
         });
 
         scrollUpBtn = new DLButton(0, 0, orientation == Orientation.HORIZONTAL ? BUTTON_SIZE : w, orientation == Orientation.VERTICAL ? BUTTON_SIZE : h);
-        scrollUpBtn.text.set(TextUtils.text(orientation == Orientation.VERTICAL ? "▲" : "◀"));
+        scrollUpBtn.text.set(TextUtils.EMPTY);
+        scrollUpBtn.icon.set(orientation == Orientation.VERTICAL ? GuiIcons.ARROW_UP.getAsSprite(16, 16) : GuiIcons.ARROW_LEFT.getAsSprite(16, 16));
         scrollUpBtn.componentRenderer.set(buttonsComponentRenderer.get());
         scrollUpBtn.visible.set(showButtons.get());
         scrollUpBtn.addEventListener(DLGuiStandardEvents.MouseHoldDownEvent.class, (src, event) -> {
@@ -245,7 +247,8 @@ public class DLScrollBar extends DLGuiComponent {
         addComponent(scrollUpBtn);
 
         scrollDownBtn = new DLButton(orientation == Orientation.HORIZONTAL ? width() - BUTTON_SIZE : 0, orientation == Orientation.VERTICAL ? height() - BUTTON_SIZE : 0, orientation == Orientation.HORIZONTAL ? BUTTON_SIZE : w, orientation == Orientation.VERTICAL ? BUTTON_SIZE : h);
-        scrollDownBtn.text.set(TextUtils.text(orientation == Orientation.VERTICAL ? "▼" : "▶"));
+        scrollDownBtn.text.set(TextUtils.EMPTY);
+        scrollDownBtn.icon.set(orientation == Orientation.VERTICAL ? GuiIcons.ARROW_DOWN.getAsSprite(16, 16) : GuiIcons.ARROW_RIGHT.getAsSprite(16, 16));
         scrollDownBtn.componentRenderer.set(buttonsComponentRenderer.get());
         scrollDownBtn.visible.set(showButtons.get());
         scrollDownBtn.addEventListener(DLGuiStandardEvents.MouseHoldDownEvent.class, (src, event) -> {

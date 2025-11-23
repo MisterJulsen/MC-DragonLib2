@@ -1,23 +1,26 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
-import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.events.IEvent;
-import de.mrjulsen.mcdragonlib.events.IEventListener;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.ListProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 @SupportsEvents({
-    DLAbstractCollectionComponent.ListLayoutChangedEvent.class
+    DLAbstractCollectionComponent.ListLayoutChangedEvent.class,
+    DLAbstractCollectionComponent.FilterChangedEvent.class
 })
 public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractCollectionComponent.DLCollectionItem<T, ?>> extends DLGuiComponent {
     
     public record ListLayoutChangedEvent() implements IEvent {}
+    public record FilterChangedEvent() implements IEvent {}
 
 
     public static abstract class DLCollectionItem<T, L extends DLAbstractCollectionComponent<T, ?>> extends DLGuiComponent {
@@ -31,49 +34,9 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             this.collectionComponentRef = collectionComponentRef;
             this.item = item;
         }
-        
-        @Override
-        public final void setHeight(double height) {
-            if (!collectionComponentRef.itemResizeAllowed.get()) {
-                throw new IllegalStateException("Cannot change the size of list items after they have been created.");
-            }
-            super.setHeight(height);
-            collectionComponentRef.layoutComponentsInternal();
-        }
-        
-        @Override
-        public final void setWidth(double width) {
-            if (!collectionComponentRef.itemResizeAllowed.get()) {
-                throw new IllegalStateException("Cannot change the size of list items after they have been created.");
-            }
-            super.setWidth(width);
-            collectionComponentRef.layoutComponentsInternal();
-        }
 
-        @Override
-        public final void setX(double x) {            
-            throw new IllegalStateException("Cannot change the position of list items after they have been created.");
-        }
-
-        @Override
-        public final void setY(double y) {            
-            throw new IllegalStateException("Cannot change the position of list items after they have been created.");
-        }
-
-        protected void setCollectionX(int x) {
-            super.setX(x);
-        }
-
-        protected void setCollectionY(int y) {
-            super.setY(y);
-        }
-
-        protected void setCollectionW(int w) {
-            super.setWidth(w);
-        }
-
-        protected void setCollectionH(int h) {
-            super.setHeight(h);
+        public T getItem() {
+            return item;
         }
     }
 
@@ -82,16 +45,20 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
     public final ListProperty<T> items = new ListProperty<T>()
         .withAfterPropertyChangedCallback((o, val) -> {
             createComponents();
-            layoutComponentsInternal();
         });
 
     public final Property<Function<T, I>> itemBuilder = new Property<Function<T, I>>(this::defaultItemBuilder)
         .withAfterPropertyChangedCallback((a, b) -> {
             createComponents();
-            layoutComponentsInternal();
         });
 
     public final BooleanProperty itemResizeAllowed = new BooleanProperty(false, false);
+        
+    public final Property<Predicate<T>> filter = new Property<Predicate<T>>((item) -> true)
+        .withAfterPropertyChangedCallback((a, b) -> {
+            createComponents();
+            invokeEvent(this, new FilterChangedEvent());
+        });
 
 
     protected final DLPanel contentPanel;
@@ -100,49 +67,26 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
         super(x, y, w, h);
 
         this.contentPanel = new DLPanel(0, 0, width(), height());
-        contentPanel.inputConsumptionPolicy.set((type) -> type != ConsumptionType.SCROLL);
+        this.contentPanel.inputConsumptionPolicy.set((type) -> type != ConsumptionType.SCROLL);
         this.contentPanel.anchor.set(EAlign.values());
+        FlowLayout layout = new FlowLayout();
+        layout.wrap.set(false);
+        layout.fillCrossAxis.set(true);
+        layout.flowDirection.set(Direction.VERTICAL);
+        this.layout.set(layout);
         addComponent(contentPanel);
-
-        final IEventListener<DLGuiComponent, DLGuiStandardEvents.ComponentPosAndSizeChanged> resizeEvent = (src, event) -> {
-            if (event.positionChanged() || event.sizeChanged()) {
-                layoutComponentsInternal();
-            }
-            return false;
-        };
-
-        addEventListener(DLGuiStandardEvents.ComponentPosAndSizeChanged.class, resizeEvent);
-        contentPanel.addEventListener(DLGuiStandardEvents.ComponentPosAndSizeChanged.class, resizeEvent);
     }
 
     protected void createComponents() {
         contentPanel.clearComponents();
         for (T item : items.get()) {
+            if (!filter.get().test(item)) {
+                continue;
+            }
             I listItem = itemBuilder.get().apply(item);
             contentPanel.addComponent(listItem);
         }
     }
 
-    protected final void layoutComponentsInternal() {
-        layoutComponents();
-        invokeEvent(this, new ListLayoutChangedEvent());
-    }
-
-    protected abstract void layoutComponents();
     protected abstract I defaultItemBuilder(T item);
-
-    
-
-    protected final void setItemX(I item, int x) {
-        item.setCollectionX(x);
-    }
-    protected final void setItemY(I item, int y) {
-        item.setCollectionY(y);
-    }
-    protected final void setItemWidth(I item, int width) {
-        item.setCollectionW(width);
-    }
-    protected final void setItemHeight(I item, int height) {
-        item.setCollectionH(height);
-    }
 }

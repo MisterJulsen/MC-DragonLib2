@@ -19,6 +19,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orienta
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.ITextFormatter;
+import de.mrjulsen.mcdragonlib.client.render.GuiIcons;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
@@ -26,6 +27,7 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 
@@ -38,6 +40,8 @@ public class DLComboBox<T> extends DLCycleButton<T> {
     public static final int DROP_DOWN_BUTTON_WIDTH = 14;
 
     public final Property<ITextFormatter<DLComboBox<T>>> textFormat = new Property<>((src) -> TextUtils.text(src.selectedItem.get().map(x -> x.toString()).orElse(text.get().getString())).withStyle(src.text.get().getStyle()));
+    public final NumberProperty<Integer> shiftStep = new NumberProperty<>(5, 1, Integer.MAX_VALUE);
+
     /**
      * Builds the dropdown menu that is displayed when the ComboBox is opened. This property can
      * be changed to use a custom dropdown list or a modified version of the default list without
@@ -58,7 +62,6 @@ public class DLComboBox<T> extends DLCycleButton<T> {
     public boolean defaultButtonClickAction(DLGuiComponent src, ClickEvent event) {
         ModalId id = getWindowManager().createModal((root) -> {
             DLPopupWindow popup = new DLPopupWindow(root, (int)(getXOnScreen()), (int)(getYOnScreen() + height() * getGlobalScale()), width());
-            //popup.scale.set(getGlobalScale());
             return popup;
         });
         DLWindow win = getWindowManager().getWindows(id)[0];
@@ -74,7 +77,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
     }
 
     public void changeValueOnScroll(int direction) {
-        this.selectedIndex.set(MathUtils.clamp(this.selectedIndex.get() + direction, 0, items.size() - 1));
+        this.selectedIndex.set(MathUtils.clamp(this.selectedIndex.get() + direction * (DLWindowManager.hasShiftDown() ? shiftStep.get() : 1), 0, items.size() - 1));
     }
 
     @Override
@@ -86,7 +89,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
         if (isSelected()) {
             backgroundState = ButtonState.DISABLED_SELECTED;
         }
-        componentRenderer.get().renderSprite(graphics, 0, 0, width() - DOUBLE_CLICK_COUNT, height(), this, backgroundState);
+        componentRenderer.get().renderSprite(graphics, 0, 0, width() - 2, height(), this, backgroundState);
 
         ButtonState state = ButtonState.NORMAL;
         if (!enabled.get()) {
@@ -100,7 +103,7 @@ public class DLComboBox<T> extends DLCycleButton<T> {
 
         GuiUtils.setTint(textColor.get());
         GuiUtils.drawString(graphics, Minecraft.getInstance().font, 4, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, textFormat.get().combine(this), enabled.get() ? DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR : DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR, ETextAlignment.LEFT, false);
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() - DROP_DOWN_BUTTON_WIDTH + (DROP_DOWN_BUTTON_WIDTH / 2) + (isMouseDown() ? 1 : 0), height() / 2 + (isMouseDown() ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, TextUtils.text("▼"), enabled.get() ? DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR : DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR, ETextAlignment.CENTER, true);
+        GuiIcons.ARROW_DOWN.render(graphics, (width() - DROP_DOWN_BUTTON_WIDTH) + (DROP_DOWN_BUTTON_WIDTH / 2) - (GuiIcons.ICON_SIZE / 2) + (isMouseDown() ? 1 : 0), (height() / 2) - (GuiIcons.ICON_SIZE / 2) + (isMouseDown() ? 1 : 0));
         GuiUtils.resetTint();
     }
 
@@ -142,7 +145,6 @@ public class DLComboBox<T> extends DLCycleButton<T> {
             protected DLComboboxDropDownItem(DLComboBoxDropDownList<T> collectionComponentRef, T item, boolean selected, int w, int h) {
                 super(collectionComponentRef, item, w, h);
                 this.selected = selected;
-                this.tooltip.set(new DLTooltip(List.of(TextUtils.text(item.toString())), 100));
                 addEventListener(DLGuiStandardEvents.ClickEvent.class, (src, event) -> {
                     collectionComponentRef.combobox.selectedItem.set(Optional.ofNullable(item));
                     collectionComponentRef.closeMenu();
