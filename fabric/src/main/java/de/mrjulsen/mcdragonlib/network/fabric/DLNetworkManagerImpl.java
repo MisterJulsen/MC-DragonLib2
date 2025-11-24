@@ -4,13 +4,11 @@ import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketContext;
 import de.mrjulsen.mcdragonlib.network.NetworkSide;
 import dev.architectury.utils.Env;
+import dev.architectury.utils.EnvExecutor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
@@ -24,17 +22,11 @@ public class DLNetworkManagerImpl {
             NetworkPacketContext context = context(player, server, false);
             DLNetworkManager.receiveData(channelId, buf, NetworkSide.C2S, context);             
         });
-        ClientPlayNetworking.registerGlobalReceiver(channelId, new ClientPlayNetworking.PlayChannelHandler() {
-            @Override
-            public void receive(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender sender) {
-                NetworkPacketContext context = context(client.player, client, true);
-                DLNetworkManager.receiveData(channelId, buf, NetworkSide.S2C, context);
-            }
-        });
+        EnvExecutor.runInEnv(Env.CLIENT, () -> () -> ClientNetworkManager.registerChannel(channelId, protocolVersion));
     }
     
     
-    private static NetworkPacketContext context(Player player, BlockableEventLoop<?> taskQueue, boolean client) {
+    static NetworkPacketContext context(Player player, BlockableEventLoop<?> taskQueue, boolean client) {
         return new NetworkPacketContext() {
             @Override
             public Player getPlayer() {

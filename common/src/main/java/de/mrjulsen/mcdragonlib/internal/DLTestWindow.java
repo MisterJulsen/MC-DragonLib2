@@ -2,16 +2,12 @@ package de.mrjulsen.mcdragonlib.internal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAutocompleteWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLBasicDataView;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCheckBox;
@@ -25,7 +21,6 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLPanel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextLabel;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLSlider;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLToggleButton;
@@ -38,8 +33,8 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar.Orienta
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.DLAbstractRichTextInputField;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.DLAutocompleteWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
@@ -176,52 +171,15 @@ public class DLTestWindow extends DLWindow {
         
         DLRichTextEditBox autocompleteBox = new DLRichTextEditBox(200, 200, 150, 16);
         autocompleteBox.multiline.set(false);
-        addComponent(autocompleteBox);  
-        
-        final Consumer<DLGuiComponent> spawnWindow = (s) -> {
-            getWindowManager().createWindow(mgr -> {
-                win = new DLAutocompleteWindow<>(mgr, autocompleteBox);
-                win.setPosition(s.getXOnScreen(), s.getYOnScreen() + s.height());
-                win.addEventListener(DLGuiStandardEvents.CloseEvent.class, (c, e) -> {
-                    win = null;
-                    return false;
-                });
-                List<String> suggestions = new ArrayList<>();
-                for (int i = 0; i < 54; i++) {
-                    suggestions.add("Test " + i);
-                }
-                win.suggestions.set(suggestions);
-                win.filter.set(item -> item.toLowerCase().contains(autocompleteBox.text.get().getPlainText().toLowerCase()));
-                return win;
-            });
-        };
-        final Runnable closeWindow = () -> {
-            if (win != null) {
-                getWindowManager().closeWindow(win);
+        autocompleteBox.autocompleteManager.set((DLAutocompleteWindow<String> win, DLRichTextEditBox box) -> {
+            List<String> str = new ArrayList<>();
+            for (int i = 0; i < 6; i++) {
+                str.add("Test " + i);
             }
-        };
-
-        autocompleteBox.addEventListener(DLRichTextLabel.TextChangedEvent.class, (s, e) -> {
-            if (win != null && win.supressTextUpdate()) {
-                return false;
-            }
-
-            if (e.text().getPlainText().isEmpty()) {
-                closeWindow.run();
-            } else if (win == null) {
-                spawnWindow.accept(s);
-            }            
-            if (win != null) {
-                win.filter.set(item -> item.toLowerCase().contains(e.text().getPlainText().toLowerCase()));
-            }
-            return false;
+            win.suggestions.set(str);
+            win.filter.set(s -> s.toLowerCase().contains(box.text.get().getPlainText().toLowerCase()));
         });
-        autocompleteBox.addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
-            if (e.focus() && win == null) {
-                spawnWindow.accept(s);
-            }
-            return false;
-        });
+        addComponent(autocompleteBox);
         
 
         DLNumberPicker number = new DLNumberPicker(100, 225, 80, 20);

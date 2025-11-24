@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
+package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -8,6 +8,8 @@ import org.lwjgl.glfw.GLFW;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractCollectionComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;

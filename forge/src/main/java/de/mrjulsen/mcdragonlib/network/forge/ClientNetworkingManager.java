@@ -11,6 +11,7 @@ import net.minecraftforge.network.event.EventNetworkChannel;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientNetworkingManager {
+    
     public static void initClient(EventNetworkChannel channel, ResourceLocation id) {
         channel.addListener(DLNetworkManagerImpl.createPacketHandler(NetworkEvent.ServerCustomPayloadEvent.class, id));
         MinecraftForge.EVENT_BUS.register(ClientNetworkingManager.class);

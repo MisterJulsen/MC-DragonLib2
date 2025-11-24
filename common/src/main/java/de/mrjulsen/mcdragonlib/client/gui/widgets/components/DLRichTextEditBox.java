@@ -2,12 +2,14 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemEntry;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaTextBoxRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.DLAbstractRichTextInputField;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.IAutocompletionManager;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.DLAutocompleteWindow;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -24,9 +26,73 @@ public class DLRichTextEditBox extends DLAbstractRichTextInputField {
     }
 
     public final Property<IStateRenderer<TextBoxState>> componentRenderer = new Property<>(VanillaTextBoxRenderer.VANILLA_TEXTBOX);
+    public final Property<IAutocompletionManager<?>> autocompleteManager = new Property<IAutocompletionManager<?>>(null)
+        .withAfterPropertyChangedCallback((o, n) -> {
+            closeAutocompleteWindow();
+        });
+
+    protected DLAutocompleteWindow<?> autocompleteWindow;
 
     public DLRichTextEditBox(int x, int y, int w, int h) {
         super(x, y, w, h);
+        setupAutocomplete();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void openAutocompleteWindow() {
+        if (autocompleteManager.get() == null) {
+            return;
+        }
+
+        IAutocompletionManager<Object> manager = (IAutocompletionManager<Object>)autocompleteManager.get();              
+        getWindowManager().createWindow(mgr -> {
+            autocompleteWindow = manager.createWindow(mgr, this);
+            autocompleteWindow.addEventListener(DLGuiStandardEvents.CloseEvent.class, (c, e) -> {
+                autocompleteWindow = null;
+                return false;
+            });
+            manager.configureWindow((DLAutocompleteWindow<Object>)autocompleteWindow, this);
+            return autocompleteWindow;
+        });
+    }
+    
+    @SuppressWarnings("unchecked")
+    protected void closeAutocompleteWindow() {
+        if (autocompleteWindow != null) {
+            if (autocompleteManager.get() != null) {
+                IAutocompletionManager<Object> manager = (IAutocompletionManager<Object>)autocompleteManager.get();                    
+                manager.closeWindow((DLAutocompleteWindow<Object>)autocompleteWindow, this);
+            }      
+            getWindowManager().closeWindow(autocompleteWindow);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void setupAutocomplete() {
+        addEventListener(DLRichTextLabel.TextChangedEvent.class, (s, e) -> {
+            if (autocompleteWindow != null && autocompleteWindow.supressTextUpdate()) {
+                return false;
+            }
+
+            if (e.text().getPlainText().isEmpty() || autocompleteManager.get() == null) {
+                closeAutocompleteWindow();
+            } else if (autocompleteWindow == null) {
+                openAutocompleteWindow();
+            }
+            
+            IAutocompletionManager<Object> manager = (IAutocompletionManager<Object>)autocompleteManager.get();     
+            if (autocompleteWindow != null) {
+                manager.configureWindow((DLAutocompleteWindow<Object>)autocompleteWindow, this);
+            }
+            return false;
+        });
+
+        addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
+            if (autocompleteManager.get() != null && e.focus() && autocompleteWindow == null) {
+                openAutocompleteWindow();
+            }
+            return false;
+        });
     }
 
     @Override
@@ -54,7 +120,7 @@ public class DLRichTextEditBox extends DLAbstractRichTextInputField {
         entries.add(new DLContextMenu.ItemEntry(TextUtils.translate("gui." + DragonLib.MODID + ".menu.select_all"), DLSprite.empty(), true, () -> {
             selectAll();
         }, null));
-        return entries;
+        return entries;       
     }
 
     @Override

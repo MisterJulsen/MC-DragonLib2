@@ -1,9 +1,12 @@
-package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
+package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete;
 
 import java.util.ArrayList;
 import java.util.List;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractCollectionComponent;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemSelectionBox;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
@@ -132,7 +135,7 @@ public class DLAutocompleteListBox<T> extends DLItemSelectionBox<T> {
                 txt = txt.append(TextUtils.text(before)).append(TextUtils.text(match).withStyle(ChatFormatting.YELLOW)).append(TextUtils.text(after));
             }
 
-            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 2, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, txt, selected.get() ? DragonLib.VANILLA_BUTTON_HIGHLIGHTED_FONT_COLOR : DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR, ETextAlignment.LEFT, false);
+            GuiUtils.drawString(graphics, Minecraft.getInstance().font, 2, height() / 2 - Minecraft.getInstance().font.lineHeight / 2, txt, DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR, ETextAlignment.LEFT, false);
         }
 
         public T getItem() {
