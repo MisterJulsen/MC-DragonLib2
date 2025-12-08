@@ -22,7 +22,6 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
@@ -143,7 +142,7 @@ public class DLScrollBar extends DLGuiComponent {
     /**
      * Shows two arrow buttons on both ends of the scrollbar, which can be used to change the value gradually.
      */
-    public final BooleanProperty showButtons = new BooleanProperty(false, false)
+    public final BooleanProperty showButtons = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, a) -> {
             if (scrollUpBtn != null) scrollUpBtn.visible.set(a);
             if (scrollDownBtn != null) scrollDownBtn.visible.set(a);
@@ -152,7 +151,6 @@ public class DLScrollBar extends DLGuiComponent {
     /**
      * The background tint color.
      */
-    @InheritableProperty(overrideLocal = false)
     public final ColorProperty backgroundTint = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLScrollBar.BackgroundColorChangedEvent(a), true));
 

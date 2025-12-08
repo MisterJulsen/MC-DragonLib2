@@ -39,7 +39,7 @@ public class DLNumberPicker extends DLGuiComponent {
     protected final DLButton addBtn;
     protected final DLButton subBtn;
 
-    public final BooleanProperty showButtons = new BooleanProperty(true, false);
+    public final BooleanProperty showButtons = new BooleanProperty(true);
     public final NumberProperty<Double> step = new NumberProperty<Double>(1D);
     public final NumberProperty<Double> shiftStep = new NumberProperty<>(5D);
     public final NumberProperty<Double> min = new NumberProperty<Double>(0D);

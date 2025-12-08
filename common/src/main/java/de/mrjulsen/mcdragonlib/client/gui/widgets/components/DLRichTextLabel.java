@@ -82,12 +82,12 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
             setupRichTextComponent(x);
             refresh();
         });
-    public final BooleanProperty lineWrap = new BooleanProperty(false, false)
+    public final BooleanProperty lineWrap = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, x) -> {
             invokeEvent(this, new DLRichTextLabel.TextLineWrapChangedEvent(x));
             refresh();
         });
-    public final BooleanProperty multiline = new BooleanProperty(false, false)
+    public final BooleanProperty multiline = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, x) -> {
             if (!x) {
                 text.get().replace("\n", "").replace("\r", "");

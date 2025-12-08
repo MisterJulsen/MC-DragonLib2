@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreenWrapper;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
@@ -42,7 +42,7 @@ public abstract class MouseHandlerMixin {
 
     @Redirect(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"))
     private boolean dragonlib$onScroll(Screen screen, double mouseX, double mouseY, double delta) {
-        if (screen instanceof DLScreenWrapper dlScreen) {
+        if (screen instanceof DLScreen dlScreen) {
             return dlScreen.onScroll(mouseX, mouseY, xScrollOffset, delta);
         }
         return screen.mouseScrolled(mouseX, mouseY, delta) ? false : DLOverlayManager.mouseScrolled(mouseX, mouseY, xScrollOffset, delta);

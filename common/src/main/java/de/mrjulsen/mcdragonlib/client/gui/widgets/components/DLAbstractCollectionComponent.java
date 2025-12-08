@@ -54,7 +54,7 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
             createComponents();
         });
 
-    public final BooleanProperty itemResizeAllowed = new BooleanProperty(false, false);
+    public final BooleanProperty itemResizeAllowed = new BooleanProperty(false);
         
     public final Property<Predicate<T>> filter = new Property<Predicate<T>>((item) -> true)
         .withAfterPropertyChangedCallback((a, b) -> {

@@ -8,7 +8,6 @@ import de.mrjulsen.mcdragonlib.events.IEvent;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 
 @SupportsEvents({
     DLPanel.BackgroundColorChangedEvent.class,
@@ -19,10 +18,8 @@ public class DLPanel extends DLGuiComponent {
     public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
     public record TextColorChangedEvent(DLColor color) implements IEvent {}
 
-    @InheritableProperty(overrideLocal = false)
     public final ColorProperty textColor = new ColorProperty(DLColor.UNDEFINED, DLColor.TRANSPARENT)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLPanel.TextColorChangedEvent(a), true));
-    @InheritableProperty(overrideLocal = false)
     public final ColorProperty backgroundTint = new ColorProperty(DLColor.UNDEFINED, DLColor.TRANSPARENT)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLPanel.BackgroundColorChangedEvent(a), true));
 

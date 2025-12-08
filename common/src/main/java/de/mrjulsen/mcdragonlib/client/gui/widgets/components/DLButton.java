@@ -22,13 +22,23 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 
+/**
+ * A clickable GUI button component used by the DragonLib GUI framework.
+ *
+ * <p>This component renders a background using an {@link IStateRenderer button renderer}, an optional icon,
+ * and a text caption. It supports different visual states (normal, disabled, selected, down) and fires
+ * standard GUI events. The class is annotated with supported event types for integration with the framework's
+ * event system.</p>
+ *
+ * @see de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer
+ * @see DLGuiStandardEvents
+ */
 @SupportsEvents({
     DLButton.CaptionChangedEvent.class,
     DLButton.BackgroundColorChangedEvent.class,
@@ -37,12 +47,38 @@ import net.minecraft.sounds.SoundEvents;
 public class DLButton extends DLGuiComponent {
     
     /**
-     * 
+     * Event fired when the button background tint color changes.
+     *
+     * @param color the new background color
      */
     public record BackgroundColorChangedEvent(DLColor color) implements IEvent {}
+
+    /**
+     * Event fired when the button text color changes.
+     *
+     * @param color the new text color
+     */
     public record TextColorChangedEvent(DLColor color) implements IEvent {}
+
+    /**
+     * Event fired when the button caption text changes.
+     *
+     * @param text the new caption component (localized text)
+     */
     public record CaptionChangedEvent(Component text) implements IEvent {}
 
+    /**
+     * Visual states that the button can be rendered in.
+     *
+     * <ul>
+     *   <li>NORMAL - default state</li>
+     *   <li>DISABLED - when the button is not enabled</li>
+     *   <li>SELECTED - when the button is selected/highlighted</li>
+     *   <li>DOWN - pressed state</li>
+     *   <li>DOWN_SELECTED - pressed while selected</li>
+     *   <li>DISABLED_SELECTED - disabled but selected</li>
+     * </ul>
+     */
     public static enum ButtonState {
         NORMAL,
         DISABLED,
@@ -52,34 +88,100 @@ public class DLButton extends DLGuiComponent {
         DISABLED_SELECTED;
     }
 
+    /**
+     * The event listener id for the default click action added during construction.
+     *
+     * <p>This id can be used to remove or reference the default click listener.</p>
+     */
     public final EventListenerId defaultButtonClickEventId;
 
+    /**
+     * The displayed text (caption) as a {@link Component}.
+     *
+     * <p>Changing this property fires {@link DLButton.CaptionChangedEvent}.</p>
+     */
     public final Property<Component> text = new Property<Component>(TextUtils.text(getClass().getSimpleName()))
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.CaptionChangedEvent(a), true));
-    @InheritableProperty(overrideLocal = false)
+
+    /**
+     * The color used to render the button text. This property is inheritable and may be overridden
+     * by parent containers when {@code overrideLocal} is false.
+     *
+     * <p>Changing this property fires {@link DLButton.TextColorChangedEvent}.</p>
+     */
     public final ColorProperty textColor = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.TextColorChangedEvent(a), true));
-    @InheritableProperty(overrideLocal = false)
+
+    /**
+     * The tint color applied to the button background. This property is inheritable and may be overridden
+     * by parent containers when {@code overrideLocal} is false.
+     *
+     * <p>Changing this property fires {@link DLButton.BackgroundColorChangedEvent}.</p>
+     */
     public final ColorProperty backgroundTint = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLButton.BackgroundColorChangedEvent(a), true));
+
+    /**
+     * Renderer used to draw the button background for different {@link ButtonState states}.
+     *
+     * <p>Default is {@link VanillaButtonRenderer#VANILLA_BUTTONS}.</p>
+     */
     public final Property<IStateRenderer<ButtonState>> componentRenderer = new Property<>(VanillaButtonRenderer.VANILLA_BUTTONS);
+
+    /**
+     * Optional icon sprite rendered on the button.
+     */
     public final Property<DLSprite> icon = new Property<>(DLSprite.empty());
+
+    /**
+     * Alignment for the caption text inside the button.
+     */
     public final Property<ETextAlignment> textAlignment = new Property<>(ETextAlignment.CENTER);
+
+    /**
+     * Alignment for the icon inside the button.
+     */
     public final Property<ETextAlignment> iconAlignment = new Property<>(ETextAlignment.CENTER);
     
-    @InheritableProperty(overrideLocal = false)
-    public final BooleanProperty drawFontShadow = new BooleanProperty(true, true);
+    /**
+     * Whether to draw a font shadow for the button caption. This property is inheritable.
+     */
+    public final BooleanProperty drawFontShadow = new BooleanProperty(true);
 
 
+    /**
+     * Creates a new button at the given x/y coordinates with a default size (100x20).
+     *
+     * @param x horizontal position of the button
+     * @param y vertical position of the button
+     */
     public DLButton(int x, int y) {
         this(x, y, 100, 20);
     }
 
+    /**
+     * Creates a new button at the given position with the specified width and height.
+     *
+     * @param x horizontal position of the button
+     * @param y vertical position of the button
+     * @param w button width in pixels
+     * @param h button height in pixels
+     */
     public DLButton(int x, int y, int w, int h) {
         super(x, y, w, h);
         defaultButtonClickEventId = addEventListener(DLGuiStandardEvents.ClickEvent.class, this::defaultButtonClickAction, -1000);  
     }
 
+    /**
+     * Default click action invoked when the button receives a click event.
+     *
+     * <p>The default implementation plays the vanilla UI button click sound. Returning {@code false}
+     * allows other listeners to still process the event.</p>
+     *
+     * @param src the component that fired the event (typically this button)
+     * @param event the click event details
+     * @return {@code false} to indicate the event should not be consumed by this handler alone
+     */
     public boolean defaultButtonClickAction(DLGuiComponent src, DLGuiStandardEvents.ClickEvent event) {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         return false;
@@ -183,12 +285,11 @@ public class DLButton extends DLGuiComponent {
             }
         }
 
-        GuiUtils.setTint(textColor.get());
-
         if (hasIcon) {
             iconSprite.render(graphics, iconX + offset, iconY + offset);
         }
 
+        GuiUtils.setTint(textColor.get());
         GuiUtils.drawString(
             graphics,
             Minecraft.getInstance().font,

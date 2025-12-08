@@ -6,7 +6,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import net.minecraft.network.chat.FormattedText;
 
-public record DLTooltip(List<FormattedText> lines, int maxWidth) {
+public record DLTooltip(List<? extends FormattedText> lines, int maxWidth) {
 
     public static final DLTooltip EMPTY = new DLTooltip(List.of(), 100);
 

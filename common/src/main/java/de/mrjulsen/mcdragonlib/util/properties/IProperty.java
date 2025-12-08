@@ -1,7 +1,5 @@
 package de.mrjulsen.mcdragonlib.util.properties;
 
-import java.util.Optional;
-
 import de.mrjulsen.mcdragonlib.util.properties.AbstractSerializableProperty.IPropertyAfterUpdateCallback;
 import de.mrjulsen.mcdragonlib.util.properties.AbstractSerializableProperty.IPropertyUpdateCallback;
 
@@ -11,16 +9,6 @@ public interface IProperty<T> {
      * @return The current valid value.
      */
     T get();
-    /**
-     * Returns the user-defined property value.
-     * @return The user-defined property value.
-     */
-    T getValue();
-    /**
-     * The inherited value.
-     * @return The inherited value
-     */
-    Optional<T> getInheritedValue();
 
     T getDefaultValue();
     /**
@@ -31,10 +19,6 @@ public interface IProperty<T> {
     T set(T t);
 
     T reset();
-    /**
-     * Uses the currently valid value of another property as the inherited property value. This is used by the internal API and shouldn't be used manually.
-     */
-    void inheritFrom(IProperty<?> refProp, boolean overrideLocal);
 
     <P extends IProperty<T>> P withAfterPropertyChangedCallback(IPropertyAfterUpdateCallback<T> callback);
     <P extends IProperty<T>> P withModificationCallback(IPropertyUpdateCallback<T> callback);

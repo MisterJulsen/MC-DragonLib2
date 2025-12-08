@@ -41,10 +41,10 @@ public class DLItemPicker<T> extends DLCycleButton<T> {
     protected final DLButton addBtn;
     protected final DLButton subBtn;
 
-    public final BooleanProperty showButtons = new BooleanProperty(true, false);
+    public final BooleanProperty showButtons = new BooleanProperty(true);
     public final Property<ITextFormatter<DLItemPicker<T>>> textFormat = new Property<>((src) -> TextUtils.text(src.selectedItem.get().map(x -> x.toString()).orElse(text.get().getString())).withStyle(src.text.get().getStyle()));
     public final NumberProperty<Integer> shiftStep = new NumberProperty<>(5, 1, Integer.MAX_VALUE);
-    public final BooleanProperty drawFontShadow = new BooleanProperty(true, true);
+    public final BooleanProperty drawFontShadow = new BooleanProperty(true);
 
     public final Property<IStateRenderer<DLButton.ButtonState>> buttonsComponentRenderer = new Property<>(VanillaSimpleButtonRenderer.VANILLA_BUTTON_GRAY);
     public final Property<IStateRenderer<ItemPickerState>> componentRenderer = new Property<>(DLItemPickerRenderer.INSTANCE);

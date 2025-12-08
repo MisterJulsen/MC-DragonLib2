@@ -8,8 +8,8 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu.ItemE
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.IStateRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaTextBoxRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.DLAbstractRichTextInputField;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.IAutocompletionManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.DLAutocompleteWindow;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.IAutocompletionManager;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.util.TextUtils;

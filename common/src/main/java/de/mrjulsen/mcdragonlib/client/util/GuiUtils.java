@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -52,52 +53,131 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
+/**
+ * Utility class providing a collection of static helper methods for GUI rendering
+ * and common in-GUI operations used by DragonLib's client code.
+ *
+ * <p>Responsibilities include:
+ * - Screen / mouse coordinate helpers
+ * - Scissor (clipping) helpers
+ * - Texture binding and drawing (including tiled drawing)
+ * - Color and tint helpers
+ * - Rendering helpers for items, entities, blocks and models into GUI contexts
+ * - Basic shape and text drawing helpers
+ *
+ * <p>All methods in this class are stateless and operate on provided graphics
+ * contexts or global Minecraft client state.
+ */
 public class GuiUtils {
 
+    /**
+     * Specifies how a texture should be filled into a rectangular area.
+     * STRETCH scales the source region to fit the destination area.
+     * TILE repeats the source region to fill the destination area.
+     */
     public static enum TextureFillMode {
         STRETCH,
         TILE
     }
     
 
+    /**
+     * Returns the current mouse X coordinate in GUI-scaled pixels.
+     *
+     * @return mouse X position relative to the GUI scale
+     */
     public static double mouseXOnScreen() {
         return Minecraft.getInstance().mouseHandler.xpos() * (double)Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double)Minecraft.getInstance().getWindow().getScreenWidth();
     }
 
+    /**
+     * Returns the current mouse Y coordinate in GUI-scaled pixels.
+     *
+     * @return mouse Y position relative to the GUI scale
+     */
     public static double mouseYOnScreen() {
         return Minecraft.getInstance().mouseHandler.ypos() * (double)Minecraft.getInstance().getWindow().getGuiScaledHeight() / (double)Minecraft.getInstance().getWindow().getScreenHeight();
     }
 
+    /**
+     * Returns the current GUI-scaled screen width.
+     *
+     * @return width in GUI-scaled pixels
+     */
     public static double getScreenWidth() {
         return Minecraft.getInstance().getWindow().getGuiScaledWidth();
     }
 
+    /**
+     * Returns the current GUI-scaled screen height.
+     *
+     * @return height in GUI-scaled pixels
+     */
     public static double getScreenHeight() {
         return Minecraft.getInstance().getWindow().getGuiScaledHeight();
     }
 
+    /**
+     * Enables OpenGL scissor test (clipping) for the specified rectangular area.
+     *
+     * @param graphics the DLGuiGraphics context (not modified)
+     * @param area the rectangle in GUI coordinates to enable scissor for
+     */
     public static void enableScissor(DLGuiGraphics graphics, Rectangle area) {
         enableScissor(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height());
     }
 
+    /**
+     * Enables OpenGL scissor test (clipping) for the specified rectangular area.
+     *
+     * @param graphics the DLGuiGraphics context (not modified)
+     * @param x left coordinate in GUI pixels
+     * @param y top coordinate in GUI pixels
+     * @param w width in GUI pixels
+     * @param h height in GUI pixels
+     */
     public static void enableScissor(DLGuiGraphics graphics, int x, int y, int w, int h) {
         int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();    
         RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);   
     }
 
+    /**
+     * Disables any previously enabled scissor (clipping) region.
+     *
+     * @param graphics the DLGuiGraphics context (not modified)
+     */
     public static void disableScissor(DLGuiGraphics graphics) {
         RenderSystem.disableScissor();
     }
 
+    /**
+     * Plays the standard UI button click sound at default pitch and volume.
+     */
     public static void playButtonSound() {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
+    /**
+     * Converts a FormattedText instance to a visual-order FormattedCharSequence.
+     *
+     * @param text the formatted text to convert
+     * @return a FormattedCharSequence suitable for rendering
+     */
     public static FormattedCharSequence toFormattedCharSequence(FormattedText text) {
         return text instanceof Component ? ((Component)text).getVisualOrderText() : Language.getInstance().getVisualOrder(text);
     }
     
     
+    /**
+     * Splits a collection of formatted texts into visual-order char sequences
+     * using the provided font and maximum line width.
+     *
+     * @param font font used for measuring and splitting
+     * @param components collection of formatted texts to split
+     * @param maxWidth maximum width in pixels for each resulting line
+     * @param <T> a type extending FormattedText
+     * @return list of resulting FormattedCharSequence lines
+     */
     public static <T extends FormattedText> List<FormattedCharSequence> splitToFormattedCharSequences(Font font, Collection<T> components, int maxWidth) {
         List<FormattedCharSequence> lines = new ArrayList<>(components.size());
         for (T component : components) {
@@ -106,6 +186,16 @@ public class GuiUtils {
         return lines;
     }
     
+    /**
+     * Splits a collection of formatted texts into FormattedText line objects
+     * using the provided font and maximum line width.
+     *
+     * @param font font used for measuring and splitting
+     * @param components collection of formatted texts to split
+     * @param maxWidth maximum width in pixels for each resulting line
+     * @param <T> a type extending FormattedText
+     * @return list of resulting FormattedText lines
+     */
     public static <T extends FormattedText> List<FormattedText> splitText(Font font, Collection<T> components, int maxWidth) {
         List<FormattedText> lines = new ArrayList<>(components.size());
         for (T component : components) {
@@ -114,14 +204,43 @@ public class GuiUtils {
         return lines;
     }
 
+    /**
+     * Draws a tooltip comprised of multiple formatted text lines at the specified location.
+     *
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param font font used to render tooltip text
+     * @param x x coordinate where tooltip should be shown
+     * @param y y coordinate where tooltip should be shown
+     * @param lines list of formatted text lines to display
+     * @param maxWidth maximum width for tooltip text wrapping
+     */
     public static void drawTooltip(DLGuiGraphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
         graphics.graphics().renderTooltip(font, splitToFormattedCharSequences(font, lines, maxWidth), x, y);
     }
 
+    /**
+     * Draws a tooltip at a position adjusted directly from the raw input (useful for mouse-based tooltips).
+     *
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param font font used to render the tooltip
+     * @param x raw x coordinate (will be offset internally)
+     * @param y raw y coordinate (will be offset internally)
+     * @param lines tooltip lines
+     * @param maxWidth maximum width for tooltip text wrapping
+     */
     public static void drawTooltipDirectlyAt(DLGuiGraphics graphics, Font font, int x, int y, List<? extends FormattedText> lines, int maxWidth) {
         drawTooltip(graphics, font, x - 8, y - 16, lines, maxWidth);
     }
 
+    /**
+     * Builds a descriptive tooltip for a translatable enum class, including
+     * the enum description and each enum constant's name and description.
+     *
+     * @param enumClass the enum class to describe (must implement ITranslatableEnum)
+     * @param maxWidth maximum width to consider when splitting lines (unused by current implementation but kept for API compatibility)
+     * @param <T> enum type
+     * @return list of Components representing the tooltip lines
+     */
     public static <T extends Enum<T> & ITranslatableEnum> List<Component> getEnumTooltipData(Class<T> enumClass, int maxWidth) {
         List<Component> c = new ArrayList<>();
         T enumValue = enumClass.getEnumConstants()[0];
@@ -136,14 +255,29 @@ public class GuiUtils {
 
 
 
+    /**
+     * Binds the given ResourceLocation as the active texture for subsequent draw calls.
+     *
+     * @param texture the texture resource location to bind
+     */
     public static void setTexture(ResourceLocation texture) {
         RenderSystem.setShaderTexture(0, texture);
     }
 
+    /**
+     * Binds the given OpenGL texture id as the active texture for subsequent draw calls.
+     *
+     * @param textureId the OpenGL texture id
+     */
     public static void setTexture(int textureId) {
         RenderSystem.setShaderTexture(0, textureId);
     }
 
+    /**
+     * Sets the current shader color/tint from a DLColor instance.
+     *
+     * @param color color used to set the shader color (including alpha)
+     */
     public static void setTint(DLColor color) {
         float a = color.getAlphaF();
         float r = color.getRedF();
@@ -152,9 +286,29 @@ public class GuiUtils {
         RenderSystem.setShaderColor(r, g, b, a);
     }
 
+    /**
+     * Resets the shader color/tint to opaque white (no tint).
+     */
     public static void resetTint() {
         RenderSystem.setShaderColor(1, 1, 1, 1);
     }
+
+    /**
+     * Renders a texture repeatedly (tiled) to fill the specified area.
+     *
+     * @param graphics DLGuiGraphics context used for matrix access
+     * @param bindTexture a Runnable that binds the appropriate texture when executed
+     * @param x destination x coordinate
+     * @param y destination y coordinate
+     * @param w destination width
+     * @param h destination height
+     * @param u source texture u coordinate
+     * @param v source texture v coordinate
+     * @param uW source width in texture pixels
+     * @param vH source height in texture pixels
+     * @param texWidth full texture atlas width (for UV normalization)
+     * @param texHeight full texture atlas height (for UV normalization)
+     */
     public static void renderTiledTexture(DLGuiGraphics graphics, Runnable bindTexture, int x, int y, int w, int h, float u, float v, float uW, float vH, int texWidth, int texHeight) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         bindTexture.run();
@@ -209,10 +363,42 @@ public class GuiUtils {
         tess.end();
     }
 
+    /**
+     * Draws a texture resource at specified destination area. Supports STRETCH and TILE fill modes.
+     *
+     * @param texture texture resource to draw
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width
+     * @param h destination height
+     * @param u source u in texture
+     * @param v source v in texture
+     * @param uW source width in texture pixels
+     * @param vH source height in texture pixels
+     * @param mode fill mode (STRETCH or TILE)
+     */
     public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
         drawTexture(texture, graphics, x, y, w, h, u, v, uW, vH, mode, 256, 256);
     }
 
+    /**
+     * Draws a texture resource at specified destination area with an explicit texture atlas size.
+     *
+     * @param texture texture resource to draw
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width
+     * @param h destination height
+     * @param u source u in texture
+     * @param v source v in texture
+     * @param uW source width in texture pixels
+     * @param vH source height in texture pixels
+     * @param mode fill mode (STRETCH or TILE)
+     * @param textureWidth full texture atlas width for UV calculation
+     * @param textureHeight full texture atlas height for UV calculation
+     */
     public static void drawTexture(ResourceLocation texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
             case TILE -> renderTiledTexture(graphics, () -> RenderSystem.setShaderTexture(0, texture), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
@@ -220,6 +406,23 @@ public class GuiUtils {
         }
     }
 
+    /**
+     * Draws a texture by OpenGL texture id, supporting tiled and stretched modes.
+     *
+     * @param textureId OpenGL texture id to bind
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width
+     * @param h destination height
+     * @param u source u in texture
+     * @param v source v in texture
+     * @param uW source width in texture pixels
+     * @param vH source height in texture pixels
+     * @param mode fill mode (STRETCH or TILE)
+     * @param textureWidth full texture atlas width for UV calculation
+     * @param textureHeight full texture atlas height for UV calculation
+     */
     public static void drawTexture(int textureId, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode, int textureWidth, int textureHeight) {
         switch (mode) {
             case TILE -> renderTiledTexture(graphics, () -> RenderSystem.setShaderTexture(0, textureId), x, y, w, h, u, v, uW, vH, textureWidth, textureHeight);
@@ -228,6 +431,21 @@ public class GuiUtils {
         
     }
 
+    /**
+     * Draws a DLTexture wrapper which may either use a ResourceLocation or a texture id.
+     *
+     * @param texture DLTexture wrapper
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width
+     * @param h destination height
+     * @param u source u in texture
+     * @param v source v in texture
+     * @param uW source width in texture pixels
+     * @param vH source height in texture pixels
+     * @param mode fill mode (STRETCH or TILE)
+     */
     public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v, int uW, int vH, TextureFillMode mode) {
         if (texture.usesTextureId() || texture.getTexture().isEmpty()) {
             drawTexture(texture.getTextureId(), graphics, x, y, w, h, u, v, uW, vH, mode, texture.width(), texture.height());
@@ -236,10 +454,34 @@ public class GuiUtils {
         }
     }
     
+    /**
+     * Convenience overload that draws the entire DLTexture to the destination rectangle
+     * using STRETCH mode.
+     *
+     * @param texture DLTexture wrapper
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width (also used as source width)
+     * @param h destination height (also used as source height)
+     * @param u source u in texture
+     * @param v source v in texture
+     */
     public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h, int u, int v) {
         drawTexture(texture, graphics, x, y, w, h, u, v, w, h, TextureFillMode.STRETCH);
     }
     
+    /**
+     * Convenience overload that draws the entire DLTexture to the destination rectangle
+     * using STRETCH mode and source region equal to destination size.
+     *
+     * @param texture DLTexture wrapper
+     * @param graphics DLGuiGraphics wrapper used for rendering
+     * @param x destination x
+     * @param y destination y
+     * @param w destination width
+     * @param h destination height
+     */
     public static void drawTexture(DLTexture texture, DLGuiGraphics graphics, int x, int y, int w, int h) {
         drawTexture(texture, graphics, x, y, w, h, 0, 0, w, h, TextureFillMode.STRETCH);
     }
@@ -269,11 +511,27 @@ public class GuiUtils {
     /* END */
 
 
-
+    /**
+     * Fills a rectangle area with the provided color.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param area rectangle to fill
+     * @param color color to fill with (including alpha)
+     */
     public static void fill(DLGuiGraphics graphics, Rectangle area, DLColor color) {
         fill(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), color);
     }
 
+    /**
+     * Fills a rectangle area with the provided color.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x left coordinate
+     * @param y top coordinate
+     * @param w width
+     * @param h height
+     * @param color color to fill with (including alpha)
+     */
     public static void fill(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor color) {
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -283,10 +541,31 @@ public class GuiUtils {
         RenderSystem.disableBlend();
     }
 
+    /**
+     * Fills a rectangle with a gradient between two colors aligned according to the given alignment.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param area rectangle to fill
+     * @param colorA first color
+     * @param colorB second color
+     * @param align alignment determining vertex color order
+     */
     public static void fillGradient(DLGuiGraphics graphics, Rectangle area, DLColor colorA, DLColor colorB, EAlign align) {
         fillGradient(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), colorA, colorB, align);
     }
 
+    /**
+     * Fills a rectangle with a gradient between two colors aligned according to the given alignment.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x left coordinate
+     * @param y top coordinate
+     * @param w width
+     * @param h height
+     * @param colorA first color
+     * @param colorB second color
+     * @param align alignment determining vertex color order
+     */
     public static void fillGradient(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor colorA, DLColor colorB, EAlign align) {
         DLColor[] vertexColors = new DLColor[4];
         for (int i = 0; i < vertexColors.length; i++) {
@@ -311,10 +590,29 @@ public class GuiUtils {
         RenderSystem.disableBlend();
     }
 
+    /**
+     * Draws a filled box with a solid fill color and a border color.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param area rectangle describing the box
+     * @param fillColor interior fill color
+     * @param borderColor outline color
+     */
     public static void drawBox(DLGuiGraphics graphics, Rectangle area, DLColor fillColor, DLColor borderColor) {
         drawBox(graphics, (int)area.x(), (int)area.y(), (int)area.width(), (int)area.height(), fillColor, borderColor);
     }
 
+    /**
+     * Draws a filled box with a solid fill color and a border color.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x left coordinate
+     * @param y top coordinate
+     * @param w width
+     * @param h height
+     * @param fillColor interior fill color
+     * @param borderColor outline color
+     */
     public static void drawBox(DLGuiGraphics graphics, int x, int y, int w, int h, DLColor fillColor, DLColor borderColor) {
         fill(graphics, x, y, w, h, fillColor);
         fill(graphics, x, y, w, 1, borderColor);
@@ -323,10 +621,34 @@ public class GuiUtils {
         fill(graphics, x + w - 1, y + 1, 1, h - 2, borderColor);
     }
 
+    /**
+     * Draws a string with the specified alignment and optional drop shadow.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param font font used to render text
+     * @param x x coordinate for the text anchor
+     * @param y y coordinate for the text baseline
+     * @param text plain string to render
+     * @param color color to use for text
+     * @param alignment left / center / right alignment mode
+     * @param dropShadow whether to render a drop shadow
+     */
     public static void drawString(DLGuiGraphics graphics, Font font, int x, int y, String text, DLColor color, ETextAlignment alignment, boolean dropShadow) {
         drawString(graphics, font, x, y, TextUtils.text(text), color, alignment, dropShadow);
     }
 
+    /**
+     * Draws a formatted text with the specified alignment and optional drop shadow.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param font font used to render text
+     * @param x x coordinate for the text anchor
+     * @param y y coordinate for the text baseline
+     * @param text formatted text to render
+     * @param color color to use for text
+     * @param alignment left / center / right alignment mode
+     * @param dropShadow whether to render a drop shadow
+     */
     public static void drawString(DLGuiGraphics graphics, Font font, int x, int y, FormattedText text, DLColor color, ETextAlignment alignment, boolean dropShadow) {
         int width = font.width(text);
         int offset = 0;
@@ -347,10 +669,28 @@ public class GuiUtils {
         graphics.graphics().drawString(font, toFormattedCharSequence(text), x + offset, y, color.getAsARGB(), dropShadow);
     }
 
+    /**
+     * Renders an item stack into the GUI at default scale and with decorations.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param stack item stack to render
+     * @param x x coordinate
+     * @param y y coordinate
+     */
     public static void renderItem(DLGuiGraphics graphics, ItemStack stack, int x, int y) {
         renderItem(graphics, stack, x, y, 1, true);
     }
 
+    /**
+     * Renders an item stack into the GUI with custom scale and optional decorations.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param stack item stack to render
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor to apply
+     * @param drawDecorations whether to draw stack count, durability, etc.
+     */
     public static void renderItem(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, boolean drawDecorations) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(x, y, 0);
@@ -365,6 +705,16 @@ public class GuiUtils {
     }
     
 
+    /**
+     * Renders only the item decorations (count, text overlays) for the specified item stack.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param stack the item stack whose decorations to render
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor to apply to decoration rendering
+     * @param text optional overlay text to render (may be null or empty)
+     */
     public static void renderItemDecoration(DLGuiGraphics graphics, ItemStack stack, int x, int y, float scale, String text) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(x, y, 0);
@@ -375,14 +725,47 @@ public class GuiUtils {
         graphics.poseStack().popPose();
     }
 
+    /**
+     * Renders a living entity into GUI space at default brightness.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param entity entity instance to render
+     */
     public static void renderEntity(DLGuiGraphics graphics, int x, int y, LivingEntity entity) {
         renderEntity(graphics, x, y, 1, entity, LightTexture.FULL_BRIGHT);
     }
 
+    /**
+     * Renders a living entity into GUI space with a custom scale and brightness.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor to apply to the entity rendering
+     * @param entity entity instance to render
+     * @param light packed light coordinate controlling brightness
+     */
     public static void renderEntity(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity, int light) {
         renderEntity(graphics, x, y, scale, entity, new Matrix4f(), new Quaternionf(), light);
     }
 
+    /**
+     * Renders a living entity into GUI space applying a transformation matrix and optional camera orientation override.
+     *
+     * <p>This overload allows fine-grained control of the transform and camera orientation used
+     * when rendering the entity for UI previews.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param entity entity instance to render
+     * @param transformation additional model transformation matrix to apply
+     * @param cameraOrientation optional quaternion representing camera orientation (may be null)
+     * @param light packed light to use for rendering
+     */
     @SuppressWarnings("deprecation")
     public static void renderEntity(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity, Matrix4f transformation, @Nullable Quaternionf cameraOrientation, int light) {
         float s = 16 * scale;
@@ -408,14 +791,43 @@ public class GuiUtils {
     }
     
 
+    /**
+     * Renders an entity that rotates following the mouse position (default scale).
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param entity entity to render
+     */
     public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, LivingEntity entity) {
         renderEntityFollowingMouse(graphics, x, y, 1, entity);
     }
 
+    /**
+     * Renders an entity that rotates following the mouse position.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param entity entity to render
+     */
     public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, float scale, LivingEntity entity) {
         renderEntityFollowingMouse(graphics, x, y, scale, (float)Minecraft.getInstance().mouseHandler.xpos(), (float)Minecraft.getInstance().mouseHandler.ypos(), entity, LightTexture.FULL_BRIGHT);
     }
 
+    /**
+     * Renders an entity that rotates following a given screen-space mouse coordinate.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param screenMouseX mouse X in screen coordinates used to compute rotation
+     * @param screenMouseY mouse Y in screen coordinates used to compute rotation
+     * @param entity entity to render
+     * @param light packed light for rendering
+     */
     public static void renderEntityFollowingMouse(DLGuiGraphics graphics, int x, int y, float scale, float screenMouseX, float screenMouseY, LivingEntity entity, int light) {
         Matrix4f transformation = graphics.poseStack().last().pose();
         float aX = (float)Math.atan((double)((transformation.m30() + x - screenMouseX) / 40.0F));
@@ -423,6 +835,18 @@ public class GuiUtils {
         renderEntityFollowingAngle(graphics, x, y, scale, aX, aY, entity, light);
     }
 
+    /**
+     * Renders an entity rotated according to precomputed angle components.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param angleXComponent X-angle influence component
+     * @param angleYComponent Y-angle influence component
+     * @param entity entity to render
+     * @param light packed light for rendering
+     */
     public static void renderEntityFollowingAngle(DLGuiGraphics graphics, int x, int y, float scale, float angleXComponent, float angleYComponent, LivingEntity entity, int light) {
         Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
         Quaternionf quaternionf1 = (new Quaternionf()).rotateX(angleYComponent * 20.0F * 0.017453292F);
@@ -447,14 +871,46 @@ public class GuiUtils {
     }
     
 
+    /**
+     * Renders a block state as a simple flat model in GUI space using a generated mesh.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param state block state to render
+     * @param renderType render layer to use when rendering the model
+     */
     public static void renderBlockState(DLGuiGraphics graphics, int x, int y, BlockState state, RenderType renderType) {
         renderBlockState(graphics, x, y, 1, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
     }
 
+    /**
+     * Renders a block state as a simple flat model in GUI space with custom scale and lighting.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param state block state to render
+     * @param renderType render layer to use when rendering the model
+     * @param light packed light for rendering
+     */
     public static void renderBlockState(DLGuiGraphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, int light) {
         renderBlockState(graphics, x, y, scale, state, renderType, new Matrix4f(), light);
     }
 
+    /**
+     * Renders a block state as a simple flat model in GUI space with transformation control.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param state block state to render
+     * @param renderType render layer to use when rendering the model
+     * @param transformation additional matrix to apply to the model
+     * @param light packed light for rendering
+     */
     public static void renderBlockState(DLGuiGraphics graphics, int x, int y, float scale, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
         DLModel model = new DLModel() {
             @Override
@@ -468,14 +924,49 @@ public class GuiUtils {
     }
     
 
+    /**
+     * Renders a DLModel for a given block state at the default scale.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param model model instance to render
+     * @param state block state to provide to the model
+     * @param renderType render layer to use
+     */
     public static void renderModel(DLGuiGraphics graphics, int x, int y, DLModel model, BlockState state, RenderType renderType) {
         renderModel(graphics, x, y, 1, model, state, renderType, new Matrix4f(), LightTexture.FULL_BRIGHT);
     }
 
+    /**
+     * Renders a DLModel for a given block state with custom scale and lighting.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param model model instance to render
+     * @param state block state to provide to the model
+     * @param renderType render layer to use
+     * @param light packed light for rendering
+     */
     public static void renderModel(DLGuiGraphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, int light) {
         renderModel(graphics, x, y, scale, model, state, renderType, new Matrix4f(), light);
     }
 
+    /**
+     * Renders a DLModel for a given block state with full transformation control and lighting.
+     *
+     * @param graphics DLGuiGraphics used for rendering
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param scale uniform scale factor
+     * @param model model instance to render
+     * @param state block state to provide to the model
+     * @param renderType render layer to use
+     * @param transformation additional transformation to apply
+     * @param light packed light for rendering
+     */
     public static void renderModel(DLGuiGraphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
         float s = scale * 16;
         Lighting.setupForFlatItems();

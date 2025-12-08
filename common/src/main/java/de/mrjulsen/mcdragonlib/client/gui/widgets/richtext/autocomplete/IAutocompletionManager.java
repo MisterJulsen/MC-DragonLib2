@@ -1,8 +1,8 @@
-package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext;
+package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.DLAutocompleteWindow;
+import de.mrjulsen.mcdragonlib.util.math.Point;
 
 @FunctionalInterface
 public interface IAutocompletionManager<T> {
@@ -21,8 +21,9 @@ public interface IAutocompletionManager<T> {
      * @return The new autocomplete window instance.
      */
     default DLAutocompleteWindow<T> createWindow(DLWindowManager windowManager, DLRichTextEditBox textBox) {
-        DLAutocompleteWindow<T> win = new DLAutocompleteWindow<>(windowManager, textBox);        
-        win.setPosition(textBox.getXOnScreen(), textBox.getYOnScreen() + textBox.height());
+        DLAutocompleteWindow<T> win = new DLAutocompleteWindow<>(windowManager, textBox); 
+        Point pos = textBox.toScreenCoordinates();
+        win.setPosition(pos.x(), pos.y() + textBox.height());
         return win;
     }
     

@@ -38,7 +38,7 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
 
     public record ItemSelectionChangeEvent(DLListBoxItem<?> item, MutableBoolean selected) implements IEvent {}
 
-    public final BooleanProperty multiselect = new BooleanProperty(false, false);
+    public final BooleanProperty multiselect = new BooleanProperty(false);
 
     public final VirtualProperty<List<T>> selectedItems = new VirtualProperty<List<T>>(List.of(),
         () -> {
@@ -200,7 +200,7 @@ public class DLItemSelectionBox<T> extends DLAbstractCollectionComponent<T, DLIt
 
     public static class DLListBoxItem<T> extends DLAbstractCollectionComponent.DLCollectionItem<T, DLItemSelectionBox<T>> {
 
-        public final BooleanProperty selected = new BooleanProperty(false, false)
+        public final BooleanProperty selected = new BooleanProperty(false)
             .withModificationCallback((o, n) -> {
                 MutableBoolean sel = new MutableBoolean(n);
                 collectionComponentRef.invokeEvent((DLGuiComponent)collectionComponentRef, new ItemSelectionChangeEvent(this, sel));

@@ -26,7 +26,7 @@ public class WorldLocation {
     public final ResourceLocation dimension;
     
 
-    protected WorldLocation(double x, double y, double z, ResourceLocation dimension) {
+    public WorldLocation(double x, double y, double z, ResourceLocation dimension) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -95,8 +95,8 @@ public class WorldLocation {
     public static WorldLocation loadFromNbt(CompoundTag tag) {
         return new WorldLocation(
             tag.getDouble(NBT_X),
-            tag.getDouble(NBT_X),
-            tag.getDouble(NBT_X),
+            tag.getDouble(NBT_Y),
+            tag.getDouble(NBT_Z),
             DLUtils.resourceLocation(tag.getString(NBT_DIM))
         );
     }

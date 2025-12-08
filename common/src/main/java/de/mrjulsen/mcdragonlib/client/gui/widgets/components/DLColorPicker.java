@@ -104,9 +104,9 @@ public class DLColorPicker extends DLGuiComponent {
     public final Property<HSVSlots> hsvSlots = new Property<>(new HSVSlots(HSVSlot.S, HSVSlot.V, HSVSlot.H));
     public final Property<EAlign> sliderAlign = new Property<>(EAlign.RIGHT)
         .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
-    public final BooleanProperty showColorSlider = new BooleanProperty(true, false)
+    public final BooleanProperty showColorSlider = new BooleanProperty(true)
         .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
-    public final BooleanProperty showAlphaSlider = new BooleanProperty(false, false)
+    public final BooleanProperty showAlphaSlider = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, a) -> updateScreenLayout());
     
     

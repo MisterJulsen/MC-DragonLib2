@@ -18,7 +18,7 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
         label.y.set(11f);
         label.fullBackground.set(false);
         label.horizontalScrollingSpeed.set(8f);
-        label.textAlign.set(ETextAlignment.LEFT);
+        label.horizontalAlign.set(ETextAlignment.LEFT);
         label.horizontalMaxScale.set(0.5f);
         label.horizontalMinScale.set(0.5f);
         label.verticalMaxScale.set(0.5f);

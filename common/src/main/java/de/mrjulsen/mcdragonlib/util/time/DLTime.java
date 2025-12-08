@@ -11,6 +11,9 @@ import de.mrjulsen.mcdragonlib.util.time.format.ITimeFormatter;
  * Fully compatible with DLTime Mods via ITimeSystem.
  */
 public final class DLTime implements Comparable<DLTime> {
+
+    public record TimeSnapshot(long days, int hours, int minutes, int seconds, int millis) {}
+
     private final double ticks;
     private final ITimeSystem provider;
 
@@ -97,6 +100,95 @@ public final class DLTime implements Comparable<DLTime> {
 
     public double toGameSeconds() {
         return toGameMinutes() * 60.0;
+    }
+
+    
+    public TimeSnapshot decomposeGameTime() {
+        return new TimeSnapshot(
+            getGameDaysComponent(),
+            getGameHoursComponent(),
+            getGameMinutesComponent(),
+            getGameSecondsComponent(),
+            getGameMillisComponent()
+        );
+    }
+
+    public TimeSnapshot decomposeRealTime() {
+        return new TimeSnapshot(
+            getRealDaysComponent(),
+            getRealHoursComponent(),
+            getRealMinutesComponent(),
+            getRealSecondsComponent(),
+            getRealMillisComponent()
+        );
+    }
+
+    public static DLTime fromSnapshotIngame(TimeSnapshot snapshot, ITimeSystem provider) {
+        long totalTicks = snapshot.days() * provider.getTicksPerDay();
+        
+        double ticksPerHour = provider.getTicksPerDay() / 24.0;
+        double ticksPerMinute = ticksPerHour / 60.0;
+        double ticksPerSecond = ticksPerMinute / 60.0;
+        double ticksPerMillis = ticksPerSecond / 1000.0;
+
+        double calculatedTicks = totalTicks 
+            + (snapshot.hours() * ticksPerHour)
+            + (snapshot.minutes() * ticksPerMinute)
+            + (snapshot.seconds() * ticksPerSecond)
+            + (snapshot.millis() * ticksPerMillis);
+
+        return new DLTime(calculatedTicks, provider);
+    }
+
+    public static DLTime fromSnapshotReal(TimeSnapshot snapshot, ITimeSystem provider) {
+        return fromReal(
+            snapshot.days(), 
+            snapshot.hours(), 
+            snapshot.minutes(), 
+            snapshot.seconds(), 
+            snapshot.millis(), 
+            provider
+        );
+    }
+
+    public long getGameDaysComponent() {
+        return (long) toGameDays();
+    }
+
+    public int getGameHoursComponent() {
+        return (int) (toGameHours() % 24);
+    }
+
+    public int getGameMinutesComponent() {
+        return (int) (toGameMinutes() % 60);
+    }
+
+    public int getGameSecondsComponent() {
+        return (int) (toGameSeconds() % 60);
+    }
+
+    public int getGameMillisComponent() {
+        return (int) ((toGameSeconds() * 1000) % 1000);
+    }
+
+    public long getRealDaysComponent() {
+        return (long) toRealDays();
+    }
+
+    public int getRealHoursComponent() {
+        return (int) (toRealHours() % 24);
+    }
+
+    public int getRealMinutesComponent() {
+        return (int) (toRealMinutes() % 60);
+    }
+
+    public int getRealSecondsComponent() {
+        return (int) (toRealSeconds() % 60);
+    }
+
+    public int getRealMillisComponent() {
+        return (int) (toRealMillis() % 1000);
     }
 
     /* ======================================================

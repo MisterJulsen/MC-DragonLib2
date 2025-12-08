@@ -27,6 +27,19 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
+/**
+ * Represents a typed network packet definition for a specific channel and packet semantics.
+ *
+ * <p>This abstract base class encapsulates common behavior and metadata used by concrete
+ * packet type variants such as {@link Send}, {@link Receive}, {@link SendAndReceive} and {@link Stream}.
+ * Each instance carries factories for input/output payload containers and is responsible for
+ * creating header information, packing outgoing data and dispatching incoming payloads to
+ * the appropriate handlers.
+ *
+ * @param <N> the {@link NetworkDirection} type describing the sender/receiver direction
+ * @param <I> input packet data type, implementing {@link NetworkPacketData}
+ * @param <O> output/response packet data type, implementing {@link NetworkPacketData}
+ */
 public abstract class NetworkPacketType<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> {
     private final ResourceLocation channelId;
     private final String name;
@@ -44,6 +57,16 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.responseFactory = responseFactory;
     }
 
+    /**
+     * Runs the supplied action in a "safe" manner depending on the environment.
+     *
+     * <p>On client environments this will schedule the action using {@link EnvExecutor#runInEnv},
+     * otherwise it executes immediately. The action is provided as a {@link Supplier<Runnable>}
+     * to defer creation until the target environment is known.
+     *
+     * @param environment the target environment the action should run in
+     * @param action supplier producing the runnable action
+     */
     protected static void runSafe(Env environment, Supplier<Runnable> action) {
         if (environment == Env.CLIENT) {
             EnvExecutor.runInEnv(environment, action);
@@ -52,29 +75,85 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
     }
     
+    /**
+     * Called when a request is received for this packet type.
+     *
+     * <p>Concrete implementations must implement how to handle the deserialized input data.
+     *
+     * @param info header info describing packet type and request id
+     * @param context platform-specific network context for this packet dispatch
+     * @param in deserialized input data instance
+     */
     abstract void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in);
+
+    /**
+     * Called when a response is received for this packet type.
+     *
+     * <p>Concrete implementations must implement how to handle the deserialized response data.
+     *
+     * @param info header info describing packet type and request id
+     * @param context platform-specific network context for this packet dispatch
+     * @param in deserialized response data instance
+     */
     abstract void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, O in);
 
+    /**
+     * Returns the channel id this packet type belongs to.
+     *
+     * @return the {@link ResourceLocation} channel id
+     */
     public final ResourceLocation getChannelId() {
         return channelId;
     }
 
+    /**
+     * Returns the unique name (identifier) of this packet inside its channel.
+     *
+     * @return short packet id / name
+     */
     public final String getName() {
         return name;
     }
 
+    /**
+     * Returns the configured {@link PacketType} of this packet (e.g. SEND, RECEIVE, STREAM).
+     *
+     * @return the packet type enum value
+     */
     public final PacketType getType() {
         return type;
     }
 
+    /**
+     * Returns the {@link NetworkSide} direction this packet is associated with.
+     *
+     * <p>Note: direction indicates which logical side this packet is defined for (e.g. client-to-server).
+     *
+     * @return the packet's network side
+     */
     public final NetworkSide getDirection() {
         return direction;
     }
 
+    /**
+     * Builds a {@link PacketHeaderInfo} instance for the provided communication type and request id.
+     *
+     * @param communication whether this header describes a REQUEST or RESPONSE
+     * @param requestId unique request id used for matching responses/streams
+     * @return a new {@link PacketHeaderInfo} instance
+     */
     public final PacketHeaderInfo getInfo(CommunicationType communication, long requestId) {
         return new PacketHeaderInfo(getType(), communication, requestId, getName());
     }
     
+    /**
+     * Internal dispatcher that invokes either request or response handling based on the {@link CommunicationType}.
+     *
+     * @param info header information already read from the incoming buffer
+     * @param context contextual information for the network dispatch
+     * @param nbt compound tag containing the serialized payload
+     * @param communication the communication direction (REQUEST or RESPONSE)
+     */
     protected void receive(PacketHeaderInfo info, NetworkPacketContext context, CompoundTag nbt, CommunicationType communication) {
         switch (communication) {
             case REQUEST -> receiveInternal(info, context, nbt);
@@ -83,14 +162,33 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
     }
 
+    /**
+     * Creates an empty input instance using the configured send factory and the provided status.
+     *
+     * @param status the {@link DLStatus} to attach to the created data instance
+     * @return new input instance of type {@code I}
+     */
     protected I createEmptyInputData(DLStatus status) {
         return sendFactory.apply(status);
     }
 
+    /**
+     * Creates an empty output/response instance using the configured response factory and the provided status.
+     *
+     * @param status the {@link DLStatus} to attach to the created data instance
+     * @return new output instance of type {@code O}
+     */
     protected O createEmptyOutputData(DLStatus status) {
         return responseFactory.apply(status);
     }
 
+    /**
+     * Packs and sends a REQUEST for this packet type using the provided sender direction.
+     *
+     * @param requestId unique request identifier used to match responses or stream segments
+     * @param sender the {@link NetworkDirection} that will actually transmit the generated {@link Packet} instances
+     * @param nbt optional serialized payload (may be {@code null} for empty payloads)
+     */
     protected void sendInternal(long requestId, N sender, @Nullable CompoundTag nbt) {
         PacketHeaderInfo info = getInfo(CommunicationType.REQUEST, requestId);
         List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
@@ -99,6 +197,13 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
     }
 
+    /**
+     * Internal helper that deserializes incoming REQUEST payload and forwards to {@link #receiveRequest}.
+     *
+     * @param info header information for the incoming packet
+     * @param context network dispatch context
+     * @param nbt serialized request payload
+     */
     protected void receiveInternal(PacketHeaderInfo info, NetworkPacketContext context, CompoundTag nbt) {
         I instance = sendFactory.apply(DLStatus.EMPTY);
         instance.deserializeNbt(nbt);
@@ -106,6 +211,15 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
     }
     
 
+    /**
+     * Sends a RESPONSE for a received request header using the opposite direction of this packet type.
+     *
+     * <p>For server-targeted packets this will create a player-direction sender, and vice versa.
+     *
+     * @param header original request header to respond to
+     * @param context network context for resolving player/sender information
+     * @param nbt optional serialized payload for the response
+     */
     protected void respondInternal(PacketHeaderInfo header, NetworkPacketContext context, @Nullable CompoundTag nbt) {
         NetworkDirection sender = getDirection() == NetworkSide.C2S ? NetworkDirection.toServer() : NetworkDirection.toPlayer((ServerPlayer)context.getPlayer());
         PacketHeaderInfo info = getInfo(CommunicationType.RESPONSE, header.requestId());
@@ -115,6 +229,13 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
     }
 
+    /**
+     * Internal helper that deserializes incoming RESPONSE payload and forwards to {@link #receiveResponse}.
+     *
+     * @param info header information for the incoming response
+     * @param context network dispatch context
+     * @param nbt serialized response payload
+     */
     protected void receiveResponseInternal(PacketHeaderInfo info, NetworkPacketContext context, CompoundTag nbt) {
         O instance = responseFactory.apply(DLStatus.EMPTY);
         instance.deserializeNbt(nbt);
@@ -124,8 +245,19 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
 
+    /**
+     * Packet type used for send-only semantics (no response expected).
+     *
+     * @param <N> direction type
+     * @param <I> input data type
+     */
     public static class Send<N extends NetworkDirection, I extends NetworkPacketData> extends NetworkPacketType<N, I, NetworkPacketData.Empty> {
 
+        /**
+         * Handler invoked when a matching packet REQUEST arrives.
+         *
+         * <p>Protected so subclasses/outer classes can access it when implementing custom logic.
+         */
         protected final NetworkProcessor.Send<I> handler;
 
         public Send(ResourceLocation channelId, String name, NetworkDirection direction, NetworkProcessor.Send<I> handler, Function<DLStatus, I> factory) {
@@ -145,6 +277,12 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         @Override
         void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, Empty in) {}
         
+        /**
+         * Sends the provided data as a request from the given sender.
+         *
+         * @param sender network direction that will perform the transmission
+         * @param data payload instance to serialize and send
+         */
         public void send(N sender, I data) {
             long requestId = System.nanoTime();
             sendInternal(requestId, sender, data.serializeNbt());
@@ -154,8 +292,22 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
     
+    /**
+     * Packet type used for receive-request semantics where a request invokes server-side logic
+     * and a response is expected by the caller.
+     *
+     * <p>This variant stores a static callback map that matches request ids to {@link CompletableFuture}
+     * instances that will be completed when the response arrives.
+     *
+     * @param <N> direction type
+     * @param <O> output data type
+     */
     public static class Receive<N extends NetworkDirection, O extends NetworkPacketData> extends NetworkPacketType<N, NetworkPacketData.Empty, O> {
 
+        /**
+         * Map of outstanding request ids to their associated {@link CompletableFuture} callbacks.
+         * The map is {@link java.util.concurrent.ConcurrentHashMap} backed for thread-safety.
+         */
         protected static final Map<Long, CompletableFuture<?>> callbacks = new ConcurrentHashMap<>();
         private final NetworkProcessor.Receive<O> handler;
 
@@ -164,6 +316,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             this.handler = handler;
         }
 
+        /**
+         * Returns debug statistics about active callbacks for monitoring purposes.
+         *
+         * @return a {@link de.mrjulsen.mcdragonlib.util.DLStatistics} instance representing callback counts
+         */
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Receive Packets", List.of(
@@ -194,6 +351,13 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
         
         
+        /**
+         * Sends a request and provides callbacks for success and error.
+         *
+         * @param sender the network sender direction
+         * @param responseCallback consumer invoked when a response arrives
+         * @param errorCallback runnable invoked if the request times out or fails
+         */
         public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future.thenAccept(responseCallback).exceptionally(ex -> {
@@ -204,6 +368,12 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             send(sender, future);
         }
         
+        /**
+         * Sends a request and registers the provided {@link CompletableFuture} to be completed on response.
+         *
+         * @param sender the network sender direction
+         * @param responseCallback future to complete when response arrives
+         */
         public void send(N sender, CompletableFuture<O> responseCallback) {
             long requestId = System.nanoTime();
             callbacks.put(requestId, responseCallback);
@@ -214,8 +384,21 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
     
+    /**
+     * Packet type supporting send-and-receive (request/response) semantics where an input payload is sent
+     * and a typed output is expected.
+     *
+     * <p>Maintains its own static callback map similar to {@link Receive}.
+     *
+     * @param <N> direction type
+     * @param <I> input data type
+     * @param <O> output data type
+     */
     public static class SendAndReceive<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> extends NetworkPacketType<N, I, O> {
 
+        /**
+         * Map holding outstanding request callbacks keyed by request id.
+         */
         protected static final Map<Long, CompletableFuture<?>> callbacks = new ConcurrentHashMap<>();
         private final NetworkProcessor.SendAndReceive<I, O> handler;
 
@@ -224,6 +407,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             this.handler = handler;
         }
         
+        /**
+         * Returns debug statistics about active callbacks for monitoring purposes.
+         *
+         * @return a {@link de.mrjulsen.mcdragonlib.util.DLStatistics} instance representing callback counts
+         */
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Send and Receive Packets", List.of(
@@ -254,6 +442,14 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
         
         
+        /**
+         * Sends a request with the given input payload and registers success/error handlers.
+         *
+         * @param sender network direction used to send
+         * @param data input payload to serialize and send
+         * @param responseCallback consumer invoked when response arrives
+         * @param errorCallback runnable invoked if the request times out or fails
+         */
         public void send(N sender, I data, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future.thenAccept(responseCallback).exceptionally(ex -> {
@@ -264,6 +460,14 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             send(sender, data, future);
         }
         
+        /**
+         * Sends a request with the given input payload and registers a {@link CompletableFuture}
+         * that will be completed when the response arrives.
+         *
+         * @param sender network direction used to send
+         * @param data input payload to serialize and send
+         * @param responseCallback future to complete when response arrives
+         */
         public void send(N sender, I data, CompletableFuture<O> responseCallback) {
             long requestId = System.nanoTime();
             callbacks.put(requestId, responseCallback);
@@ -274,12 +478,46 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
     
+    /**
+     * Packet type used for streaming scenarios where multiple segments may be exchanged for a single request id.
+     *
+     * <p>This class manages several static caches:
+     * <ul>
+     *   <li>{@code callbacks} maps request ids to finish callbacks</li>
+     *   <li>{@code inputCache} stores providers that supply the next input segment</li>
+     *   <li>{@code outputCache} stores receivers that process incoming segments</li>
+     * </ul>
+     *
+     * @param <N> direction type
+     * @param <I> input data type for stream segments
+     * @param <O> output data type for stream segments
+     */
     public static class Stream<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> extends NetworkPacketType<N, I, O> {
 
+        /**
+         * Internal record that stores information associated with an active stream request.
+         *
+         * @param sender original sender direction
+         * @param requestId unique id for the stream
+         * @param callback consumer invoked with the final {@link DLStatus} when the stream finishes
+         * @param <N> direction type
+         * @param <O> output packet type for the stream receiver
+         */
         private record RequestData<N extends NetworkDirection, O extends NetworkPacketData>(N sender, long requestId, Consumer<DLStatus> callback) {}
 
+        /**
+         * Map of outstanding stream request ids to their finish callbacks and metadata.
+         */
         protected static final Map<Long, RequestData<?, ?>> callbacks = new ConcurrentHashMap<>();
+
+        /**
+         * Cache of input providers used to produce subsequent input segments for active streams.
+         */
         protected static final Map<Long, StreamProvider<?, ?>> inputCache = new ConcurrentHashMap<>();
+
+        /**
+         * Cache of output receivers used to aggregate/process incoming stream segments.
+         */
         protected static final Map<Long, StreamReceiver<?, ?>> outputCache = new ConcurrentHashMap<>();
 
         private final Supplier<StreamReceiver<I, O>> receiverFactory;
@@ -290,6 +528,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             this.receiverFactory = receiverFactory;
         }
         
+        /**
+         * Returns debug statistics about active callbacks for monitoring purposes.
+         *
+         * @return a {@link de.mrjulsen.mcdragonlib.util.DLStatistics} instance representing callback counts
+         */
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Stream Packets", List.of(
@@ -344,6 +587,13 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         }
         
         
+        /**
+         * Sends the initial stream request and registers the provided {@link StreamProvider} as the input source.
+         *
+         * @param sender the network direction that will transmit the stream
+         * @param handler the {@link StreamProvider} responsible for generating input segments
+         * @param finishCallback consumer that will be invoked with the final {@link DLStatus} when the stream ends
+         */
         public void send(N sender, StreamProvider<I, O> handler, Consumer<DLStatus> finishCallback) {
             long requestId = System.nanoTime();
             callbacks.put(requestId, new RequestData<>(sender, requestId, finishCallback));

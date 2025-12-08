@@ -48,18 +48,8 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
     }
 
     @Override
-    public List<T> getValue() {
-        return Collections.unmodifiableList(super.getValue());
-    }
-
-    @Override
     public List<T> getDefaultValue() {
         return Collections.unmodifiableList(super.getDefaultValue());
-    }
-    
-    @Override
-    public Optional<List<T>> getInheritedValue() {
-        return super.getInheritedValue().map(Collections::unmodifiableList);
     }
 
     @Override
@@ -82,7 +72,7 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
     }
 
     protected List<T> getList() {
-        return super.getValue();
+        return super.get();
     }
 
 

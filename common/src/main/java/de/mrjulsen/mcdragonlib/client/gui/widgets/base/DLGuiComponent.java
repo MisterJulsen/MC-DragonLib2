@@ -1,6 +1,5 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.container.IMenuGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
@@ -28,14 +27,11 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.math.Size;
 import de.mrjulsen.mcdragonlib.util.properties.BitflagProperty;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
-import de.mrjulsen.mcdragonlib.util.properties.IProperty;
-import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,14 +52,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * DLGuiComponent is the base for every DragonLib GUI component.
- * <p>
- * This component offers basic functionallity shared among all DragonLib GUI
- * components and handles basic
- * user interactions, rendering, layout and component management. It also
- * supports and implements all
- * standard GUI events from {@link DLGuiStandardEvents}.
- * </p>
+ * Base class for DragonLib GUI components.
+ *
+ * <p>This abstract component implements common GUI functionality such as:
+ * event dispatching, child component management, rendering scaffolding, layout
+ * integration and basic interaction handling (mouse, drag, resize, focus).</p>
+ *
+ * <p>Concrete widgets should extend this class and override rendering and
+ * interaction hook methods (e.g. renderBackLayer, renderMainLayer, tick, ...).</p>
  */
 @SupportsEvents({
         DLGuiStandardEvents.RenderPreEvent.class,
@@ -124,17 +120,56 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return eventListeners;
     }
 
+    /**
+     * Enumeration of input consumption contexts used to determine whether a
+     * component should consume a certain interaction (click, drag, scroll, ...).
+     */
+    public enum ConsumptionType {
+        /** Standard click events. */
+        CLICK,
+        /** Mouse movement events. */
+        MOUSE_MOVE,
+        /** Drag operations. */
+        DRAG,
+        /** Scroll wheel operations. */
+        SCROLL,
+        /** Drag-and-drop semantics. */
+        DRAG_AND_DROP;
+    }
+
+    /**
+     * Return the size in pixels used to detect a resize border area, scaled by current GUI scale.
+     *
+     * @return the number of pixels for the resize border at current GUI scale
+     */
     public static final int getResizeBorderSize() {
         return (int) (10.0D / Minecraft.getInstance().getWindow().getGuiScale());
     }
 
+    /**
+     * Return the size in pixels used to detect resize corner areas.
+     *
+     * @return the number of pixels for resize corners based on {@link #getResizeBorderSize()}
+     */
     public static final int getResizeCornerSize() {
         return getResizeBorderSize() * 8;
     }
 
+    /**
+     * Mouse drag threshold in pixels before a drag operation is considered started.
+     */
     public static final int MOUSE_DRAG_THRESHOLD = 5;
+    /**
+     * Number of consecutive clicks that constitute a double/multi-click as configured.
+     */
     public static final byte DOUBLE_CLICK_COUNT = 2;
+    /**
+     * Maximum interval (ms) between clicks to count as a multi-click.
+     */
     public static final int MULTI_CLICK_SPEED_MS = 500;
+    /**
+     * Initial delay (ticks) before repeating mouse-hold events begin.
+     */
     public static final int MOUSE_DOWN_INITIAL_DELAY = 10;
 
     // Container
@@ -169,48 +204,110 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     private int mouseDownButton;
 
 
-    public enum ConsumptionType {
-        CLICK,
-        MOUSE_MOVE,
-        DRAG,
-        SCROLL,
-        DRAG_AND_DROP;
-    }
-
-    @InheritableProperty(overrideLocal = true)
-    public final BooleanProperty enabled = new BooleanProperty(true, true)
+    /**
+     * The property that controls whether this component is enabled.
+     * <p>This property fires {@link DLGuiStandardEvents.EnabledChangedEvent}.</p>
+     */
+    public final BooleanProperty enabled = new BooleanProperty(true)
             .withAfterPropertyChangedCallback(this::onEnabledChanged);
-    @InheritableProperty(overrideLocal = true)
-    public final BooleanProperty visible = new BooleanProperty(true, true)
+
+    /**
+     * The property that controls whether this component is visible.
+     * <p>This property fires {@link DLGuiStandardEvents.VisibilityChangedEvent}.</p>
+     */
+    public final BooleanProperty visible = new BooleanProperty(true)
             .withAfterPropertyChangedCallback(this::onVisibilityChanged);
-    public final BooleanProperty resizable = new BooleanProperty(false, true)
+
+    /**
+     * Whether the component can be resized by the user.
+     */
+    public final BooleanProperty resizable = new BooleanProperty(false)
             .withAfterPropertyChangedCallback((o, v) -> invokeEvent(this, new DLGuiStandardEvents.ResizableChangedEvent(v), true));
-    public final BooleanProperty movable = new BooleanProperty(false, true)
+
+    /**
+     * Whether the component can be moved by the user.
+     */
+    public final BooleanProperty movable = new BooleanProperty(false)
             .withAfterPropertyChangedCallback((o, v) -> invokeEvent(this, new DLGuiStandardEvents.MovableChangedEvent(v), true));
+
+    /**
+     * Number of clicks required for multi-click behaviour.
+     */
     public final NumberProperty<Byte> multiClickable = new NumberProperty<>((byte) 1, (byte) 1, Byte.MAX_VALUE);
+
+    /**
+     * Optional cursor override for this component. When null, the cursor is determined by area (resize/move/default).
+     */
     public final Property<CursorType> cursor = new Property<>(null);
+
+    /**
+     * Policy that decides which types of input this component consumes.
+     */
     public final Property<Predicate<ConsumptionType>> inputConsumptionPolicy = new Property<>(
             (context) -> context != ConsumptionType.SCROLL);
+
+    /**
+     * Anchor flags used for child positioning logic.
+     */
     public final BitflagProperty<EAlign> anchor = new BitflagProperty<>(EAlign.class, EAlign.LEFT, EAlign.TOP);
+
+    /**
+     * Minimum allowed size for this component.
+     */
     public final Property<Size> minSize = new Property<Size>(Size.of(5, 5));
+
+    /**
+     * Maximum allowed size for this component.
+     */
     public final Property<Size> maxSize = new Property<>(Size.INFINITY);
+
+    /**
+     * Local scale factor for this component; inherited by children when computing global scale.
+     */
     public final NumberProperty<Double> scale = new NumberProperty<>(1D, 0.01D, 10D);
+
+    /**
+     * Optional tooltip shown when this component is selected.
+     */
     public final Property<DLTooltip> tooltip = new Property<DLTooltip>(DLTooltip.EMPTY);
+
+    /**
+     * Layout manager used to arrange child components.
+     * <p>Changing the layout triggers arrangeComponents on the new manager.</p>
+     */
     public final Property<ILayoutManager> layout = new Property<ILayoutManager>(NoLayout.INSTANCE)
         .withAfterPropertyChangedCallback((o, v) -> v.arrangeComponents(this));
 
+    /**
+     * Optional constraint object passed to the layout manager.
+     */
     public final Property<Object> layoutContraint = new Property<>(null);
-    public final Property<Object> customData = new Property<>(null);
-    
-    public final BooleanProperty scrollToFocus = new BooleanProperty(true, false);
 
-    
+    /**
+     * Arbitrary custom data associated with this component.
+     */
+    public final Property<Object> customData = new Property<>(null);
+
+    /**
+     * If true, will scroll this component into view when it receives focus.
+     */
+    public final BooleanProperty scrollToFocus = new BooleanProperty(true);
+
+
     protected final Cache<Double> globalX = new Cache<>(() -> getParent().map(p -> p.getXOnScreen()).orElse(0D) + (dX() * getParent().map(p -> p.scale.get()).orElse(1D)));
     protected final Cache<Double> globalY = new Cache<>(() -> getParent().map(p -> p.getYOnScreen()).orElse(0D) + (dY() * getParent().map(p -> p.scale.get()).orElse(1D)));
 
     private boolean layoutLoopFix = false;
     private boolean applyingLayout = false;
 
+    /**
+     * Construct a new component with the given local position and size.
+     *
+     * @param x initial x position (local coordinates)
+     * @param y initial y position (local coordinates)
+     * @param w initial width
+     * @param h initial height
+     */
     public DLGuiComponent(int x, int y, int w, int h) {
         this.x = x;
         this.y = y;
@@ -268,6 +365,10 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         });
     }
 
+    /**
+     * Request the layout manager to arrange child components and notify listeners.
+     * <p>This method guards against re-entrance using an internal flag.</p>
+     */
     protected final void applyLayout() {
         if (applyingLayout) return;
         applyingLayout = true;
@@ -276,9 +377,18 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         applyingLayout = false;
     }
 
+    /**
+     * Hook invoked when the overall screen layout (e.g. screen size) changes.
+     * <p>Subclasses may override to update internal state dependent on screen size.</p>
+     */
     protected void updateScreenLayout() {
     }
 
+    /**
+     * Close this component and all children, emitting a CloseEvent.
+     *
+     * @throws Exception if any child's close throws; exceptions are propagated
+     */
     @Override
     public void close() throws Exception {
         invokeEvent(this, new DLGuiStandardEvents.CloseEvent(), true);
@@ -287,66 +397,146 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Return whether the component is currently in a dragging operation.
+     *
+     * @return true when dragging
+     */
     public boolean isDragged() {
         return dragging;
     }
 
+    /**
+     * Return whether the mouse is currently hovering/selected on this component.
+     *
+     * @return true when selected by mouse
+     */
     public boolean isSelected() {
         return mouseSelected;
     }
 
+    /**
+     * Return whether this component currently has keyboard focus.
+     *
+     * @return true if focused
+     */
     public boolean isFocused() {
         return focused;
     }
 
+    /**
+     * Return whether the mouse button is currently held down over this component.
+     *
+     * @return true when mouse is down
+     */
     public boolean isMouseDown() {
         return mouseDown;
     }
 
+    /**
+     * Return whether another component is currently being dragged over this component.
+     *
+     * @return true if a component is dragged over this component
+     */
     public boolean isComponentDraggedOver() {
         return isComponentDraggedOver;
     }
 
+    /**
+     * Get the integer height of this component.
+     *
+     * @return height as int
+     */
     public int height() {
         return (int) this.height;
     }
 
+    /**
+     * Get the integer width of this component.
+     *
+     * @return width as int
+     */
     public int width() {
         return (int) this.width;
     }
 
+    /**
+     * Get the integer x position (local).
+     *
+     * @return x coordinate as int
+     */
     public int x() {
         return (int) this.x;
     }
 
+    /**
+     * Get the integer y position (local).
+     *
+     * @return y coordinate as int
+     */
     public int y() {
         return (int) this.y;
     }
 
+    /**
+     * Get the actual stored height as double.
+     *
+     * @return height as double
+     */
     public double dHeight() {
         return this.height;
     }
 
+    /**
+     * Get the actual stored width as double.
+     *
+     * @return width as double
+     */
     public double dWidth() {
         return this.width;
     }
 
+    /**
+     * Get the actual stored x as double.
+     *
+     * @return x as double
+     */
     public double dX() {
         return this.x;
     }
 
+    /**
+     * Get the actual stored y as double.
+     *
+     * @return y as double
+     */
     public double dY() {
         return this.y;
     }
 
+    /**
+     * Compute the component's X position on screen (including parents).
+     *
+     * @return the X coordinate in screen space
+     */
     public double getXOnScreen() {
         return globalX.get();
     }
 
+    /**
+     * Compute the component's Y position on screen (including parents).
+     *
+     * @return the Y coordinate in screen space
+     */
     public double getYOnScreen() {
         return globalY.get();
     }
 
+    /**
+     * Compute the top-left point of this component in screen coordinates.
+     *
+     * @return a Point representing the screen coordinates of this component
+     */
     public Point toScreenCoordinates() {
         Point local = Point.of(
             dX() - getScrollOffsetX(),
@@ -359,10 +549,21 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
 
+    /**
+     * Compute the global scale by combining parent scales with this component's scale.
+     *
+     * @return global scale factor
+     */
     public double getGlobalScale() {
         return getParent().map(x -> x.getGlobalScale()).orElse(1D) * scale.get();
     }
 
+    /**
+     * Invalidate cached global coordinates and propagate to children.
+     *
+     * @param x whether to invalidate X cache
+     * @param y whether to invalidate Y cache
+     */
     protected void invalidateGlobalCoordinates(boolean x, boolean y) {
         if (x)
             globalX.clear();
@@ -371,6 +572,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         forEachComponentMatching(t -> true, c -> c.invalidateGlobalCoordinates(x, y));
     }
 
+    /**
+     * Set the X position for this component (local coordinates) and notify listeners.
+     *
+     * @param x new x position
+     */
     public void setX(double x) {
         double oldX = x;
         this.x = x;
@@ -378,6 +584,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)oldX, (int)x, (int)y, (int)y, (int)width, (int)width, (int)height, (int)height));
     }
 
+    /**
+     * Set the Y position for this component (local coordinates) and notify listeners.
+     *
+     * @param y new y position
+     */
     public void setY(double y) {
         double oldY = x;
         this.y = y;
@@ -385,18 +596,33 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)oldY, (int)y, (int)width, (int)width, (int)height, (int)height));
     }
 
+    /**
+     * Move the left side to the given x coordinate and adjust width accordingly.
+     *
+     * @param x new left position
+     */
     public void setLeft(double x) {
         double diff = dX() - x;
         setX(x);
         setWidth(dWidth() + diff);
     }
 
+    /**
+     * Move the top side to the given y coordinate and adjust height accordingly.
+     *
+     * @param y new top position
+     */
     public void setTop(double y) {
         double diff = y - dY();
         setY(y);
         setHeight(dHeight() + diff);
     }
 
+    /**
+     * Set the width of this component, adjusting anchored children as needed.
+     *
+     * @param width new width in local coordinates
+     */
     public void setWidth(double width) {
         double oldWidth = dWidth();
         this.width = width;
@@ -421,6 +647,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)y, (int)y, (int)oldWidth, (int)width, (int)height, (int)height));
     }
 
+    /**
+     * Set the height of this component, adjusting anchored children as needed.
+     *
+     * @param height new height in local coordinates
+     */
     public void setHeight(double height) {
         double oldHeight = dHeight();
         this.height = height;
@@ -446,16 +677,34 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.ComponentPosAndSizeChanged((int)x, (int)x, (int)y, (int)y, (int)width, (int)width, (int)oldHeight, (int)height));
     }
 
+    /**
+     * Set both local position coordinates.
+     *
+     * @param x target x
+     * @param y target y
+     */
     public void setPosition(double x, double y) {
         setX(x);
         setY(y);
     }
 
+    /**
+     * Set both size dimensions.
+     *
+     * @param width new width
+     * @param height new height
+     */
     public void setSize(double width, double height) {
         setWidth(width);
         setHeight(height);
     }
 
+    /**
+     * Bring the given child component to the front of the z-order.
+     *
+     * @param component child to bring to front
+     * @return true if the component was present and moved
+     */
     public boolean bringToFront(DLGuiComponent component) {
         if (components.contains(component)) {
             components.remove(component);
@@ -465,6 +714,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return false;
     }    
 
+    /**
+     * Send the given child component to the back of the z-order.
+     *
+     * @param component child to send to back
+     * @return true if the component was present and moved
+     */
     public boolean sendToBack(DLGuiComponent component) {
         if (components.contains(component)) {
             components.remove(component);
@@ -474,22 +729,47 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return false;
     }
 
+    /**
+     * Set the horizontal scroll offset (clamped to non-negative).
+     *
+     * @param scrollOffsetX scroll offset in local pixels
+     */
     public void setScrollOffsetX(double scrollOffsetX) {
         this.scrollOffsetX = MathUtils.clamp(scrollOffsetX, 0, Integer.MAX_VALUE);
     }
 
+    /**
+     * Set the vertical scroll offset (clamped to non-negative).
+     *
+     * @param scrollOffsetY scroll offset in local pixels
+     */
     public void setScrollOffsetY(double scrollOffsetY) {
         this.scrollOffsetY = MathUtils.clamp(scrollOffsetY, 0, Integer.MAX_VALUE);
     }
 
+    /**
+     * Get the current horizontal scroll offset.
+     *
+     * @return scroll offset X
+     */
     public double getScrollOffsetX() {
         return scrollOffsetX;
     }
 
+    /**
+     * Get the current vertical scroll offset.
+     *
+     * @return scroll offset Y
+     */
     public double getScrollOffsetY() {
         return scrollOffsetY;
     }
 
+    /**
+     * Ensure the provided child is visible by adjusting scroll offsets if necessary.
+     *
+     * @param child the child component to bring into view
+     */
     public void scrollIntoView(DLGuiComponent child) {
         if (!components.contains(child)) {
             return;
@@ -509,10 +789,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     /**
-     * The bounds in which all child components can be interacted with. Cannot be
-     * larger than {@link #getCollisionBox}.
-     * 
-     * @return The rectangle that represents the boundaries
+     * The bounds in which all child components can be interacted with.
+     *
+     * @return the rectangle describing child interaction bounds (local coords)
      */
     public Rectangle getChildInteractionBounds() {
         return Rectangle.withSize(0, 0, Math.max(width(), 0), Math.max(height(), 0));
@@ -520,56 +799,66 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     /**
      * The bounds in which this and all child components can be interacted with.
-     * 
-     * @return The rectangle that represents the boundaries
+     *
+     * @return the rectangle describing interaction bounds (local coords)
      */
     public Rectangle getInteractionBounds() {
         return Rectangle.withSize(0, 0, Math.max(width(), 0), Math.max(height(), 0));
     }
 
     /**
-     * The bounds in which this component and all child components are rendered.
-     * Anything that exceeds these bounds will be cut off.
-     * 
-     * @return The rectangle that represents the boundaries
+     * The bounds in which this component and all children are rendered. Anything outside is clipped.
+     *
+     * @return the rectangle describing render bounds (local coords)
      */
     public Rectangle getRenderBounds() {
         return Rectangle.withSize(0, 0, Math.max(width(), 0), Math.max(height(), 0));
     }
 
     /**
-     * The bounds within which the child components are rendered. Cannot be larger
-     * than {@link #getRenderBounds}. Anything that exceeds these bounds will be cut
-     * off.
-     * 
-     * @return The rectangle that represents the boundaries
+     * The child render bounds used to clip children; cannot exceed {@link #getRenderBounds()}.
+     *
+     * @return the child render bounds rectangle
      */
     public Rectangle getChildRenderBounds() {
         return Rectangle.withSize(0, 0, Math.max(width(), 0), Math.max(height(), 0));
     }
 
+    /**
+     * Return the position box containing this component at its local coordinates.
+     *
+     * @return a rectangle that covers this component at its position
+     */
     public Rectangle getPositionBox() {
         return Rectangle.withSize(x(), y(), Math.max(width(), 0), Math.max(height(), 0));
     }
 
     /**
-     * The bounds that enclose this and all child components. In other words, a
-     * collision box large enough to enclose this and all child components at their
-     * respective positions.
-     * 
-     * @return The rectangle that represents the boundaries
+     * Return a bounding collision box that surrounds this component and all nested children.
+     *
+     * @return the surrounding collision rectangle in local coordinates
      */
     public Rectangle getSurroundingCollisionBox() {
         return Rectangle.surroundingBase(getInteractionBounds(),
                 getComponents().stream().map(DLGuiComponent::getSurroundingCollisionBox).toArray(Rectangle[]::new));
     }
 
+    /**
+     * Get the mouse X coordinate relative to this component.
+     *
+     * @return local mouse X coordinate
+     */
     public double getLocalMouseX() {
         if (getWindowManager() == null)
             return 0;
         return getWindowManager().mouseXOnScreen() - getXOnScreen();
     }
 
+    /**
+     * Get the mouse Y coordinate relative to this component.
+     *
+     * @return local mouse Y coordinate
+     */
     public double getLocalMouseY() {
         if (getWindowManager() == null)
             return 0;
@@ -578,60 +867,20 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     private void onEnabledChanged(boolean oldState, boolean newState) {
         invokeEvent(this, new DLGuiStandardEvents.EnabledChangedEvent(newState), false);
-        update(this);
     }
 
     private void onVisibilityChanged(boolean oldState, boolean newState) {
         invokeEvent(this, new DLGuiStandardEvents.VisibilityChangedEvent(newState), false);
-        update(this);
     }
 
     /**
-     * Aktuelisiert sämtliche Zustände vom diesem und allen child komponenten
-     * basierend auf der Referenz-komponente.
-     * 
-     * @param reference
+     * Add a child component to this container and initialize its parent/window manager.
+     *
+     * @param component the component to add
+     * @param <T> type of the component
+     * @return the added component
+     * @throws IllegalArgumentException if the component is a window or invalid for menus
      */
-    protected void update(DLGuiComponent reference) {
-        if (reference != this) {
-            applyInheritanceFrom(reference);
-        }
-        for (DLGuiComponent child : getComponents()) {
-            child.update(reference);
-        }
-    }
-
-    protected void applyInheritanceFrom(DLGuiComponent ref) {
-        for (Field field : this.getClass().getFields()) {
-            if (!IProperty.class.isAssignableFrom(field.getType()))
-                continue;
-            InheritableProperty annotation = field.getAnnotation(InheritableProperty.class);
-            if (annotation == null)
-                continue;
-            field.setAccessible(true);
-
-            try {
-                Object thisValue = field.get(this);
-                if (!(thisValue instanceof IProperty<?> thisProp))
-                    continue;
-
-                Object refValue = field.get(ref);
-                if (!(refValue instanceof IProperty<?> refProp))
-                    continue;
-
-                if (!thisProp.getClass().equals(refProp.getClass())) {
-                    DragonLib.LOGGER.warn("Skipping inheritance for field {}: Incompatible types ({} is not {})",
-                            field.getName(), thisProp.getClass(), refProp.getClass());
-                    continue;
-                }
-
-                thisProp.inheritFrom(refProp, annotation.overrideLocal());
-            } catch (Exception e) {
-                DragonLib.LOGGER.debug("Skipping inheritance for field " + field.getName() + ": " + e.getMessage());
-            }
-        }
-    }
-
     public <T extends DLGuiComponent> T addComponent(T component) {
         Objects.requireNonNull(component);
 
@@ -652,10 +901,16 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         component.setWindowManager(windowManager);
         component.invalidateGlobalCoordinates(true, true);
         invokeEvent(this, new DLGuiStandardEvents.ComponentAddedEvent(component), true);
-        update(this);
         return component;
     }
 
+    /**
+     * Remove a child component.
+     *
+     * @param component the component to remove
+     * @param <T> type of the component
+     * @return true if removed
+     */
     public <T extends DLGuiComponent> boolean removeComponent(T component) {
         Objects.requireNonNull(component);
         boolean b = this.components.remove(component);
@@ -664,32 +919,64 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             component.setWindowManager(null);
             component.invalidateGlobalCoordinates(true, true);
             invokeEvent(this, new DLGuiStandardEvents.ComponentRemovedEvent(component), true);
-            update(component);
         }
         return b;
     }
 
+    /**
+     * Test whether the given mouse coordinates are within this component's interaction bounds.
+     *
+     * @param mouseX mouse X in local coordinates
+     * @param mouseY mouse Y in local coordinates
+     * @return true when the mouse is over this component
+     */
     public boolean isMouseOver(double mouseX, double mouseY) {
         return getInteractionBounds().collision(mouseX, mouseY);
     }
 
+    /**
+     * Determine the cursor that should be displayed for this component depending on area (resize/move/default).
+     *
+     * @return the CursorType to set
+     */
     public CursorType getCursor() {
         return resizeArea == Align.CENTER ? (mouseInMoveArea ? CursorType.ALLRESIZE : cursor.get())
                 : resizeArea.getCursor();
     }
 
+    /**
+     * Return the number of direct child components.
+     *
+     * @return child count
+     */
     public int componentsCount() {
         return this.components.size();
     }
 
+    /**
+     * Return whether this component has any children.
+     *
+     * @return true when children are present
+     */
     public boolean hasComponents() {
         return !this.components.isEmpty();
     }
 
+    /**
+     * Return an Optional containing this component's parent if present.
+     *
+     * @return optional parent component
+     */
     public Optional<DLGuiComponent> getParent() {
         return Optional.ofNullable(this.parent);
     }
 
+    /**
+     * Find the next parent (up the hierarchy) that matches the given predicate.
+     *
+     * @param condition predicate to match a parent
+     * @return optional matching parent
+     */
     public Optional<DLGuiComponent> getNextParentMatching(Predicate<DLGuiComponent> condition) {
         if (!getParent().isPresent()) {
             return Optional.empty();
@@ -701,6 +988,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return parent.getNextParentMatching(condition);
     }
 
+    /**
+     * Execute an action for each child that satisfies the test predicate.
+     *
+     * @param test predicate to select children
+     * @param action action to perform on selected children
+     */
     public void forEachComponentMatching(Predicate<DLGuiComponent> test, Consumer<DLGuiComponent> action) {
         for (DLGuiComponent component : getComponents()) {
             if (test.test(component))
@@ -708,6 +1001,14 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Execute an action for each child of the exact provided class type (no subtypes).
+     *
+     * @param type class to match
+     * @param test predicate applied to matched children
+     * @param action action to perform
+     * @param <T> component type
+     */
     @SuppressWarnings("unchecked")
     public <T extends DLGuiComponent> void forEachComponentMatching(Class<T> type, Predicate<T> test,
             Consumer<T> action) {
@@ -721,16 +1022,19 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     /**
-     * Returns the {@code DLWindowManager} to which this component is assigned. Can
-     * be {@code null} if the component has not yet been initialized or has no
-     * parent.
-     * 
-     * @return the current {@code DLWindowManager} instance
+     * Get the window manager this component is assigned to. May be null if not attached.
+     *
+     * @return the DLWindowManager or null
      */
     public DLWindowManager getWindowManager() {
         return windowManager;
     }
 
+    /**
+     * Assign a window manager to this component and propagate to children.
+     *
+     * @param windowManager the manager to set, may be null to detach
+     */
     public void setWindowManager(DLWindowManager windowManager) {
         DLWindowManager oldManager = this.windowManager;
         this.windowManager = windowManager;
@@ -740,20 +1044,45 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Set the parent for this component (package-private). Fires parent-changed event.
+     *
+     * @param parent new parent component or null
+     * @param <T> parent type
+     */
     <T extends DLGuiComponent> void setParent(T parent) {
         Optional<DLGuiComponent> oldParent = getParent();
         this.parent = parent;
         invokeEvent(this, new DLGuiStandardEvents.ParentChangedEvent(oldParent, Optional.ofNullable(parent)), true);
     }
 
+    /**
+     * Return an immutable copy of the direct children list.
+     *
+     * @return list of children
+     */
     public List<DLGuiComponent> getComponents() {
         return ImmutableList.copyOf(components);
     }
 
+    /**
+     * Return a list of children matching the provided predicate.
+     *
+     * @param predicate selection predicate
+     * @return list of matching children
+     */
     public List<DLGuiComponent> getComponentsMatching(Predicate<DLGuiComponent> predicate) {
         return components.stream().filter(predicate::test).toList();
     }
 
+    /**
+     * Return children of the provided type. Can include subtypes when requested.
+     *
+     * @param type target class
+     * @param includeSubtypes whether to include subclasses
+     * @param <T> component type
+     * @return list of matching components
+     */
     public <T extends DLGuiComponent> List<T> getComponentsOfType(Class<T> type, boolean includeSubtypes) {
         List<T> result = new ArrayList<>(componentsCount());
         for (DLGuiComponent obj : getComponents()) {
@@ -770,10 +1099,18 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return result;
     }
 
+    /**
+     * Remove all child components.
+     */
     public void clearComponents() {
         clearComponents(c -> true);
     }
 
+    /**
+     * Remove child components matching the predicate. Fires pre/post clear events.
+     *
+     * @param predicate predicate to select components for removal
+     */
     public void clearComponents(Predicate<DLGuiComponent> predicate) {
         MutableBoolean bool = new MutableBoolean();
         invokeEvent(this, new DLGuiStandardEvents.ComponentsClearEvent(Phase.PRE, bool), true);
@@ -789,6 +1126,14 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.ComponentsClearEvent(Phase.POST, bool), true);
     }
 
+    /**
+     * Set whether this component is selected (mouse entered/left) and fire enter/leave/move events.
+     *
+     * @param b selection state
+     * @param mouseX mouse X local coordinate
+     * @param mouseY mouse Y local coordinate
+     * @return true if selection state changed
+     */
     public boolean setSelected(boolean b, double mouseX, double mouseY) {
         boolean hasChanged = mouseSelected != b;
         if (hasChanged) {
@@ -813,6 +1158,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return hasChanged;
     }
 
+    /**
+     * Update whether the mouse is inside the move area for dragging the component.
+     *
+     * @param mouseX mouse X local coordinate
+     * @param mouseY mouse Y local coordinate
+     */
     public void updateMoveArea(double mouseX, double mouseY) {
         if (!this.movable.get() || getResizeArea() != Align.CENTER) {
             setInMoveArea(false);
@@ -822,6 +1173,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         setInMoveArea(dX <= getResizeBorderSize() || dX >= width() - getResizeBorderSize() || dY <= getResizeBorderSize() || dY >= height() - getResizeBorderSize());
     }
 
+    /**
+     * Update the resize area (which border/corner is hovered) based on mouse position.
+     *
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     */
     public void updateResizeArea(double mouseX, double mouseY) {
         if (!this.resizable.get()) {
             setResizeArea(Align.CENTER);
@@ -871,6 +1228,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
             setResizeArea(Align.CENTER);
     }
 
+    /**
+     * Set keyboard focus for this component and emit focus-change event if changed.
+     *
+     * @param b true to set focus, false to remove
+     * @return true if focus changed
+     */
     public boolean setFocus(boolean b) {
         boolean hasChanged = focused != b;
         this.focused = b;
@@ -880,6 +1243,15 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return hasChanged;
     }
 
+    /**
+     * Set the mouse-down state and emit related events.
+     *
+     * @param b new mouse-down state
+     * @param mouseX mouse X local
+     * @param mouseY mouse Y local
+     * @param button mouse button index
+     * @return true if state changed
+     */
     public boolean setMouseDown(boolean b, double mouseX, double mouseY, int button) {
         this.mouseDownX = mouseX;
         this.mouseDownY = mouseY;
@@ -1030,6 +1402,15 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     private boolean isComponentDraggedOver = false;
 
+    /**
+     * 
+     * @param b
+     * @param other
+     * @param mouseX
+     * @param mouseY
+     * @param button
+     * @return
+     */
     public boolean setDragComponentOver(boolean b, List<DLGuiComponent> other, double mouseX, double mouseY,
             int button) {
         boolean hasChanged = isComponentDraggedOver != b;
@@ -1048,6 +1429,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         return hasChanged;
     }
 
+    /**
+     * Set the resize area (which border/corner is hovered) based on mouse position.
+     *
+     * @param align new resize area
+     */
     public void setResizeArea(Align align) {
         boolean b = resizeArea != align;
         this.resizeArea = align;
@@ -1056,6 +1442,11 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Update the move area status (for dragging) based on mouse position.
+     *
+     * @param inside true if mouse is inside the move area
+     */
     public void setInMoveArea(boolean inside) {
         boolean b = mouseInMoveArea != inside;
         this.mouseInMoveArea = inside;
@@ -1064,14 +1455,31 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Get the current resize area enum value.
+     *
+     * @return current resize area
+     */
     public Align getResizeArea() {
         return resizeArea;
     }
 
+    /**
+     * Check if the mouse is currently in the move area of this component.
+     *
+     * @return true if in move area
+     */
     public boolean isInMoveArea() {
         return mouseInMoveArea;
     }
 
+    /**
+     * Convenience method to dispatch mouse click events and multi-click logic.
+     *
+     * @param mouseX mouse X in local coords
+     * @param mouseY mouse Y in local coords
+     * @param button mouse button
+     */
     public void mouseClickDispatcher(double mouseX, double mouseY, int button) {
         if (dragging && ((getResizeArea() != Align.CENTER) || (isInMoveArea()))) {
             return;
@@ -1101,17 +1509,32 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
     /**
-     * @param eventConsumed
-     * @param focusFound
-     * @param ignored
-     * @param enabled
-     * @param ignoredComponents
-     * @param nonConsumable
+     * A compact struct describing iteration flags used by hit-testing.
+     *
+     * @param eventConsumed whether an event has been consumed by ancestors
+     * @param focusFound whether a focused component has already been found
+     * @param ignored whether this subtree should be ignored
+     * @param enabled whether event dispatch should consider this enabled
+     * @param ignoredComponents set of components to ignore in hit-testing
+     * @param nonConsumable set of components whose events are non-consumable
      */
     public record Flags(boolean eventConsumed, boolean focusFound, boolean ignored, boolean enabled, ImmutableSet<DLGuiComponent> ignoredComponents, ImmutableSet<DLGuiComponent> nonConsumable) {
         public static final Flags EMPTY = new Flags(false, false, false, true, ImmutableSet.of(), ImmutableSet.of());
     }
 
+    /**
+     * Perform hierarchical hit-testing and produce a HitResult containing components under the cursor.
+     *
+     * @param mouseX absolute mouse X in screen coords
+     * @param mouseY absolute mouse Y in screen coords
+     * @param xOffset the x offset applied to this subtree when rendering/hit-testing
+     * @param yOffset the y offset applied to this subtree when rendering/hit-testing
+     * @param bounds clipping bounds for this subtree
+     * @param flags iteration flags controlling consumption/ignoring behavior
+     * @param type the type of input being tested (click/drag/scroll)
+     * @param parentScale cumulative parent scale factor
+     * @return a HitResult describing components and selection states under the cursor
+     */
     public HitResult iterateComponents(double mouseX, double mouseY, double xOffset, double yOffset, Rectangle bounds, Flags flags, ConsumptionType type, double parentScale) {
         HitResult result = new HitResult();
         if (flags.ignoredComponents().contains(this))
@@ -1184,6 +1607,20 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     }
 
 
+    /**
+     * Internal rendering entry used by the window manager to render this component and children.
+     *
+     * @param graphics rendering helper
+     * @param mouseX mouse X for rendering context
+     * @param mouseY mouse Y for rendering context
+     * @param layer the render layer to render
+     * @param xOffset X offset of this subtree in screen space
+     * @param yOffset Y offset of this subtree in screen space
+     * @param scrollOffsetX effective scroll offset X
+     * @param scrollOffsetY effective scroll offset Y
+     * @param scissorBounds scissor/clipping bounds
+     * @param globalScale cumulative scale at this level
+     */
     public final void renderEvent(DLGuiGraphics graphics, double mouseX, double mouseY, RenderLayer layer, double xOffset, double yOffset, double scrollOffsetX, double scrollOffsetY, Rectangle scissorBounds, double globalScale) {
         double currentScale = this.scale.get();
         globalScale *= currentScale;
@@ -1254,6 +1691,13 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         graphics.poseStack().popPose();
     }
     
+    /**
+     * Render on-screen overlays (e.g. tooltips) for this component and its children.
+     *
+     * @param graphics rendering helper
+     * @param mouseX mouse X in screen coords
+     * @param mouseY mouse Y in screen coords
+     */
     public final void renderOnScreenEvent(DLGuiGraphics graphics, double mouseX, double mouseY) {        
         invokeEvent(this, new DLGuiStandardEvents.RenderOnScreenEvent(graphics, mouseX, mouseY), true);
         for (DLGuiComponent child : getComponents()) {
@@ -1265,7 +1709,12 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
-
+    /**
+     * Trigger a screen layout update cycle on this component and descendants.
+     *
+     * @param screenWidth current screen width
+     * @param screenHeight current screen height
+     */
     public final void updateLayoutEvent(int screenWidth, int screenHeight) {
         invokeEvent(this, new DLGuiStandardEvents.ScreenLayoutUpdatedEvent(Phase.PRE), true);
         invalidateGlobalCoordinates(true, true);
@@ -1276,6 +1725,9 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         }
     }
 
+    /**
+     * Per-tick update handler. Handles hold-detection and forwards tick to children.
+     */
     public void tick() {
         if (isMouseDown()) {
             if (ticksHoldingDown <= 0 || ticksHoldingDown > MOUSE_DOWN_INITIAL_DELAY) {
@@ -1289,22 +1741,70 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         invokeEvent(this, new DLGuiStandardEvents.TickEvent(), true);
     }
 
+    /**
+     * Render back/background layer for this component. Subclasses may override.
+     *
+     * @param graphics graphics helper
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     * @param renderBounds current render bounds
+     */
     public void renderBackLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
     }
 
+    /**
+     * Render main/content layer for this component. Subclasses should override to paint content.
+     *
+     * @param graphics graphics helper
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     * @param renderBounds current render bounds
+     */
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
     }
 
+    /**
+     * Render front/overlay layer for this component. Subclasses may override.
+     *
+     * @param graphics graphics helper
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     * @param renderBounds current render bounds
+     */
     public void renderFrontLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
     }
 
+    /**
+     * Render additional on-screen decorations for this component.
+     *
+     * @param graphics graphics helper
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     */
     public void renderOnScreen(DLGuiGraphics graphics, double mouseX, double mouseY) {
     }
 
+    /**
+     * Render a special overlay (for example during resize/drag operations).
+     *
+     * @param graphics graphics helper
+     * @param mouseX local mouse X
+     * @param mouseY local mouse Y
+     * @param renderBounds current render bounds
+     */
     public void renderSpecialOverlay(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
         renderBoundingBox(graphics, (int)((newBounds.x() - x())), (int)((newBounds.y() - y())), (int) newBounds.width(), (int) newBounds.height());
     }
 
+    /**
+     * Helper to draw a rectangular bounding box for debugging.
+     *
+     * @param graphics rendering helper
+     * @param x left coordinate
+     * @param y top coordinate
+     * @param w width
+     * @param h height
+     */
     public static void renderBoundingBox(DLGuiGraphics graphics, int x, int y, int w, int h) {
         graphics.graphics().fill(RenderType.guiTextHighlight(), x + 0, y + 0, x + w, y + 1, 0xFF0000FF);
         graphics.graphics().fill(RenderType.guiTextHighlight(), x + 0, y + h - 1, x + w, y + h, 0xFF0000FF);

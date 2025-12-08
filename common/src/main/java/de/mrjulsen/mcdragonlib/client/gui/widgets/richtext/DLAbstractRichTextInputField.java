@@ -56,14 +56,14 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
 
     public final ColorProperty selectionColor = new ColorProperty(DLColor.fromInt(0x800055FF), DLColor.fromInt(0x800055FF));
     public final ColorProperty lineHighlightColor = new ColorProperty(DLColor.fromInt(0x30FFFFFF), DLColor.TRANSPARENT);
-    public final BooleanProperty showLineHighlight = new BooleanProperty(false, false);
-    public final BooleanProperty readOnly = new BooleanProperty(false, false)
+    public final BooleanProperty showLineHighlight = new BooleanProperty(false);
+    public final BooleanProperty readOnly = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLAbstractRichTextInputField.TextReadOnlyChangedEvent(x)));
     public final Property<Component> placeholderText = new Property<>(TextUtils.empty());
     public final NumberProperty<Byte> cursorWidth = new NumberProperty<>((byte)1, (byte)1, Byte.MAX_VALUE);
     public final Property<Padding> decoratedPadding = new Property<>(Padding.ZERO);
-    public final BooleanProperty acceptAndCancelKeysEnabled = new BooleanProperty(false, false);
-    public final BooleanProperty hideSelection = new BooleanProperty(true, false); // TODO
+    public final BooleanProperty acceptAndCancelKeysEnabled = new BooleanProperty(false);
+    public final BooleanProperty hideSelection = new BooleanProperty(true); // TODO
     public final NumberProperty<Integer> cursorXOffset = new NumberProperty<>(5);
 
 

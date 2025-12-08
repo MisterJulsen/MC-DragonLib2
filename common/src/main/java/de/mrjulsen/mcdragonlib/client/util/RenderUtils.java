@@ -18,9 +18,11 @@ import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
+import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Font.DisplayMode;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
@@ -218,8 +220,8 @@ public final class RenderUtils {
             dz /= length;
         }
 
-        consumer.vertex(matrix4f, (float) from.x(), (float) from.y(), (float) from.z()).color(colorA.getAsARGB()).normal(matrix3f, dx, dy, dz).endVertex();
-        consumer.vertex(matrix4f, (float) to.x(), (float) to.y(), (float) to.z()).color(colorB.getAsARGB()).normal(matrix3f, dx, dy, dz).endVertex();
+        consumer.vertex(matrix4f, (float) from.x(), (float) from.y(), (float) from.z()).color(colorA.getRedF(), colorA.getGreenF(), colorA.getBlueF(), colorA.getAlphaF()).normal(matrix3f, dx, dy, dz).endVertex();
+        consumer.vertex(matrix4f, (float) to.x(), (float) to.y(), (float) to.z()).color(colorB.getRedF(), colorB.getGreenF(), colorB.getBlueF(), colorB.getAlphaF()).normal(matrix3f, dx, dy, dz).endVertex();
     }
 
     public static void drawDebugLine(PoseStack poseStack, VertexConsumer consumer, Vector3f from, Vector3f to, DLColor color) {
@@ -227,7 +229,7 @@ public final class RenderUtils {
     }
     
     public static void drawDebugLineGradient(DLGraphics graphics, Vector3f from, Vector3f to, DLColor colorA, DLColor colorB) {
-        drawDebugLine(graphics.poseStack(), graphics.multiBufferSource().getBuffer(RenderType.solid()), from, to, colorB);
+        drawDebugLine(graphics.poseStack(), graphics.multiBufferSource().getBuffer(RenderType.lines()), from, to, colorB);
     }
 
     public static void drawDebugLine(DLGraphics graphics, Vector3f from, Vector3f to, DLColor color) {

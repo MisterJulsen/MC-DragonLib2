@@ -122,10 +122,11 @@ public class DLTestWindow extends DLWindow {
         cycleButtonTest.cycling.set(true);
         addComponent(cycleButtonTest);
 
-        DLSlider slider = new DLSlider(20, 90, 150, 20);
-        slider.max.set(1D);
-        slider.step.set(1D / 100D);
-        slider.textFormat.set(DLSlider.DEFAULT_TEXT_DOUBLE_PERCENTAGE_FORMAT);
+        DLSlider slider = new DLSlider(20, 90, 114, 20);
+        slider.min.set(2D);
+        slider.max.set(9D);
+        slider.value.set(7D);
+        //slider.textFormat.set(DLSlider.DEFAULT_TEXT_DOUBLE_PERCENTAGE_FORMAT);
         addComponent(slider);
 
         DLScrollBar scrollbarV = new DLScrollBar(20, 115, 100, Orientation.VERTICAL);

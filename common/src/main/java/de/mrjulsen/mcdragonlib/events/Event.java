@@ -16,6 +16,4 @@ public class Event<T> {
     public String getId() {
         return id;
     }
-
-    // equals & hashCode könnten auf ID basieren, wenn nötig
 }

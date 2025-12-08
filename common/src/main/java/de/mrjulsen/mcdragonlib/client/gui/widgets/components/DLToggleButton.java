@@ -8,6 +8,7 @@ import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents.ClickEvent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
+import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.IEvent;
@@ -15,6 +16,7 @@ import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 
 @SupportsEvents({
@@ -24,9 +26,9 @@ public class DLToggleButton extends DLButton {
 
     public record CheckedChangedEvent(boolean checked) implements IEvent {}
 
-    public final BooleanProperty checked = new BooleanProperty(false, false)
+    public final BooleanProperty checked = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, x) -> invokeEvent(this, new DLToggleButton.CheckedChangedEvent(x), true));
-    public final BooleanProperty radioButtonMode = new BooleanProperty(false, false);
+    public final BooleanProperty radioButtonMode = new BooleanProperty(false);
 
     public DLToggleButton(int x, int y, int w, int h) {
         super(x, y, w, h);
@@ -74,9 +76,103 @@ public class DLToggleButton extends DLButton {
             } else {
                 componentRenderer.get().renderSprite(graphics, 0, 0, width(), height(), this, ButtonState.NORMAL);
             }
+        }        
+
+        DLSprite iconSprite = icon.get();
+        boolean hasIcon = iconSprite != null && !iconSprite.isEmpty();
+        Component buttonText = text.get();
+
+        int textWidth = Minecraft.getInstance().font.width(buttonText);
+        int textHeight = Minecraft.getInstance().font.lineHeight;
+        int iconWidth = hasIcon ? iconSprite.getWidth() : 0;
+        int iconHeight = hasIcon ? iconSprite.getHeight() : 0;
+        int spacing = hasIcon && !buttonText.getString().isEmpty() ? 4 : 0;
+
+        int centerY = height() / 2;
+        int offset = isMouseDown() ? 1 : 0;
+        int iconY = centerY - iconHeight / 2;
+        int textY = centerY - textHeight / 2;
+        int iconX = 0;
+        int textX = 0;
+
+        int buttonWidth = width();
+
+        switch (iconAlignment.get()) {
+            case LEFT -> {
+                iconX = 4;
+                int textStartX = iconX + iconWidth + spacing;
+                switch (textAlignment.get()) {
+                    case LEFT -> textX = Math.max(textStartX, 4);
+                    case CENTER -> {
+                        int centerTextX = buttonWidth / 2 - textWidth / 2;
+                        textX = Math.max(centerTextX, textStartX);
+                    }
+                    case RIGHT -> textX = Math.max(buttonWidth - textWidth - 4, textStartX);
+                }
+            }
+            case RIGHT -> {
+                iconX = buttonWidth - iconWidth - 4;
+                int maxTextRight = iconX - spacing;
+                switch (textAlignment.get()) {
+                    case LEFT -> textX = 4;
+                    case CENTER -> {
+                        int centerTextX = buttonWidth / 2 - textWidth / 2;
+                        textX = Math.min(centerTextX, maxTextRight - textWidth);
+                    }
+                    case RIGHT -> textX = Math.min(buttonWidth - textWidth - 4, maxTextRight - textWidth);
+                }
+            }
+            case CENTER -> {
+                if (textAlignment.get() == ETextAlignment.CENTER) {
+                    int totalWidth = iconWidth + spacing + textWidth;
+                    int startX = (buttonWidth - totalWidth) / 2;
+
+                    iconX = startX;
+                    textX = iconX + iconWidth + spacing;
+                } else {
+                    switch (textAlignment.get()) {
+                        case LEFT -> textX = 4;
+                        case CENTER -> textX = buttonWidth / 2 - textWidth / 2;
+                        case RIGHT -> textX = buttonWidth - textWidth - 4;
+                    }
+
+                    int centerIconX = buttonWidth / 2 - iconWidth / 2;
+                    if (textX < centerIconX + iconWidth && textX + textWidth > centerIconX) {
+                        iconX = textX + textWidth + spacing;
+                        if (iconX + iconWidth > buttonWidth - 4) {
+                            iconX = textX - iconWidth - spacing;
+                            if (iconX < 4) {
+                                iconX = centerIconX;
+                            }
+                        }
+                    } else {
+                        iconX = centerIconX;
+                    }
+                }
+            }
+            default -> {
+                iconX = 4;
+                int textStartX = iconX + iconWidth + spacing;
+                textX = Math.max(textStartX, 4);
+            }
         }
+
+        if (hasIcon) {
+            iconSprite.render(graphics, iconX + offset, iconY + offset);
+        }
+
         GuiUtils.setTint(textColor.get());
-        GuiUtils.drawString(graphics, Minecraft.getInstance().font, width() / 2 + ((isMouseDown() || checked.get()) ? 1 : 0), height() / 2 + ((isMouseDown() || checked.get()) ? 1 : 0) - Minecraft.getInstance().font.lineHeight / 2, text.get(), enabled.get() ? DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR : DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR, ETextAlignment.CENTER, true);
+        GuiUtils.drawString(
+            graphics,
+            Minecraft.getInstance().font,
+            textX + offset,
+            textY + offset,
+            buttonText,
+            enabled.get() ? DragonLib.VANILLA_BUTTON_ACTIVE_FONT_COLOR : DragonLib.VANILLA_BUTTON_DISABLED_FONT_COLOR,
+            ETextAlignment.LEFT,
+            drawFontShadow.get()
+        );
+
         GuiUtils.resetTint();
     }
     

@@ -2,29 +2,24 @@ package de.mrjulsen.mcdragonlib.util.properties;
 
 public class BooleanProperty extends Property<Boolean> {
 
-    private final boolean falseWeakness;
+    /**
+     * Create a new BooleanProperty with the specified default and inheritance behavior.
+     *
+     * @param defaultValue the default boolean value for this property
+     */
+    public BooleanProperty(boolean defaultValue) {
+        super(defaultValue);
+    }
 
     /**
-     * Creates a new {@code BooleanProperty}.
-     * @param defaultValue The default value of the property, which can be restored if necessary.
-     * @param falseWeakness Indicates whether {@code false} values ​​should be preferred in the inheritance.
-     * In other words, if {@code falseWeakness} is set to {@code true} and either the
-     * user-defined value or the inherited value is {@code false}, the result will be {@code false}. If
-     * {@code falseWeakness} is set to {@code false}, the end result will be {@code true},
-     * if either the user-defined value or the inherited value is {@code true}.
+     * Toggle the locally stored boolean value and return the requested new value.
+     *
+     * <p>This delegates to {@link #set(Object)} with the negated current local value.
+     * The modification and after-change callbacks (if any) are applied as usual by {@code set}.</p>
+     *
+     * @return the new boolean value that was requested to be set
      */
-    public BooleanProperty(boolean defaultValue, boolean falseWeakness) {
-        super(defaultValue);
-        this.falseWeakness = falseWeakness;
-    }
-
-    @Override
-    public Boolean get() {
-        return shouldOverrideLocal() && getInheritedValue().orElse(false) != falseWeakness ? getInheritedValue().orElse(getValue()) : getValue();
-    }
-
-
     public boolean toggle() {
-        return set(!getValue());
+        return set(!get());
     }
 }

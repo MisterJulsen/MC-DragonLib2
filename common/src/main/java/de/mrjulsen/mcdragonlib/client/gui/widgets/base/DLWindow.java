@@ -33,7 +33,7 @@ public abstract class DLWindow extends DLGuiComponent {
     private boolean resizeBypass = false;
     
     public final Property<WindowPosition> windowSpawnPosition = new Property<>(WindowPosition.CUSTOM); 
-    public final BooleanProperty fullscreen = new BooleanProperty(false, false)
+    public final BooleanProperty fullscreen = new BooleanProperty(false)
         .withAfterPropertyChangedCallback((o, n) -> {
             if (n) {
                 resizeBypass = true;
@@ -49,9 +49,9 @@ public abstract class DLWindow extends DLGuiComponent {
             }
         });
         
-    public final BooleanProperty topLevel = new BooleanProperty(false, false);
-    public final BooleanProperty focusOnSpawn = new BooleanProperty(true, false);
-    public final BooleanProperty pauseGame = new BooleanProperty(false, false);
+    public final BooleanProperty topLevel = new BooleanProperty(false);
+    public final BooleanProperty focusOnSpawn = new BooleanProperty(true);
+    public final BooleanProperty pauseGame = new BooleanProperty(false);
 
 
     private ModalId modal;
@@ -137,7 +137,7 @@ public abstract class DLWindow extends DLGuiComponent {
 
     public static <T extends DLWindow> T openWindow(WindowBuilder<T> builder) {
         AtomicReference<T> window = new AtomicReference<>(null);
-        DLScreenWrapper<?> wrapper = new DLScreenWrapper<>(null, (mgr) -> {
+        DLScreen<?> wrapper = new DLScreen<>(null, (mgr) -> {
             T win = builder.build(mgr);
             window.set(win);
             return win;
@@ -148,7 +148,7 @@ public abstract class DLWindow extends DLGuiComponent {
 
     public static void closeWindow() {
         Screen screen = Minecraft.getInstance().screen;
-        if (screen instanceof DLScreenWrapper wrapper) {
+        if (screen instanceof DLScreen wrapper) {
             wrapper.getWindowManager().close();
         } else {
             Minecraft.getInstance().setScreen(null);

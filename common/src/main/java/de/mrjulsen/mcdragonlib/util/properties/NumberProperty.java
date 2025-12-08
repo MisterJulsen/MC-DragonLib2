@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public class NumberProperty<T extends Number & Comparable<T>> extends Property<T> {
+    private static final double MAX_DOUBLE = Double.MAX_VALUE / 2D;
+
     private final Supplier<T> minSupplier;
     private final Supplier<T> maxSupplier;
     private final T minValue;
@@ -51,9 +53,9 @@ public class NumberProperty<T extends Number & Comparable<T>> extends Property<T
 
     private static <E extends Number> E findMinBound(E typeInstance) {
         if (typeInstance instanceof Integer) return (E) Integer.valueOf(Integer.MIN_VALUE);
-        if (typeInstance instanceof Double) return (E) Double.valueOf(Double.NEGATIVE_INFINITY);
+        if (typeInstance instanceof Double) return (E) Double.valueOf(-MAX_DOUBLE);
         if (typeInstance instanceof Long) return (E) Long.valueOf(Long.MIN_VALUE);
-        if (typeInstance instanceof Float) return (E) Float.valueOf(Float.NEGATIVE_INFINITY);
+        if (typeInstance instanceof Float) return (E) Float.valueOf(Float.MIN_VALUE);
         if (typeInstance instanceof Short) return (E) Short.valueOf(Short.MIN_VALUE);
         if (typeInstance instanceof Byte) return (E) Byte.valueOf(Byte.MIN_VALUE);
         if (typeInstance instanceof BigInteger || typeInstance instanceof BigDecimal) {
@@ -64,9 +66,9 @@ public class NumberProperty<T extends Number & Comparable<T>> extends Property<T
 
     private static <E extends Number> E findMaxBound(E typeInstance) {
         if (typeInstance instanceof Integer) return (E) Integer.valueOf(Integer.MAX_VALUE);
-        if (typeInstance instanceof Double) return (E) Double.valueOf(Double.POSITIVE_INFINITY);
+        if (typeInstance instanceof Double) return (E) Double.valueOf(MAX_DOUBLE);
         if (typeInstance instanceof Long) return (E) Long.valueOf(Long.MAX_VALUE);
-        if (typeInstance instanceof Float) return (E) Float.valueOf(Float.POSITIVE_INFINITY);
+        if (typeInstance instanceof Float) return (E) Float.valueOf(Float.MAX_VALUE);
         if (typeInstance instanceof Short) return (E) Short.valueOf(Short.MAX_VALUE);
         if (typeInstance instanceof Byte) return (E) Byte.valueOf(Byte.MAX_VALUE);
         if (typeInstance instanceof BigInteger || typeInstance instanceof BigDecimal) {

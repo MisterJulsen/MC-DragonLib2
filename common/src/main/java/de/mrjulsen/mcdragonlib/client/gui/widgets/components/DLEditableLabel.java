@@ -14,7 +14,6 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
-import de.mrjulsen.mcdragonlib.util.properties.InheritableProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 @SupportsEvents({
@@ -32,11 +31,10 @@ public class DLEditableLabel extends DLGuiComponent {
     public final Property<String> text = new Property<>("");
     public final ColorProperty textColor = new ColorProperty(DLColor.UNDEFINED, DLColor.WHITE)
         .withAfterPropertyChangedCallback((o, a) -> invokeEvent(this, new DLEditableLabel.TextColorChangedEvent(a), true));
-    @InheritableProperty(overrideLocal = false)
-    public final BooleanProperty drawFontShadow = new BooleanProperty(false, true);
+    public final BooleanProperty drawFontShadow = new BooleanProperty(false);
     public final Property<Padding> padding = new Property<Padding>(new Padding(1));
 
-    public final BooleanProperty editable = new BooleanProperty(true, false);
+    public final BooleanProperty editable = new BooleanProperty(true);
 
 
     protected final DLRichTextEditBox editBox;

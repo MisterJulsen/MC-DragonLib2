@@ -16,196 +16,142 @@ import de.mrjulsen.mcdragonlib.events.IEvent.NotCancellable;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 
 /**
- * A collection of all standard GUI events, which are supported and implemented
- * by all Dragonlib GUI Components {@link DLGuiComponent}.
+ * A container of standard GUI event types used across DragonLib components.
+ *
+ * <p>Each nested public {@code record} represents a specific GUI event payload
+ * dispatched by DLGuiComponent and related classes. These records are simple,
+ * immutable DTOs intended for the event system and should contain all state
+ * required by event listeners.</p>
+ *
+ * <p>This class is non-instantiable and only provides the event record types.</p>
  */
 public final class DLGuiStandardEvents {
     private DLGuiStandardEvents() {
     }
 
     /**
-     * Represents an event triggered when a mouse button is pressed on a component.
-     * <p>
-     * This event is fired only once at the moment of the press, not continuously
-     * while the button remains held down. For continuous detection, use
-     * {@link MouseHoldDownEvent}.
-     * </p>
+     * Event fired when a mouse button is initially pressed on a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param button the mouse button that was pressed
+     * <p>Listeners receive the local mouse coordinates (relative to the component)
+     * and the button index that was pressed.</p>
+     *
+     * @param mouseX the local x coordinate where the press occurred
+     * @param mouseY the local y coordinate where the press occurred
+     * @param button the mouse button index (platform-specific)
      */
     public record MouseDownEvent(double mouseX, double mouseY, int button) implements IEvent {
     }
 
     /**
-     * Represents an event triggered while a mouse button is being held down
-     * on a component.
-     * <p>
-     * This event has an initial delay of
-     * {@link DLGuiComponent#MOUSE_DOWN_INITIAL_DELAY} ticks after the first
-     * trigger,
-     * as is common in many GUI frameworks. After the delay, the event is fired
-     * once per tick for as long as the button remains pressed.
-     * </p>
+     * Event fired repeatedly while a mouse button is held down on a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param button the mouse button being held down
-     * @param ticks  the number of ticks the button has been held down for
+     * <p>The event is fired once per tick after an initial delay as defined by
+     * {@link de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent#MOUSE_DOWN_INITIAL_DELAY}.</p>
+     *
+     * @param mouseX the current local x coordinate of the mouse
+     * @param mouseY the current local y coordinate of the mouse
+     * @param button the mouse button index being held
+     * @param ticks  number of ticks the button has been held so far
      */
     public record MouseHoldDownEvent(double mouseX, double mouseY, int button, int ticks) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the mouse enters the bounds of a
-     * component.
-     * <p>
-     * This event provides the local mouse position at the moment the cursor
-     * crosses into the component's area.
-     * </p>
+     * Event fired when the mouse cursor enters a component's interactive area.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the local x coordinate at entry time
+     * @param mouseY the local y coordinate at entry time
      */
     public record MouseEnterEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the mouse leaves the bounds of a
-     * component.
-     * <p>
-     * This event provides the local mouse position at the moment the cursor
-     * exits the component's area.
-     * </p>
+     * Event fired when the mouse cursor leaves a component's interactive area.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the local x coordinate at exit time
+     * @param mouseY the local y coordinate at exit time
      */
     public record MouseLeaveEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the mouse is moved within the bounds
-     * of a component.
-     * <p>
-     * This event provides the current local mouse position relative to the
-     * component.
-     * </p>
+     * Event fired when the mouse is moved within a component's interactive area.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the current local x coordinate of the mouse
+     * @param mouseY the current local y coordinate of the mouse
      */
     public record MouseMoveEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the mouse button is released
-     * after being pressed on a component.
-     * <p>
-     * This event provides the local mouse position and the button
-     * that was released.
-     * </p>
+     * Event fired when a mouse button is released over a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param button the mouse button that was released
+     * @param mouseX the local x coordinate where the release occurred
+     * @param mouseY the local y coordinate where the release occurred
+     * @param button the mouse button index that was released
      */
     public record MouseReleaseEvent(double mouseX, double mouseY, int button) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when any mouse button is pressed
-     * on a component.
-     * <p>
-     * This event is similar to {@link ClickEvent}, but it is fired
-     * for every mouse button press, not just the left button.
-     * </p>
+     * Generic event fired for any mouse button press. Use {@link ClickEvent}
+     * for left-button convenience handling.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param button the mouse button that was pressed
+     * @param mouseX the local x coordinate of the press
+     * @param mouseY the local y coordinate of the press
+     * @param button the mouse button index that was pressed
      */
     public record MousePressedEvent(double mouseX, double mouseY, int button) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the left mouse button is pressed
-     * on a component.
-     * <p>
-     * This is a simplified version of {@link MousePressedEvent}.
-     * For right-click detection, see {@link RightClickEvent}.
-     * </p>
+     * Convenience event representing a left-click on a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the local x coordinate of the click
+     * @param mouseY the local y coordinate of the click
      */
     public record ClickEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the right mouse button is pressed
-     * on a component.
-     * <p>
-     * This is a simplified version of {@link MousePressedEvent}.
-     * For left-click detection, see {@link ClickEvent}.
-     * </p>
+     * Convenience event representing a right-click on a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the local x coordinate of the right-click
+     * @param mouseY the local y coordinate of the right-click
      */
     public record RightClickEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when a mouse button is clicked
-     * multiple times in succession.
-     * <p>
-     * This event can be used for double-click detection, but also supports
-     * higher click counts such as triple-clicks.
-     * </p>
+     * Event for multiple successive clicks (e.g. double- or triple-click).
      *
-     * @param mouseX     the local x-coordinate of the mouse on the component
-     * @param mouseY     the local y-coordinate of the mouse on the component
-     * @param button     the mouse button that was clicked
-     * @param clickCount the number of consecutive clicks performed
+     * @param mouseX     the local x coordinate of the click
+     * @param mouseY     the local y coordinate of the click
+     * @param button     the mouse button index used
+     * @param clickCount the number of consecutive clicks detected
      */
     public record MultiClickEvent(double mouseX, double mouseY, int button, byte clickCount) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the user scrolls with the mouse wheel
-     * over a component.
-     * <p>
-     * This event provides the local mouse position and the scroll delta values
-     * along both the x and y axes.
-     * </p>
+     * Event fired when the mouse wheel (or equivalent) is scrolled over a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param deltaX the scroll delta along the x-axis
-     * @param deltaY the scroll delta along the y-axis
+     * @param mouseX the local x coordinate of the cursor during scroll
+     * @param mouseY the local y coordinate of the cursor during scroll
+     * @param deltaX the horizontal scroll delta
+     * @param deltaY the vertical scroll delta
      */
     public record ScrollEvent(double mouseX, double mouseY, double deltaX, double deltaY) implements IEvent {
     }
 
     /**
-     * Represents an event that is triggered on every game tick.
-     * <p>
-     * This event can be used to perform periodic updates such as animations,
-     * physics calculations, or other time-based logic.
-     * </p>
+     * Event fired once per engine/work loop tick for components that require periodic updates.
      */
     public record TickEvent() implements IEvent {
     }
 
     /**
-     * Represents an event triggered when a new child component is added
-     * to a parent component.
-     * <p>
-     * This event provides access to the newly added component, allowing
-     * initialization or layout adjustments.
-     * </p>
+     * Event fired after a child component was added to a parent.
      *
      * @param child the component that was added
      */
@@ -213,12 +159,7 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when a child component is removed
-     * from a parent component.
-     * <p>
-     * This event provides access to the removed component, allowing cleanup
-     * or updates to the parent layout.
-     * </p>
+     * Event fired after a child component was removed from a parent.
      *
      * @param child the component that was removed
      */
@@ -226,52 +167,37 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when the focus state of a component changes.
-     * <p>
-     * This event indicates whether the component has gained or lost focus,
-     * which can be used to update visuals or handle input accordingly.
-     * </p>
+     * Event indicating a change of focus state for a component.
      *
-     * @param focus {@code true} if the component gained focus,
-     *              {@code false} if it lost focus
+     * @param focus true when the component gained focus, false when it lost focus
      */
     public record FocusChangedEvent(boolean focus) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the user begins dragging the mouse
-     * over a component.
-     * <p>
-     * This event provides the local mouse position and the button used
-     * to initiate the drag.
-     * </p>
+     * Event fired when the user begins dragging with a mouse button over a component.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
-     * @param button the mouse button used to start dragging
+     * @param mouseX the local x coordinate where the drag began
+     * @param mouseY the local y coordinate where the drag began
+     * @param button the mouse button index initiating the drag
      */
     public record DragBeginEvent(double mouseX, double mouseY, int button) implements IEvent {
     }
 
     /**
-     * Represents an event triggered while the user is dragging the mouse
-     * over a component.
-     * <p>
-     * This event provides both the current mouse position and the origin
-     * of the drag in screen and local coordinates, as well as the drag offset.
-     * </p>
+     * Event fired continuously while a drag operation is active.
      *
-     * @param mouseX             the current local x-coordinate of the mouse
-     * @param mouseY             the current local y-coordinate of the mouse
-     * @param button             the mouse button used for dragging
-     * @param screenMouseOriginX the initial screen x-coordinate where dragging
-     *                           began
-     * @param screenMouseOriginY the initial screen y-coordinate where dragging
-     *                           began
-     * @param localMouseOriginX  the initial local x-coordinate where dragging began
-     * @param localMouseOriginY  the initial local y-coordinate where dragging began
-     * @param dragX              the horizontal offset of the drag since it began
-     * @param dragY              the vertical offset of the drag since it began
+     * <p>Provides both screen and local origins plus the current drag offsets.</p>
+     *
+     * @param mouseX             current local mouse x
+     * @param mouseY             current local mouse y
+     * @param button             mouse button index performing the drag
+     * @param screenMouseOriginX screen-space x where the drag began
+     * @param screenMouseOriginY screen-space y where the drag began
+     * @param localMouseOriginX  local-space x where the drag began
+     * @param localMouseOriginY  local-space y where the drag began
+     * @param dragX              current horizontal drag offset
+     * @param dragY              current vertical drag offset
      */
     public record DragEvent(
             double mouseX,
@@ -286,22 +212,15 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when the user ends a mouse drag
-     * over a component.
-     * <p>
-     * This event provides the final mouse position and the origin
-     * of the drag in both screen and local coordinates.
-     * </p>
+     * Event fired when a drag operation ends over a component.
      *
-     * @param mouseX             the final local x-coordinate of the mouse
-     * @param mouseY             the final local y-coordinate of the mouse
-     * @param button             the mouse button used for dragging
-     * @param screenMouseOriginX the initial screen x-coordinate where dragging
-     *                           began
-     * @param screenMouseOriginY the initial screen y-coordinate where dragging
-     *                           began
-     * @param localMouseOriginX  the initial local x-coordinate where dragging began
-     * @param localMouseOriginY  the initial local y-coordinate where dragging began
+     * @param mouseX             final local mouse x
+     * @param mouseY             final local mouse y
+     * @param button             mouse button index used for dragging
+     * @param screenMouseOriginX screen-space x where drag began
+     * @param screenMouseOriginY screen-space y where drag began
+     * @param localMouseOriginX  local-space x where drag began
+     * @param localMouseOriginY  local-space y where drag began
      */
     public record DragEndEvent(
             double mouseX,
@@ -314,75 +233,52 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Triggered when a key is pressed on the keyboard.
-     * <p>
-     * This event provides information about the key code, the hardware scan code,
-     * and any active modifier keys at the time of the press.
-     * </p>
+     * Keyboard key-press event providing key code, hardware scan code and modifiers.
      *
-     * @param keyCode   the virtual key code representing the key pressed
-     * @param scanCode  the hardware-dependent scan code of the key
-     * @param modifiers a bitmask representing active modifier keys (e.g. Shift,
-     *                  Ctrl, Alt)
+     * @param keyCode  platform-independent key code
+     * @param scanCode hardware scan code
+     * @param modifiers bitmask of active modifier keys (Shift, Ctrl, Alt, etc.)
      */
     public record KeyPressEvent(int keyCode, int scanCode, int modifiers) implements IEvent {
     }
 
     /**
-     * Triggered when a key is released on the keyboard.
-     * <p>
-     * This event provides information about the key code, the hardware scan code,
-     * and any active modifier keys at the time of the release.
-     * </p>
+     * Keyboard key-release event providing key code, hardware scan code and modifiers.
      *
-     * @param keyCode   the virtual key code representing the key released
-     * @param scanCode  the hardware-dependent scan code of the key
-     * @param modifiers a bitmask representing active modifier keys (e.g. Shift,
-     *                  Ctrl, Alt)
+     * @param keyCode  platform-independent key code
+     * @param scanCode hardware scan code
+     * @param modifiers bitmask of active modifier keys
      */
     public record KeyReleaseEvent(int keyCode, int scanCode, int modifiers) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when a character is typed.
-     * <p>
-     * This event provides the Unicode code point of the typed character
-     * along with any active modifier keys at the time of typing.
-     * </p>
+     * Character typing event delivering a Unicode code point and active modifiers.
      *
-     * @param codePoint the Unicode character that was typed
-     * @param modifiers a bitmask representing active modifier keys (e.g., Shift,
-     *                  Ctrl, Alt)
+     * @param codePoint the typed character
+     * @param modifiers bitmask of active modifier keys
      */
     public record CharTypeEvent(char codePoint, int modifiers) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the user begins resizing a component.
-     * <p>
-     * This event provides the local mouse position at the start of the resize
-     * action.
-     * </p>
+     * Event fired when a resize operation is started by the user.
      *
-     * @param mouseX the local x-coordinate of the mouse on the component
-     * @param mouseY the local y-coordinate of the mouse on the component
+     * @param mouseX the local x coordinate where the resize was initiated
+     * @param mouseY the local y coordinate where the resize was initiated
      */
     public record ResizeBeginEvent(double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered while the user is resizing a component.
-     * <p>
-     * This event provides the current mouse position along with the new
-     * position and dimensions of the component being resized.
-     * </p>
+     * Event fired while a component is being resized by the user.
      *
-     * @param mouseX    the current local x-coordinate of the mouse
-     * @param mouseY    the current local y-coordinate of the mouse
-     * @param newX      the new x-coordinate of the component after resizing
-     * @param newY      the new y-coordinate of the component after resizing
-     * @param newWidth  the new width of the component after resizing
-     * @param newHeight the new height of the component after resizing
+     * @param mouseX    current local mouse x
+     * @param mouseY    current local mouse y
+     * @param newX      proposed new x position for the component
+     * @param newY      proposed new y position for the component
+     * @param newWidth  proposed new width for the component
+     * @param newHeight proposed new height for the component
      */
     public record ResizeEvent(
             double mouseX,
@@ -394,20 +290,18 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when the user finishes resizing a component.
-     * <p>
-     * This event provides the final mouse position, the new position and dimensions
-     * of the component, and a flag that can be used to cancel the resize operation.
-     * </p>
+     * Event fired when a user completes a resize operation.
      *
-     * @param mouseX    the final local x-coordinate of the mouse
-     * @param mouseY    the final local y-coordinate of the mouse
-     * @param newX      the new x-coordinate of the component after resizing
-     * @param newY      the new y-coordinate of the component after resizing
-     * @param newWidth  the new width of the component after resizing
-     * @param newHeight the new height of the component after resizing
-     * @param cancel    a mutable flag that can be set to {@code true} to cancel the
-     *                  resize
+     * <p>Includes a mutable {@link MutableBoolean} cancel flag that listeners can set
+     * to true to prevent the resize from being applied.</p>
+     *
+     * @param mouseX    final local mouse x
+     * @param mouseY    final local mouse y
+     * @param newX      final proposed x position
+     * @param newY      final proposed y position
+     * @param newWidth  final proposed width
+     * @param newHeight final proposed height
+     * @param cancel    mutable flag to cancel the resize if set to true
      */
     public record ResizeEndEvent(
             double mouseX,
@@ -420,19 +314,19 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Triggered when the component's position and size values have changed.
-     * This event is similar to {@link ResizeEndEvent}, except that
-     * {@link ResizeEndEvent}
-     * is only triggered by user interactions, while this event reacts purely to
-     * changes
-     * in the values. The event is executed by calling {@link DLGuiComponent#setX},
-     * {@link DLGuiComponent#setY}, {@link DLGuiComponent#setWidth} and
-     * {@link DLGuiComponent#setHeight}.
-     * 
-     * @param newX      The new local x position on the parent component.
-     * @param newY      The new local y position on the parent component.
-     * @param newWidth  The new width.
-     * @param newHeight The new height.
+     * Event fired when the internal values representing position and size change.
+     *
+     * <p>This event is triggered by programmatic calls to setters (setX/setY/setWidth/setHeight),
+     * not only by user interaction.</p>
+     *
+     * @param oldX old local x position
+     * @param newX new local x position
+     * @param oldY old local y position
+     * @param newY new local y position
+     * @param oldWidth old width
+     * @param newWidth new width
+     * @param oldHeight old height
+     * @param newHeight new height
      */
     public record ComponentPosAndSizeChanged(int oldX, int newX, int oldY, int newY, int oldWidth, int newWidth,
             int oldHeight, int newHeight) implements IEvent {
@@ -462,39 +356,28 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when the user begins dragging a component.
-     * <p>
-     * This event provides the local mouse position, the button used to initiate
-     * the drag, and the list of components currently being dragged over.
-     * </p>
+     * Event fired when a component is being dragged by the user (component-as-drag-source).
      *
-     * @param mouseX                the local x-coordinate of the mouse on the
-     *                              component
-     * @param mouseY                the local y-coordinate of the mouse on the
-     *                              component
-     * @param button                the mouse button used to start dragging
-     * @param draggedOverComponents the components currently being dragged over
+     * @param mouseX                the current local mouse x
+     * @param mouseY                the current local mouse y
+     * @param button                the mouse button index used to drag
+     * @param draggedOverComponents list of components currently being hovered by the dragged item
      */
     public record DragComponentBeginEvent(double mouseX, double mouseY, int button,
             List<DLGuiComponent> draggedOverComponents) implements IEvent {
     }
 
     /**
-     * Represents an event triggered while a component is being dragged.
-     * <p>
-     * This event provides the current mouse position, the new position of the
-     * dragged component, the drag offset, and the list of components being dragged
-     * over.
-     * </p>
+     * Event fired repeatedly while a component is being dragged (as source).
      *
-     * @param mouseX                the current local x-coordinate of the mouse
-     * @param mouseY                the current local y-coordinate of the mouse
-     * @param button                the mouse button used for dragging
-     * @param newX                  the new x-coordinate of the dragged component
-     * @param newY                  the new y-coordinate of the dragged component
-     * @param dragX                 the horizontal offset of the drag since it began
-     * @param dragY                 the vertical offset of the drag since it began
-     * @param draggedOverComponents the components currently being dragged over
+     * @param mouseX                the current local mouse x
+     * @param mouseY                the current local mouse y
+     * @param button                the mouse button index used
+     * @param newX                  the proposed new local x for the dragged component
+     * @param newY                  the proposed new local y for the dragged component
+     * @param dragX                 horizontal drag offset
+     * @param dragY                 vertical drag offset
+     * @param draggedOverComponents list of components currently under the dragged element
      */
     public record DragComponentEvent(double mouseX, double mouseY, int button, int newX, int newY,
             double dragX, double dragY,
@@ -502,202 +385,162 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered when the user ends dragging a component.
-     * <p>
-     * This event provides the final mouse position, the new position of the
-     * dragged component, the list of components dragged over, and a flag that
-     * can be used to cancel the drop.
-     * </p>
+     * Event fired when a component drag operation ends; may be used to drop onto targets.
      *
-     * @param mouseX                the final local x-coordinate of the mouse
-     * @param mouseY                the final local y-coordinate of the mouse
-     * @param button                the mouse button used for dragging
-     * @param newX                  the new x-coordinate of the dragged component
-     * @param newY                  the new y-coordinate of the dragged component
-     * @param draggedOverComponents the components that were dragged over
-     * @param cancel                a mutable flag that can be set to {@code true}
-     *                              to cancel the drop
+     * @param mouseX                final local mouse x
+     * @param mouseY                final local mouse y
+     * @param button                mouse button index used for dragging
+     * @param newX                  final local x position proposed for the dragged component
+     * @param newY                  final local y position proposed for the dragged component
+     * @param draggedOverComponents components that were under the dragged component at drop time
+     * @param cancel                mutable flag that can be set to true to cancel the drop action
      */
     public record DragComponentEndEvent(double mouseX, double mouseY, int button, int newX, int newY,
             List<DLGuiComponent> draggedOverComponents, MutableBoolean cancel) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the dragged components first enter
-     * the bounds of this component.
+     * Event fired when an external drag operation enters this component's bounds.
      *
-     * @param other  the components being entered
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
-     * @param button the mouse button used for dragging
+     * @param other  components being dragged over this component
+     * @param mouseX local mouse x at the event moment
+     * @param mouseY local mouse y at the event moment
+     * @param button mouse button used for dragging
      */
     public record DragComponentOverBeginEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button)
             implements IEvent {
     }
 
     /**
-     * Represents an event triggered while the dragged components are over
-     * this component.
+     * Event fired continuously while external dragged components are over this component.
      *
-     * @param other  the components currently being hovered over
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
-     * @param button the mouse button used for dragging
+     * @param other  components currently over this component
+     * @param mouseX local mouse x
+     * @param mouseY local mouse y
+     * @param button mouse button used
      */
     public record DragComponentOverEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button)
             implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the dragged components leave
-     * the bounds of this component.
+     * Event fired when external dragged components leave this component's bounds.
      *
-     * @param other  the components being exited
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
-     * @param button the mouse button used for dragging
+     * @param other  components leaving this component
+     * @param mouseX local mouse x at the event moment
+     * @param mouseY local mouse y at the event moment
+     * @param button mouse button used for dragging
      */
     public record DragComponentOverEndEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button)
             implements IEvent {
     }
 
     /**
-     * Represents an event triggered while this component is being dragged
-     * over other components.
+     * Event fired while a component is being dragged over several targets; a more generic variant.
      *
-     * @param other  the components currently being hovered over
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
-     * @param button the mouse button used for dragging
+     * @param other  components currently being hovered
+     * @param mouseX local mouse x
+     * @param mouseY local mouse y
+     * @param button mouse button used
      */
     public record DraggingOverEvent(List<DLGuiComponent> other, double mouseX, double mouseY, int button)
             implements IEvent {
     }
 
     /**
-     * Represents an event triggered when a dragged component is dropped
-     * onto this component.
+     * Event indicating a component has been dropped onto another component.
      *
-     * @param other  the component onto which the dragged component was dropped
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
+     * @param other  the dropped component target
+     * @param mouseX local mouse x at drop time
+     * @param mouseY local mouse y at drop time
      */
     public record DropComponentEvent(DLGuiComponent other, double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when files are dragged and dropped
-     * onto a component.
+     * Event representing a list of file system paths dropped onto a component.
      *
-     * @param paths  the list of file paths that were dropped
-     * @param mouseX the local x-coordinate of the mouse
-     * @param mouseY the local y-coordinate of the mouse
+     * @param paths  the dropped file paths
+     * @param mouseX local mouse x at drop time
+     * @param mouseY local mouse y at drop time
      */
     public record DragAndDropFilesEvent(List<Path> paths, double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the visibility of a component changes.
-     * <p>
-     * This event indicates whether the component has become visible or hidden.
-     * </p>
+     * Event indicating visibility has changed for a component.
      *
-     * @param visible {@code true} if the component is now visible,
-     *                {@code false} if it is hidden
+     * @param visible true when the component became visible; false when hidden
      */
     public record VisibilityChangedEvent(boolean visible) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the enabled state of a component changes.
-     * <p>
-     * This event indicates whether the component has been enabled or disabled.
-     * </p>
+     * Event indicating the enabled state of a component changed.
      *
-     * @param enabled {@code true} if the component is enabled,
-     *                {@code false} if it is disabled
+     * @param enabled true when the component is enabled; false when disabled
      */
     public record EnabledChangedEvent(boolean enabled) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the resizable state of a component
-     * changes.
-     * <p>
-     * This event indicates whether the component can be resized.
-     * </p>
+     * Event indicating whether a component became resizable or not.
      *
-     * @param resizable {@code true} if the component is resizable,
-     *                  {@code false} otherwise
+     * @param resizable true when the component is resizable
      */
     public record ResizableChangedEvent(boolean resizable) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the movable state of a component changes.
-     * <p>
-     * This event indicates whether the component can be moved.
-     * </p>
+     * Event indicating whether a component became movable or not.
      *
-     * @param movable {@code true} if the component is movable,
-     *                {@code false} otherwise
+     * @param movable true when the component is movable
      */
     public record MovableChangedEvent(boolean movable) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the layout of a component is updated.
-     * <p>
-     * This event is not cancellable and provides the phase of the update process.
-     * </p>
+     * Non-cancellable event used to indicate the start/finish of a screen layout update.
      *
-     * @param order the phase of the layout update
+     * @param order the phase (PRE/POST) of the layout update
      */
     @NotCancellable
     public record ScreenLayoutUpdatedEvent(Phase order) implements IEvent {
     }
     
+    /**
+     * Non-cancellable event containing the result produced by a layout manager arrange operation.
+     *
+     * @param layoutResult the computed layout result
+     */
     @NotCancellable
     public record ComponentLayoutUpdatedEvent(LayoutResult layoutResult) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when all child components of a parent
-     * are cleared.
-     * <p>
-     * This event provides the phase of the clearing process and a flag
-     * that can be used to cancel the operation.
-     * </p>
+     * Event fired during clearing of children. Includes a phase and a mutable cancel flag.
      *
-     * @param order  the phase of the clearing process
-     * @param cancel a mutable flag that can be set to {@code true} to cancel the
-     *               operation
+     * @param order the phase of the clear operation (PRE/POST)
+     * @param cancel mutable flag that can be set to true to abort during PRE phase
      */
     public record ComponentsClearEvent(Phase order, MutableBoolean cancel) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the parent of a component changes.
-     * <p>
-     * This event provides both the old and new parent components, if present.
-     * </p>
+     * Event fired when a component's parent reference changes.
      *
-     * @param oldParent the previous parent component, or empty if none
-     * @param newParent the new parent component, or empty if none
+     * @param oldParent optional previous parent
+     * @param newParent optional new parent
      */
     public record ParentChangedEvent(Optional<DLGuiComponent> oldParent, Optional<DLGuiComponent> newParent)
             implements IEvent {
     }
 
     /**
-     * Represents an event triggered when the window manager of a component changes.
-     * <p>
-     * This event is not cancellable and provides both the old and new window
-     * managers.
-     * </p>
+     * Non-cancellable event notifying listeners of a change to a component's window manager assignment.
      *
-     * @param oldWindowManager the previous window manager
-     * @param newWindowManager the new window manager
+     * @param oldWindowManager previous manager (may be null)
+     * @param newWindowManager new manager (may be null)
      */
     @NotCancellable
     public record WindowManagerChangeEvent(DLWindowManager oldWindowManager, DLWindowManager newWindowManager)
@@ -705,65 +548,57 @@ public final class DLGuiStandardEvents {
     }
 
     /**
-     * Represents an event triggered before a component is rendered.
-     * <p>
-     * This event provides the graphics context, mouse position, render layer,
-     * and the bounds of the rendering area.
-     * </p>
+     * Event fired immediately before rendering a component (per-layer).
      *
-     * @param graphics     the graphics context used for rendering
-     * @param mouseX       the current local x-coordinate of the mouse
-     * @param mouseY       the current local y-coordinate of the mouse
-     * @param layer        the render layer being drawn
-     * @param renderBounds the bounds of the rendering area
+     * @param graphics     the graphics context used to draw
+     * @param mouseX       the current local mouse x (subject to scroll/scale)
+     * @param mouseY       the current local mouse y (subject to scroll/scale)
+     * @param layer        the render layer currently being processed
+     * @param renderBounds clipping bounds for this render pass
      */
     public record RenderPreEvent(DLGuiGraphics graphics, double mouseX, double mouseY,
             RenderLayer layer, Rectangle renderBounds) implements IEvent {
     }
 
     /**
-     * Represents an event triggered during the rendering of a component.
-     * <p>
-     * This event provides the graphics context, mouse position, render layer,
-     * and the bounds of the rendering area.
-     * </p>
+     * Event fired while a render layer is being processed for a component.
      *
-     * @param graphics     the graphics context used for rendering
-     * @param mouseX       the current local x-coordinate of the mouse
-     * @param mouseY       the current local y-coordinate of the mouse
+     * @param graphics     the graphics context used to draw
+     * @param mouseX       the current local mouse x
+     * @param mouseY       the current local mouse y
      * @param layer        the render layer being drawn
-     * @param renderBounds the bounds of the rendering area
+     * @param renderBounds clipping bounds for this render pass
      */
     public record RenderEvent(DLGuiGraphics graphics, double mouseX, double mouseY,
             RenderLayer layer, Rectangle renderBounds) implements IEvent {
     }
 
     /**
-     * Represents an event triggered after a component has been rendered.
-     * <p>
-     * This event provides the graphics context, mouse position, render layer,
-     * and the bounds of the rendering area.
-     * </p>
+     * Event fired after rendering of a layer has completed for a component.
      *
-     * @param graphics     the graphics context used for rendering
-     * @param mouseX       the current local x-coordinate of the mouse
-     * @param mouseY       the current local y-coordinate of the mouse
+     * @param graphics     the graphics context used to draw
+     * @param mouseX       the current local mouse x
+     * @param mouseY       the current local mouse y
      * @param layer        the render layer that was drawn
-     * @param renderBounds the bounds of the rendering area
+     * @param renderBounds clipping bounds that were applied
      */
     public record RenderPostEvent(DLGuiGraphics graphics, double mouseX, double mouseY,
             RenderLayer layer, Rectangle renderBounds) implements IEvent {
     }
 
-    
+    /**
+     * Event used for on-screen overlays rendering (tooltips, screen-space UI).
+     *
+     * @param graphics the graphics context
+     * @param mouseX current mouse x in screen space
+     * @param mouseY current mouse y in screen space
+     */
     public record RenderOnScreenEvent(DLGuiGraphics graphics, double mouseX, double mouseY) implements IEvent {
     }
 
     /**
-     * Represents an event triggered when a component or window is closed.
-     * <p>
-     * This event is not cancellable and indicates the termination of the component.
-     * </p>
+     * Non-cancellable event signalling that a component or window is being closed.
+     * Useful for cleanup and disposing of resources.
      */
     @NotCancellable
     public record CloseEvent() implements IEvent {
