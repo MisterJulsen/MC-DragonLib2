@@ -2,25 +2,39 @@ package de.mrjulsen.mcdragonlib.client.model.mesh;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.ber.BERGraphics;
 import de.mrjulsen.mcdragonlib.client.model.ModelUtils;
+import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class Face implements ITransformable<Face> {    
 
@@ -28,6 +42,8 @@ public class Face implements ITransformable<Face> {
     private final List<Edge> edges = Arrays.asList(new Edge[EdgeType.values().length]);
 
     private TextureAtlasSprite sprite;
+    private ResourceLocation texture;
+
     private DLColor color = DLColor.WHITE;
     private int tintIndex = -1;
     private Direction normalDirection;
@@ -278,6 +294,10 @@ public class Face implements ITransformable<Face> {
 
 
     private BakedQuad buildSingleQuad(FaceVertex[] specificCorners) {
+        if (getSprite().isEmpty()) {
+            throw new IllegalStateException("Cannot create BakedQuad without a texture sprite.");
+        }
+
         Vector3f normal = ModelUtils.fillNormal(specificCorners);
         Direction normalDir = Direction.getNearest(normal.x, normal.y, normal.z);
         int[] vertexData = new int[specificCorners.length * 8];
@@ -301,7 +321,7 @@ public class Face implements ITransformable<Face> {
             vertexData,
             getTintIndex(),
             hasOverrideNormalDirection() ? overrideNormalDirection : normalDir,
-            getTexture(),
+            getSprite().orElse(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(getTextureLocation())),
             isShade()
         );
     }
@@ -360,8 +380,12 @@ public class Face implements ITransformable<Face> {
 
     // --- FACE APPERANCE ---
 
-    public TextureAtlasSprite getTexture() {
-        return sprite;
+    public Optional<TextureAtlasSprite> getSprite() {
+        return Optional.ofNullable(sprite);
+    }
+
+    public ResourceLocation getTextureLocation() {
+        return getSprite().map(x -> x.contents().name()).orElse(texture);
     }
 
     public Direction getCullface() {
@@ -393,7 +417,15 @@ public class Face implements ITransformable<Face> {
     }
 
     public void setTexture(TextureAtlasSprite sprite) {
+        Objects.requireNonNull(sprite);
         this.sprite = sprite;
+        this.texture = null;
+    }
+
+    public void setTexture(ResourceLocation texture) {
+        Objects.requireNonNull(texture);
+        this.texture = texture;
+        this.sprite = null;
     }
 
     public void setRenderType(RenderType type) {
@@ -548,6 +580,136 @@ public class Face implements ITransformable<Face> {
         for (int i = 0; i < VERTEX_COUNT; i++) {
             int newIndex = (i + shift) % VERTEX_COUNT;
             corners.set(newIndex, original[i]);
+        }
+    }
+
+
+
+
+    private static int getBlockLight(int packedLight) {
+        return packedLight & 0xFFFF;
+    }
+
+    private static int getSkyLight(int packedLight) {
+        return (packedLight >> 16) & 0xFFFF;
+    }
+
+    public void render(DLGraphics graphics) {
+        render(graphics, graphics.packedLight(), OverlayTexture.NO_OVERLAY, isShade());
+    }
+
+    public void render(DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion) {
+        if (getSprite().isEmpty() && texture == null) {
+            return;
+        }
+
+        TextureAtlasSprite sprite = getSprite().orElse(null);
+        VertexConsumer consumer;
+        
+        if (sprite != null) {
+            consumer = graphics.multiBufferSource().getBuffer(this.renderType);
+        } else {
+            RenderType rt = this.renderType != null ? this.renderType : RenderType.entityCutout(texture);
+            consumer = graphics.multiBufferSource().getBuffer(rt);
+        }
+
+        if (checkIsPlanar()) {
+            FaceVertex[] quadVertices = corners.toArray(FaceVertex[]::new);
+            renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, quadVertices);
+        } else {
+            FaceVertex v0 = corners.get(0);
+            FaceVertex v1 = corners.get(1);
+            FaceVertex v2 = corners.get(2);
+            FaceVertex v3 = corners.get(3);
+
+            if (!useAlternateSplitLine) {
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v2, v2 });
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v2, v3, v3 });
+            } else {
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v3, v3 });
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v1, v2, v3, v3 });
+            }
+        }
+    }
+
+    private void renderQuad(VertexConsumer consumer, DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, @Nullable TextureAtlasSprite sprite, FaceVertex[] quadVertices) {
+        if (quadVertices.length != 4) {
+            return;
+        }
+
+        PoseStack.Pose lastPose = graphics.poseStack().last();
+        Matrix4f poseMatrix = lastPose.pose();
+        Matrix3f normalMatrix = lastPose.normal();
+
+        float atlasU0 = (sprite != null) ? sprite.getU0() : 0.0f;
+        float atlasV0 = (sprite != null) ? sprite.getV0() : 0.0f;
+        float atlasUWidth = (sprite != null) ? (sprite.getU1() - sprite.getU0()) : 1.0f;
+        float atlasVHeight = (sprite != null) ? (sprite.getV1() - sprite.getV0()) : 1.0f;
+
+        float r = color.getRedF();
+        float g = color.getGreenF();
+        float b = color.getBlueF();
+        float a = color.getAlphaF();
+
+        float[] brightness = { 1.0f, 1.0f, 1.0f, 1.0f };
+        int[] lightmap = { packedLight, packedLight, packedLight, packedLight };
+        
+        boolean isBERTransformed = graphics instanceof BERGraphics;
+
+        if (ambientOcclusion && Minecraft.getInstance().options.ambientOcclusion().get() && isBERTransformed) {
+            if (graphics instanceof BERGraphics<?> berGraphics && berGraphics.blockEntity() != null && berGraphics.blockEntity().getLevel() != null && berGraphics.blockEntity().getBlockPos() != null) {
+                try {
+                    ModelBlockRenderer.AmbientOcclusionFace ao = new ModelBlockRenderer.AmbientOcclusionFace();
+                    BlockAndTintGetter batg = berGraphics.blockEntity().getLevel();
+                    BlockPos pos = berGraphics.blockEntity().getBlockPos();
+                    
+                    float[] tempAfloat = new float[Direction.values().length * 2];
+                    BitSet tempBitSet = new BitSet(3);
+                    
+                    ao.calculate(batg, berGraphics.blockEntity().getBlockState(), pos, getFacingDirection(), tempAfloat, tempBitSet, true);
+
+                    for (int i = 0; i < 4; i++) {
+                        brightness[i] = ao.brightness[i];
+                        lightmap[i] = ao.lightmap[i];
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
+        
+        final float scaleXZ = isBERTransformed ? 16.0f : 1.0f;
+        final float scaleY = isBERTransformed ? 16.0f : 1.0f; 
+        
+        for (int i = 0; i < 4; i++) {
+            FaceVertex fv = quadVertices[i];
+            Vertex v = fv.getVertex();
+
+            DLColor vColor = v.getColor();
+            float finalR = r * brightness[i] * vColor.getRedF();
+            float finalG = g * brightness[i] * vColor.getGreenF();
+            float finalB = b * brightness[i] * vColor.getBlueF();
+            float finalA = a * vColor.getAlphaF();
+            
+            float finalU = atlasU0 + (fv.getU() * atlasUWidth);
+            float finalV = atlasV0 + (fv.getV() * atlasVHeight);
+
+            Vector3f pos = v.getPos();
+            
+            float correctedX = pos.x() * scaleXZ; 
+            float correctedZ = pos.z() * scaleXZ;
+            
+            float correctedY = isBERTransformed ? (1.0f - pos.y()) * scaleY : pos.y() * scaleY;
+            
+            consumer.vertex(poseMatrix, correctedX, correctedY, correctedZ);
+            consumer.color(finalR, finalG, finalB, finalA);
+            consumer.uv(finalU, finalV);
+            consumer.uv2(getBlockLight(lightmap[i]), getSkyLight(lightmap[i]));
+            consumer.overlayCoords(packedOverlay);
+            
+            Vector3f normal = v.getNormal();
+            consumer.normal(normalMatrix, normal.x(), normal.y(), normal.z());
+            
+            consumer.endVertex();
         }
     }
 

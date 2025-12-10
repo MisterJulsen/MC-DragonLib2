@@ -85,10 +85,10 @@ public class BasicMesh extends Mesh {
 
     public void swapTextures(ResourceLocation current, ResourceLocation newLocation) {
         for (Face face : faces) {
-            if (face.getTexture() == null) {
+            if (face.getTextureLocation() == null) {
                 continue;
             }
-            ResourceLocation loc = face.getTexture().contents().name();
+            ResourceLocation loc = face.getTextureLocation();
             if (!loc.equals(current)) {
                 continue;
             }

@@ -1,9 +1,5 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import org.joml.Vector3f;
-
-import com.mojang.math.Axis;
-
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
 import de.mrjulsen.mcdragonlib.client.model.mesh.BasicMesh;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
@@ -17,8 +13,7 @@ public class TestModel extends DLModel {
 
     @Override
     protected Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context) {
-        Mesh mesh = BasicMesh.fromBlock(Blocks.GOLD_BLOCK.defaultBlockState(), random);
-        mesh.rotate(Axis.YP.rotationDegrees(45), new Vector3f(0.5f));
+        Mesh mesh = BasicMesh.fromBlock(Blocks.MAGENTA_GLAZED_TERRACOTTA.defaultBlockState(), random);
         return mesh;
     }
     

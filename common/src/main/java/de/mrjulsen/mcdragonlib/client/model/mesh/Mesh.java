@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
-
 import de.mrjulsen.mcdragonlib.client.model.ModelUtils;
+import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import net.minecraft.core.Direction;
 
 public abstract class Mesh implements ITransformable<Mesh> {
@@ -165,6 +165,17 @@ public abstract class Mesh implements ITransformable<Mesh> {
             }
         }
         return builder.build();
+    }
+
+    
+
+
+    public void render(DLGraphics graphics) {
+        getFaces().forEach(face -> face.render(graphics));
+    }
+
+    public void render(DLGraphics graphics, int light, int overlay, boolean ambientOcclusion) {
+        getFaces().forEach(face -> face.render(graphics, light, overlay, ambientOcclusion));
     }
 }
 
