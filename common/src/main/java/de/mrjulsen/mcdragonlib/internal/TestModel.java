@@ -13,7 +13,7 @@ public class TestModel extends DLModel {
 
     @Override
     protected Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context) {
-        Mesh mesh = BasicMesh.fromBlock(Blocks.MAGENTA_GLAZED_TERRACOTTA.defaultBlockState(), random);
+        Mesh mesh = BasicMesh.fromBlock(Blocks.LECTERN.defaultBlockState(), random);
         return mesh;
     }
     

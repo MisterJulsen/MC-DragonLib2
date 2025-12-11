@@ -173,9 +173,12 @@ public abstract class Mesh implements ITransformable<Mesh> {
     public void render(DLGraphics graphics) {
         getFaces().forEach(face -> face.render(graphics));
     }
+    public void render(DLGraphics graphics, int light, boolean ambientOcclusion) {
+        getFaces().forEach(face -> face.render(graphics, light, ambientOcclusion));
+    }
 
-    public void render(DLGraphics graphics, int light, int overlay, boolean ambientOcclusion) {
-        getFaces().forEach(face -> face.render(graphics, light, overlay, ambientOcclusion));
+    public void render(DLGraphics graphics, int light, int overlay, boolean ambientOcclusion, boolean transformForBER) {
+        getFaces().forEach(face -> face.render(graphics, light, overlay, ambientOcclusion, transformForBER));
     }
 }
 

@@ -970,8 +970,11 @@ public class GuiUtils {
     public static void renderModel(DLGuiGraphics graphics, int x, int y, float scale, DLModel model, BlockState state, RenderType renderType, Matrix4f transformation, int light) {
         float s = scale * 16;
         Lighting.setupForFlatItems();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
         PoseStack stack = graphics.poseStack();
         stack.pushPose();
+        stack.scale(1, 1, -1);
         stack.translate((double)x, (double)y, 16 * (scale + 1));
         stack.mulPoseMatrix((new Matrix4f()).scaling((float)s, (float)s, (float)(s)));
         stack.mulPoseMatrix(transformation);
@@ -980,5 +983,7 @@ public class GuiUtils {
         buffersource.endBatch();
         stack.popPose();
         Lighting.setupFor3DItems();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
     }
 }

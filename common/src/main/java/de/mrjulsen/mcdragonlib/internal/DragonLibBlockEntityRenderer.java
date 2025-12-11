@@ -45,7 +45,7 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
     protected void renderBlock(BERGraphics<DragonLibBlockEntity> graphics, float partialTick) {
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(0, 0, 16.01f);
-        model.render(graphics, graphics.packedLight(), graphics.packedOverlay(), true);
+        model.render(graphics, graphics.packedLight(), true);
         RenderUtils.drawString(graphics, font, 0, 0, "Salz", DLColor.WHITE, ETextAlignment.LEFT, false);
         RenderUtils.renderTexture(DLUtils.resourceLocation("textures/block/crafting_table_front.png"), graphics, new Vector3f(), 1, 1, Direction.EAST,true);
         label.render(graphics);

@@ -595,10 +595,14 @@ public class Face implements ITransformable<Face> {
     }
 
     public void render(DLGraphics graphics) {
-        render(graphics, graphics.packedLight(), OverlayTexture.NO_OVERLAY, isShade());
+        render(graphics, graphics.packedLight(), OverlayTexture.NO_OVERLAY, isShade(), graphics instanceof BERGraphics);
     }
 
-    public void render(DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion) {
+    public void render(DLGraphics graphics, int light, boolean ambientOcclusion) {
+        render(graphics, light, OverlayTexture.NO_OVERLAY, ambientOcclusion, graphics instanceof BERGraphics);
+    }
+
+    public void render(DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, boolean transformForBER) {
         if (getSprite().isEmpty() && texture == null) {
             return;
         }
@@ -609,13 +613,12 @@ public class Face implements ITransformable<Face> {
         if (sprite != null) {
             consumer = graphics.multiBufferSource().getBuffer(this.renderType);
         } else {
-            RenderType rt = this.renderType != null ? this.renderType : RenderType.entityCutout(texture);
-            consumer = graphics.multiBufferSource().getBuffer(rt);
+            consumer = graphics.vertexConsumer(getTextureLocation());
         }
 
         if (checkIsPlanar()) {
             FaceVertex[] quadVertices = corners.toArray(FaceVertex[]::new);
-            renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, quadVertices);
+            renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, quadVertices, transformForBER);
         } else {
             FaceVertex v0 = corners.get(0);
             FaceVertex v1 = corners.get(1);
@@ -623,16 +626,16 @@ public class Face implements ITransformable<Face> {
             FaceVertex v3 = corners.get(3);
 
             if (!useAlternateSplitLine) {
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v2, v2 });
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v2, v3, v3 });
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v2, v2 }, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v2, v3, v3 }, transformForBER);
             } else {
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v3, v3 });
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v1, v2, v3, v3 });
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v3, v3 }, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v1, v2, v3, v3 }, transformForBER);
             }
         }
     }
 
-    private void renderQuad(VertexConsumer consumer, DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, @Nullable TextureAtlasSprite sprite, FaceVertex[] quadVertices) {
+    private void renderQuad(VertexConsumer consumer, DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, @Nullable TextureAtlasSprite sprite, FaceVertex[] quadVertices, boolean transformForBER) {
         if (quadVertices.length != 4) {
             return;
         }
@@ -654,9 +657,7 @@ public class Face implements ITransformable<Face> {
         float[] brightness = { 1.0f, 1.0f, 1.0f, 1.0f };
         int[] lightmap = { packedLight, packedLight, packedLight, packedLight };
         
-        boolean isBERTransformed = graphics instanceof BERGraphics;
-
-        if (ambientOcclusion && Minecraft.getInstance().options.ambientOcclusion().get() && isBERTransformed) {
+        if (ambientOcclusion && Minecraft.getInstance().options.ambientOcclusion().get()) {
             if (graphics instanceof BERGraphics<?> berGraphics && berGraphics.blockEntity() != null && berGraphics.blockEntity().getLevel() != null && berGraphics.blockEntity().getBlockPos() != null) {
                 try {
                     ModelBlockRenderer.AmbientOcclusionFace ao = new ModelBlockRenderer.AmbientOcclusionFace();
@@ -677,8 +678,8 @@ public class Face implements ITransformable<Face> {
             }
         }
         
-        final float scaleXZ = isBERTransformed ? 16.0f : 1.0f;
-        final float scaleY = isBERTransformed ? 16.0f : 1.0f; 
+        final float scaleXZ = transformForBER ? 16.0f : 1.0f;
+        final float scaleY = transformForBER ? -16.0f : 1.0f; 
         
         for (int i = 0; i < 4; i++) {
             FaceVertex fv = quadVertices[i];
@@ -695,10 +696,9 @@ public class Face implements ITransformable<Face> {
 
             Vector3f pos = v.getPos();
             
-            float correctedX = pos.x() * scaleXZ; 
+            float correctedX = pos.x() * scaleXZ;
             float correctedZ = pos.z() * scaleXZ;
-            
-            float correctedY = isBERTransformed ? (1.0f - pos.y()) * scaleY : pos.y() * scaleY;
+            float correctedY = pos.y() * scaleY;
             
             consumer.vertex(poseMatrix, correctedX, correctedY, correctedZ);
             consumer.color(finalR, finalG, finalB, finalA);
