@@ -47,7 +47,7 @@ public class MapImage {
 
     public void render(DLGuiGraphics graphics, int x, int y) {
         bindTexture();
-        GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth * scale, areaHeight * scale, TextureFillMode.STRETCH, areaWidth, areaHeight);
+        GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth, areaHeight, TextureFillMode.STRETCH, areaWidth, areaHeight);
     }
 
     public int getWidth() {

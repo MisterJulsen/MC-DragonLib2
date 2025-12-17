@@ -164,6 +164,12 @@
                 "size": [ 10, 10 ],
                 "border": [ 4, 4, 4, 4 ] 
             },
+            "container": {
+                "type": "nine_slice",
+                "uv": [ 25, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
 
             "slot": {
                 "type": "nine_slice",
