@@ -1564,7 +1564,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         Rectangle newBounds = Rectangle.intersection(bounds, Rectangle.offset(getChildInteractionBounds(), xOffset, yOffset));
         Rectangle childBounds = Rectangle.offset(newBounds, scrollOffsetX, scrollOffsetY);
 
-        for (ListIterator<DLGuiComponent> children = getComponents().listIterator(componentsCount()); children.hasPrevious();) {
+        List<DLGuiComponent> childs = getComponents();
+        for (ListIterator<DLGuiComponent> children = childs.listIterator(childs.size()); children.hasPrevious();) {
             DLGuiComponent component = children.previous();
             if (flags.ignoredComponents().contains(component))
                 continue;
