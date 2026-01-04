@@ -39,7 +39,7 @@ public class DLNetworkManagerImpl {
             FriendlyByteBuf buffer = event.getPayload();
             if (buffer == null) return;
             
-            NetworkSide side = context.getDirection().getReceptionSide() == LogicalSide.CLIENT ? NetworkSide.S2C : NetworkSide.C2S;
+            NetworkSide side = context.getDirection().getReceptionSide() == LogicalSide.CLIENT ? NetworkSide.C2S : NetworkSide.S2C;
             NetworkPacketContext packetContext = new NetworkPacketContext() {
                 @Override
                 public Player getPlayer() {

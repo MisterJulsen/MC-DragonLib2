@@ -20,7 +20,7 @@ public class DLNetworkManagerImpl {
     public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
         ServerPlayNetworking.registerGlobalReceiver(channelId, (server, player, handler, buf, sender) -> {
             NetworkPacketContext context = context(player, server, false);
-            DLNetworkManager.receiveData(channelId, buf, NetworkSide.C2S, context);             
+            DLNetworkManager.receiveData(channelId, buf, NetworkSide.S2C, context);             
         });
         EnvExecutor.runInEnv(Env.CLIENT, () -> () -> ClientNetworkManager.registerChannel(channelId, protocolVersion));
     }

@@ -245,7 +245,7 @@ public final class DLNetworkManager {
         if (communication == CommunicationType.RESPONSE) {
             fSide = side;
         } else {
-            fSide = side;
+            fSide = side == NetworkSide.S2C ? NetworkSide.C2S : NetworkSide.S2C;
         }
 
         managers.get(channelId).getRegisteredPacket(header.type().name(), fSide).ifPresentOrElse(x -> {

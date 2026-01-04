@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketData.Empty;
 import de.mrjulsen.mcdragonlib.network.NetworkProcessor.StreamReceiver;
@@ -221,7 +222,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      * @param nbt optional serialized payload for the response
      */
     protected void respondInternal(PacketHeaderInfo header, NetworkPacketContext context, @Nullable CompoundTag nbt) {
-        NetworkDirection sender = getDirection() == NetworkSide.C2S ? NetworkDirection.toServer() : NetworkDirection.toPlayer((ServerPlayer)context.getPlayer());
+        NetworkDirection sender = getDirection() == NetworkSide.C2S ? NetworkDirection.toPlayer((ServerPlayer)context.getPlayer()) : NetworkDirection.toServer();
         PacketHeaderInfo info = getInfo(CommunicationType.RESPONSE, header.requestId());
         List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
         for (Packet<?> packet : mcPackets) {
@@ -422,7 +423,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            context.queue(() -> {                
+            context.queue(() -> {
                 runSafe(context.getEnvironment(), () -> () -> {
                     try {
                         O data = handler.execute((I)in, context);

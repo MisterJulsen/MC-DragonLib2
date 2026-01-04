@@ -16,7 +16,7 @@ public class ClientNetworkManager {
             @Override
             public void receive(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender sender) {
                 NetworkPacketContext context = DLNetworkManagerImpl.context(client.player, client, true);
-                DLNetworkManager.receiveData(channelId, buf, NetworkSide.S2C, context);
+                DLNetworkManager.receiveData(channelId, buf, NetworkSide.C2S, context);
             }
         });
     }
