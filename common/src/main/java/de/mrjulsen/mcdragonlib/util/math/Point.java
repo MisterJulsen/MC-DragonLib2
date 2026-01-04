@@ -2,6 +2,9 @@ package de.mrjulsen.mcdragonlib.util.math;
 
 import java.util.Objects;
 
+/**
+ * Simple immutable 2D point with utility helpers.
+ */
 public class Point {
     
     protected double x;
@@ -16,6 +19,9 @@ public class Point {
         return new Point(x, y);
     }
 
+    /**
+     * Euclidean distance between two points.
+     */
     public static double distance(Point a, Point b) {
         Objects.requireNonNull(a);
         Objects.requireNonNull(b);
@@ -24,6 +30,11 @@ public class Point {
         return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
     }
 
+    /**
+     * Compute centroid/center of the provided points.
+     *
+     * @throws NullPointerException when points is null
+     */
     public static Point center(Point... points) {
         Objects.requireNonNull(points);
         double sumX = 0;
@@ -41,13 +52,8 @@ public class Point {
         return new Point(x + p.x, y + p.y);
     }
 
-    public double x() {
-        return x;
-    }
-
-    public double y() {
-        return y;
-    }
+    public double x() { return x; }
+    public double y() { return y; }
 
     @Override
     public boolean equals(Object obj) {

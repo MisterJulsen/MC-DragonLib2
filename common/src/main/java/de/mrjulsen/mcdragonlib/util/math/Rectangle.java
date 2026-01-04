@@ -3,8 +3,15 @@ package de.mrjulsen.mcdragonlib.util.math;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Immutable axis-aligned rectangle with utility factories and common operations
+ * (surrounding, intersection, collision tests, scaling and offset).
+ *
+ * <p>Coordinates are double precision and methods guard against infinite results where applicable.
+ */
 public class Rectangle {
 
+    /** Used to represent very large coordinates internally. */
     public static final double MAX_DOUBLE = Double.MAX_VALUE / 2D;
     public static final Rectangle INFINITE = new Rectangle(-MAX_DOUBLE, -MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE);
     public static final Rectangle EMPTY = new Rectangle(0, 0, 0, 0);
@@ -21,6 +28,11 @@ public class Rectangle {
         this.y2 = y2;
     }
 
+    /**
+     * Create a rectangle using explicit corner coordinates.
+     *
+     * @throws IllegalArgumentException when infinite values are supplied
+     */
     public static Rectangle withPoints(double x1, double y1, double x2, double y2) {        
         if (Double.isInfinite(x1) || Double.isInfinite(y1) ||
             Double.isInfinite(x2) || Double.isInfinite(y2)) {
@@ -29,6 +41,9 @@ public class Rectangle {
         return new Rectangle(x1, y1, x2, y2);
     }
 
+    /**
+     * Create a rectangle from position and size (w, h). Width/height are clamped to produce a valid rectangle.
+     */
     public static Rectangle withSize(double x, double y, double w, double h) {
         return withPoints(x, y, Math.max(x + w, 0), Math.max(y + h, 0));
     }
@@ -120,10 +135,16 @@ public class Rectangle {
         return withPoints(x1, y1, x2, y2);
     }
 
+    /**
+     * Test whether a point collides with this rectangle.
+     */
     public boolean collision(Point point) {
         return collision(point.x(), point.y());
     }
 
+    /**
+     * Test intersection with another rectangle.
+     */
     public boolean collision(double x, double y) {
         if (this == EMPTY) {
             return false;
@@ -131,6 +152,9 @@ public class Rectangle {
         return left() <= x && right() >= x && top() <= y && bottom() >= y;
     }
 
+    /**
+     * Test intersection with another rectangle.
+     */
     public boolean collision(Rectangle rectangle) {
         if (this == EMPTY || rectangle == EMPTY) {
             return false;
@@ -138,37 +162,15 @@ public class Rectangle {
         return right() >= rectangle.left() && left() <= rectangle.right() && bottom() >= rectangle.top() && top() <= rectangle.bottom();
     }
 
-    public double left() {
-        return x1;
-    }
-
-    public double top() {
-        return y1;
-    }
-
-    public double right() {
-        return x2;
-    }
-
-    public double bottom() {
-        return y2;
-    }
-
-    public double x() {
-        return left();
-    }
-
-    public double y() {
-        return top();
-    }
-
-    public double width() {
-        return right() - left();
-    }
-
-    public double height() {
-        return bottom() - top();
-    }
+    // Position & size accessors
+    public double left() { return x1; }
+    public double top() { return y1; }
+    public double right() { return x2; }
+    public double bottom() { return y2; }
+    public double x() { return left(); }
+    public double y() { return top(); }
+    public double width() { return right() - left(); }
+    public double height() { return bottom() - top(); }
 
     @Override
     public String toString() {

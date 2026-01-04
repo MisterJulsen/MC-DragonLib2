@@ -6,7 +6,6 @@ import net.minecraft.world.level.Level;
 
 public class ClientWrapper {
 
-    @SuppressWarnings("resource")
     public static Level getClientLevel() {
         return Minecraft.getInstance().level;
     }

@@ -29,8 +29,8 @@ import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
 
 public class FontUtils {
-    public final Font font;
-    public final FontSet fontSet;
+    public Font font;
+    public FontSet fontSet;
     
     protected static record UVData(float u0, float v0, float u1, float v1) {}
     protected static final Map<Integer, Deque<UVData>> uvStack = new HashMap<>();
@@ -39,6 +39,11 @@ public class FontUtils {
         this.font = Minecraft.getInstance().font;
         this.fontSet = ((FontAccessor)this.font).dragonlib$invokeGetFontSet(fontStyle);
     }    
+
+    private void checkAndUpdateFont() {
+        if (this.font != Minecraft.getInstance().font) {
+        }
+    }
 
     public BakedGlyphAccessor getGlyphAccessor(int charCode) {
         return (BakedGlyphAccessor)getGlyph(charCode);

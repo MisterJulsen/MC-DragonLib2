@@ -1,5 +1,10 @@
 package de.mrjulsen.mcdragonlib.util.math;
 
+/**
+ * Mutable variant of Rectangle exposing setters for the corner coordinates.
+ *
+ * <p>Intended for cases where an existing rectangle needs to be updated frequently.
+ */
 public class MutableRectangle extends Rectangle {
 
     protected MutableRectangle(int x1, int y1, int x2, int y2) {
@@ -19,7 +24,7 @@ public class MutableRectangle extends Rectangle {
     }
 
     public void setY2(int y) {
-        this.y1 = y;
+        this.y2 = y;
     }
 
     public void setWidth(int w) {
@@ -28,6 +33,5 @@ public class MutableRectangle extends Rectangle {
 
     public void setHeight(int h) {
         this.y2 = y1 + h;
-    }
-    
+    }   
 }

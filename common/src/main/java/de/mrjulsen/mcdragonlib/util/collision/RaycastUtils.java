@@ -8,8 +8,28 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 
+/**
+ * Utility helpers for coarse-grained ray tracing across blocks using an ICollisionProvider.
+ *
+ * <p>The provided rayTrace method steps along a ray and queries the collision provider
+ * for blocks within the step neighbourhood. It returns the closest hit encountered.
+ */
 public class RaycastUtils {
 
+    /**
+     * Perform a stepped ray trace from start to end, testing candidate blocks via the provided collisionProvider.
+     *
+     * <p>The method moves in fixed increments (stepSize) along the ray and tests all blocks overlapping
+     * the radius at the current sample point. The first (closest) hit is returned.
+     *
+     * @param start ray origin (world coordinates)
+     * @param end ray end (world coordinates)
+     * @param level Minecraft level context used for block/world queries
+     * @param radius search radius around each sample point
+     * @param stepSize sampling step distance along the ray
+     * @param collisionProvider provider used to determine per-block hits
+     * @return Optional containing the closest RaycastHitResult if any hit was found
+     */
     public static Optional<RaycastHitResult> rayTrace(Vector3f start, Vector3f end, Level level, float radius, float stepSize, ICollisionProvider collisionProvider) {
         Vector3f direction = new Vector3f(end).sub(start);
         Vector3f normal = new Vector3f(direction).normalize();

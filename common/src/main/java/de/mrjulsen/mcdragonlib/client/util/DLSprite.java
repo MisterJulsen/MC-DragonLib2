@@ -5,6 +5,14 @@ import java.util.Optional;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * Lightweight representation of a drawable sprite that can either reference a texture
+ * region or an ItemStack. Instances are immutable and carry all layout information
+ * (size, texture UVs or item decoration flag).
+ *
+ * <p>This class is intended for UI rendering helpers where an image may be either a
+ * packed texture region (DLTexture) or a single item render.
+ */
 public class DLSprite {
     private final DLTexture texture;
     private final ItemStack item;
@@ -48,47 +56,107 @@ public class DLSprite {
         return new DLSprite(null, null, false, 0, 0, 0, 0, 0, 0);
     }
 
-    public Optional<DLTexture> getTexture() {
-        return Optional.ofNullable(texture);
-    }
+    /**
+	 * Returns an Optional wrapping the texture backing this sprite.
+	 *
+	 * @return optional texture; empty when this sprite is item-backed
+	 */
+	public Optional<DLTexture> getTexture() {
+		return Optional.ofNullable(texture);
+	}
 
-    public Optional<ItemStack> getItem() {
-        return Optional.ofNullable(item);
-    }
+	/**
+	 * Returns an Optional wrapping the ItemStack backing this sprite.
+	 *
+	 * @return optional item; empty when this sprite is texture-backed
+	 */
+	public Optional<ItemStack> getItem() {
+		return Optional.ofNullable(item);
+	}
 
-    public boolean isItemDecorated() {
-        return itemDecorations;
-    }
+	/**
+	 * Whether item decorations (stack count, overlays) should be rendered for item sprites.
+	 *
+	 * @return true when item decorations are enabled
+	 */
+	public boolean isItemDecorated() {
+		return itemDecorations;
+	}
 
-    public int getWidth() {
-        return width;
-    }
+	/**
+	 * Sprite width in pixels.
+	 *
+	 * @return the width
+	 */
+	public int getWidth() {
+		return width;
+	}
 
-    public int getHeight() {
-        return height;
-    }
+	/**
+	 * Sprite height in pixels.
+	 *
+	 * @return the height
+	 */
+	public int getHeight() {
+		return height;
+	}
 
-    public int getU() {
-        return u;
-    }
+	/**
+	 * Texture U coordinate (source X) for texture-backed sprites.
+	 *
+	 * @return source U
+	 */
+	public int getU() {
+		return u;
+	}
 
-    public int getV() {
-        return v;
-    }
+	/**
+	 * Texture V coordinate (source Y) for texture-backed sprites.
+	 *
+	 * @return source V
+	 */
+	public int getV() {
+		return v;
+	}
 
-    public int getUWidth() {
-        return uWidth;
-    }
+	/**
+	 * Texture source width (region width).
+	 *
+	 * @return source width
+	 */
+	public int getUWidth() {
+		return uWidth;
+	}
 
-    public int getVHeight() {
-        return vHeight;
-    }
+	/**
+	 * Texture source height (region height).
+	 *
+	 * @return source height
+	 */
+	public int getVHeight() {
+		return vHeight;
+	}
 
-    public boolean isEmpty() {
-        return (texture == null && item == null) || (width <= 0 && height <= 0);
-    }
+	/**
+	 * Returns true when the sprite has no valid texture nor item or has non-positive size.
+	 *
+	 * @return true if sprite is empty / nothing to render
+	 */
+	public boolean isEmpty() {
+		return (texture == null && item == null) || (width <= 0 && height <= 0);
+	}
 
-    public void render(DLGuiGraphics graphics, int x, int y) {
+	/**
+	 * Render the sprite using the provided graphics context at the given screen coordinates.
+	 *
+	 * <p>If the sprite is texture-backed the texture is drawn; if item-backed the item is rendered.
+	 * Empty sprites are ignored.
+	 *
+	 * @param graphics rendering helper/context
+	 * @param x screen X coordinate
+	 * @param y screen Y coordinate
+	 */
+	public void render(DLGuiGraphics graphics, int x, int y) {
         if (isEmpty()) {
             return;
         }

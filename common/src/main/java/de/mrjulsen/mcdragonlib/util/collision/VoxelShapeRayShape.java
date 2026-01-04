@@ -9,6 +9,11 @@ import java.util.Optional;
 import org.joml.Vector3f;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Adapter that uses a Minecraft VoxelShape to perform precise ray-voxel intersection tests.
+ *
+ * <p>The shape.clip(...) call is used to find an intersection point and convert it to a Vector3f.
+ */
 public class VoxelShapeRayShape implements IRayTraceShape {
     private final VoxelShape shape;
     private final BlockPos pos;

@@ -2,6 +2,13 @@ package de.mrjulsen.mcdragonlib.util;
 
 import java.util.Objects;
 
+/**
+ * Generic triple container for three values (note: spelled 'Tripple' in codebase).
+ *
+ * @param <A> first type
+ * @param <B> second type
+ * @param <C> third type
+ */
 public class Tripple<A, B, C> {
 
     protected A value1;
@@ -14,21 +21,13 @@ public class Tripple<A, B, C> {
         this.value3 = value3;
     }
 
-    public static <A, B, C> Tripple<A, B, C>of(A first, B second, C third) {
+    public static <A, B, C> Tripple<A, B, C> of(A first, B second, C third) {
         return new Tripple<A, B, C>(first, second, third);
     }
 
-    public A getFirst() {
-        return value1;
-    }
-
-    public B getSecond() {
-        return value2;
-    }
-
-    public C getThird() {
-        return value3;
-    }
+    public A getFirst() { return value1; }
+    public B getSecond() { return value2; }
+    public C getThird() { return value3; }
 
     protected void setFirst(A value) {
         this.value1 = value;
@@ -62,6 +61,9 @@ public class Tripple<A, B, C> {
         return String.format("(%s, %s, %s)", getFirst(), getSecond(), getThird());
     }
 
+    /**
+     * Mutable variant that exposes setters for all three components.
+     */
     public static class MutableTripple<A, B, C> extends Tripple<A, B, C> {
 
         public MutableTripple(A value1, B value2, C value3) {

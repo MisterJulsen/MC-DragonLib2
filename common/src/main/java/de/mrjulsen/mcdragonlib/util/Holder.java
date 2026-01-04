@@ -3,23 +3,37 @@ package de.mrjulsen.mcdragonlib.util;
 import java.util.Objects;
 
 /**
- * A simple wrapper for all kinds of objects.
+ * Simple generic immutable wrapper for a single value.
+ *
+ * <p>Provides convenience factory and equality semantics. Use {@link MutableHolder} for a mutable variant.
  */
 public class Holder<A> {
     protected A value1;
 
+    /**
+     * Create a new Holder with the provided value.
+     */
     public Holder(A value1) {
         this.value1 = value1;
     }
 
-    public static <A> Holder<A>of(A first) {
+    /**
+     * Factory helper.
+     */
+    public static <A> Holder<A> of(A first) {
         return new Holder<A>(first);
     }
 
+    /**
+     * Return wrapped value.
+     */
     public A get() {
         return value1;
     }
 
+    /**
+     * Protected setter for subclasses.
+     */
     protected void set(A value) {
         this.value1 = value;
     }
@@ -43,7 +57,7 @@ public class Holder<A> {
     }
     
     /**
-     * A simple wrapper for all kinds of objects. The contents of this object can be changed at any time.
+     * Mutable variant that exposes a public setter.
      */
     public static class MutableHolder<A> extends Holder<A> {
 
