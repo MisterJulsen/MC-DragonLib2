@@ -15,12 +15,14 @@ import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
+import de.mrjulsen.mcdragonlib.util.time.datapack.TimeSystemDatapackLoader;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
@@ -31,6 +33,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -89,9 +92,9 @@ public class DragonLib {
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
     public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(DLUtils.resourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
 
-    public static final DLNetworkManager DRAGONLIB_NETWORK = new DLNetworkManager(DLUtils.resourceLocation(MODID, "network"), "3");
+    public static final DLNetworkManager DRAGONLIB_NETWORK = new DLNetworkManager(DLUtils.resourceLocation(MODID, "network"), "14");
     public static final NetworkPacketType.Send<NetworkDirection.C2S, WritableSignPacketData> UPDATE_SIGN_TEXT = DRAGONLIB_NETWORK.registerSendOnlyPacket("update_writable_sign", NetworkDirection.C2S, WritableSignPacketData::handler, WritableSignPacketData::new) ;
-
+    
     private static MinecraftServer currentServer;
 
     private static <T extends Block, I extends BlockItem>RegistrySupplier<T> registerBlock(String name, Supplier<T> block) {
@@ -125,7 +128,8 @@ public class DragonLib {
         }
         initialized = true;
 
-        DragonLibCrossPlatform.registerConfig();
+        DragonLibCrossPlatform.registerConfig();        
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, new TimeSystemDatapackLoader());
         //NetworkTest.init();
         //ModMenuTypes.register();
         

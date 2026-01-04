@@ -4,7 +4,18 @@ import java.util.List;
 
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 
+/**
+ * Time system built from mod configuration values.
+ *
+ * <p>It uses configuration entries for ticks-per-day, default TPS and a daytime shift factor.
+ * Exposes a singleton {@link #INSTANCE}.
+ */
 public class ConfiguredTimeSystem implements ITimeSystem {
+
+    public static final ConfiguredTimeSystem INSTANCE = new ConfiguredTimeSystem();
+
+    private ConfiguredTimeSystem() {
+    }
     
     @Override
     public long getTicksPerDay() {

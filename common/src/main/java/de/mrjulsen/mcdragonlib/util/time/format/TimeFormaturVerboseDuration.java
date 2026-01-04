@@ -4,6 +4,15 @@ import de.mrjulsen.mcdragonlib.util.time.DLTime;
 import de.mrjulsen.mcdragonlib.util.time.ITimeSystem;
 import de.mrjulsen.mcdragonlib.util.time.TimeContext;
 
+/**
+ * Deprecated legacy formatter that produced verbose durations.
+ *
+ * <p>This class is retained for compatibility but marked {@link Deprecated}. Prefer
+ * {@link TimeFormatVerboseDuration} or other newer formatters that accept a configuration object.
+ *
+ * <p>Methods and constructors are deprecated for removal; behaviour mirrors older formatting logic.
+ */
+@Deprecated(forRemoval = true)
 public class TimeFormaturVerboseDuration implements ITimeFormatter {
 
     private DLTime startTime;
@@ -13,8 +22,28 @@ public class TimeFormaturVerboseDuration implements ITimeFormatter {
     private boolean showHours;
     private boolean showDays;    
 
+    /**
+     * Format a DLTime using the legacy behaviour.
+     *
+     * @deprecated use {@link TimeFormatVerboseDuration#format(DLTime, TimeContext, ITimeSystem)}
+     *             or another modern formatter instead.
+     */
+    @Deprecated(forRemoval = true)
     public TimeFormaturVerboseDuration() {}
 
+    /**
+     * Format a DLTime using the legacy behaviour.
+     *
+     * @param startTicks the starting time in ticks
+     * @param showMillis whether to show milliseconds
+     * @param showSeconds whether to show seconds
+     * @param showMinutes whether to show minutes
+     * @param showHours whether to show hours
+     * @param showDays whether to show days
+     * @deprecated use {@link TimeFormatVerboseDuration#format(DLTime, TimeContext, ITimeSystem)}
+     *             or another modern formatter instead.
+     */
+    @Deprecated(forRemoval = true)
     public TimeFormaturVerboseDuration(DLTime startTicks, boolean showMillis, boolean showSeconds, boolean showMinutes, boolean showHours, boolean showDays) {
         this.startTime = startTicks;
         this.showMillis = showMillis;
@@ -24,17 +53,24 @@ public class TimeFormaturVerboseDuration implements ITimeFormatter {
         this.showDays = showDays;
     }
 
+    /**
+     * Format a DLTime using the legacy behaviour.
+     *
+     * @deprecated use {@link TimeFormatVerboseDuration#format(DLTime, TimeContext, ITimeSystem)}
+     *             or another modern formatter instead.
+     */
     @Override
-    public String format(DLTime time, TimeContext context) {
+    @Deprecated(forRemoval = true)
+    public String format(DLTime time, TimeContext context, ITimeSystem system) {
         boolean negative = false;
         double totalMillisOrTicks;
-        ITimeSystem provider = time.getTimeSystem();
+        ITimeSystem provider = system;
 
         double totalMillis = 0;
         if (context == TimeContext.REAL) {
             if (startTime != null) {
-                double deltaTicks = time.getTicks() - startTime.getTicks();
-                totalMillisOrTicks = provider.getRealMillisFromTicks(deltaTicks, startTime.getTicks());
+                double deltaTicks = time.toTicks(system) - startTime.toTicks(system);
+                totalMillisOrTicks = provider.getRealMillisFromTicks(deltaTicks, startTime.toTicks(system));
             } else {
                 totalMillisOrTicks = time.toRealMillis();
             }
@@ -49,9 +85,9 @@ public class TimeFormaturVerboseDuration implements ITimeFormatter {
         } else {
             double deltaTicks;
             if (startTime != null) {
-                deltaTicks = time.getTicks() - startTime.getTicks();
+                deltaTicks = time.toTicks(system) - startTime.toTicks(system);
             } else {
-                deltaTicks = time.getTicks();
+                deltaTicks = time.toTicks(system);
             }
 
             if (Double.isNaN(deltaTicks) || Double.isInfinite(deltaTicks)) {
@@ -60,31 +96,6 @@ public class TimeFormaturVerboseDuration implements ITimeFormatter {
             if (deltaTicks < 0) negative = true;
 
             totalMillis = Math.abs(deltaTicks / (provider.getTicksPerDay() / (24.0 * 60.0 * 60.0 * 1000.0)));
-            /*
-            long totalSeconds = (long) Math.round(totalGameSecondsDouble);
-
-            long seconds = totalSeconds % 60;
-            long totalMinutes = totalSeconds / 60;
-            long minutes = totalMinutes % 60;
-            long totalHours = totalMinutes / 60;
-            long hours = totalHours % 24;
-            long days = totalHours / 24;
-
-            String result;
-            StringBuilder sb = new StringBuilder();
-            if (showDays && days > 0) sb.append(days).append("d ");
-            if (showHours && hours > 0) sb.append(hours).append("h ");
-            if (showMinutes && minutes > 0) sb.append(minutes).append("m ");
-            if (showSeconds && seconds > 0) sb.append(seconds).append("s ");
-            result = sb.toString().trim();
-            if (result.isEmpty()) {
-                if (showSeconds) result = "0s";
-                else if (showMinutes) result = "0m";
-                else if (showHours) result = "0h";
-                else result = "0";
-            }
-            return negative ? "-" + result : result;
-            */
         }
 
         

@@ -1,40 +1,46 @@
 package de.mrjulsen.mcdragonlib.util.time.format;
 
+import org.jetbrains.annotations.Nullable;
+
 import de.mrjulsen.mcdragonlib.util.time.DLTime;
 import de.mrjulsen.mcdragonlib.util.time.ITimeSystem;
 import de.mrjulsen.mcdragonlib.util.time.TimeContext;
 
+/**
+ * Formatter that renders a time-of-day in 12-hour "hh:mm AM/PM" format.
+ *
+ * <p>Behaves similarly to {@link TimeFormat24Hours} but converts to AM/PM notation.
+ */
 public class TimeFormat12Hours implements ITimeFormatter {
 
     public static final TimeFormat12Hours INSTANCE = new TimeFormat12Hours();
 
-    public TimeFormat12Hours() {}
+    private TimeFormat12Hours() {}
 
     @Override
-    public String format(DLTime time, TimeContext context) {
-        ITimeSystem provider = time.getTimeSystem();
-        long hour = 0;
-        long minute = 0;
+    public String format(DLTime time, TimeContext context, @Nullable ITimeSystem system) {
+        int hour;
+        int minute;
+        String period;
         if (context == TimeContext.REAL) {
-            long ticksPerDay = provider.getTicksPerDay();            
-            double midnightTicks = ticksPerDay - provider.getDaytimeOffset();
-            double totalDayMillis = provider.getRealMillisFromTicks(ticksPerDay);
-            double currentMillis = time.toRealMillis();
-            double midnightMillis = provider.getRealMillisFromTicks(midnightTicks);
-            double millisSinceMidnight = (currentMillis - midnightMillis + totalDayMillis) % totalDayMillis;
-            double totalSeconds = millisSinceMidnight / 1000.0;
-            double totalMinutes = totalSeconds / 60.0;            
-            hour = (long)((totalMinutes / 60) % 24);
-            minute = (long)(totalMinutes % 60);
+            double totalMillis = time.toRealMillis();
+            long totalSeconds = (long) (totalMillis / 1000.0);
+            hour = (int) ((totalSeconds / 3600) % 24);
+            minute = (int) ((totalSeconds / 60) % 60);
         } else {
-            double t = time.getTicks() + provider.getDaytimeOffset();
-            double dayTicks = t % provider.getTicksPerDay();
-            long ticksPerDay = provider.getTicksPerDay();
-            hour = Math.floorDiv((long) (dayTicks * 24), ticksPerDay);
-            minute = Math.floorDiv((long) ((dayTicks * 24 * 60) % (ticksPerDay * 60)), ticksPerDay);
+            requireSystem(system);
+            long ticksPerDay = system.getTicksPerDay();
+            double t = (time.toTicks(system) + system.getDaytimeOffset()) % ticksPerDay;
+            hour = (int) ((t * 24) / ticksPerDay);
+            minute = (int) ((t * 24 * 60) % (ticksPerDay * 60) / ticksPerDay);
         }
-        String ampm = (hour < 12) ? "AM" : "PM";
-        hour = (hour % 12 == 0) ? 12 : hour % 12;
-        return String.format("%d:%02d %s", hour, minute, ampm);
-    }    
+        period = (hour >= 12) ? "PM" : "AM";
+        int displayHour = hour % 12;
+        if (displayHour == 0) displayHour = 12;
+        return String.format("%02d:%02d %s", displayHour, minute, period);
+    }
+
+    private static void requireSystem(@Nullable ITimeSystem system) {
+        if (system == null) throw new IllegalArgumentException("ITimeSystem required for Ingame time");
+    }
 }

@@ -2,6 +2,11 @@ package de.mrjulsen.mcdragonlib.util.time;
 
 import java.util.List;
 
+/**
+ * Default time system implementing the vanilla Minecraft behaviour: a single zone spanning the whole day at 20 TPS.
+ *
+ * <p>Provides a singleton {@link #INSTANCE} for consumers that want the standard mapping.
+ */
 public final class VanillaTimeSystem implements ITimeSystem {
 
     public static final VanillaTimeSystem INSTANCE = new VanillaTimeSystem();
@@ -10,7 +15,8 @@ public final class VanillaTimeSystem implements ITimeSystem {
         new TimeZone(0, 24000L, 20D)
     );
 
-    private VanillaTimeSystem() {}
+    private VanillaTimeSystem() {
+    }
     
     @Override
     public long getTicksPerDay() {

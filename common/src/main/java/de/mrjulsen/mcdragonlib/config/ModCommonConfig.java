@@ -13,6 +13,7 @@ public class ModCommonConfig {
     public static final ForgeConfigSpec.ConfigValue<Long> TIME_TICKS_PER_DAY;
     public static final ForgeConfigSpec.ConfigValue<Double> TIME_DEFAULT_TPS;
     public static final ForgeConfigSpec.ConfigValue<Double> TIME_DAYTIME_SHIFT_FACTOR;
+    public static final ForgeConfigSpec.ConfigValue<Integer> TIME_SYSTEM_CACHE_TTL;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");
@@ -32,6 +33,8 @@ public class ModCommonConfig {
             .defineInRange("time_system.ticks_per_second", 20D, 0D, (double)Integer.MAX_VALUE);
         TIME_DAYTIME_SHIFT_FACTOR = BUILDER.comment("The proportion of the total day duration by which the clock time is shifted. By default, 0 ticks = 06:00, for which the time must be shifted by 25% of the day length. (Default: 0.25)")
             .defineInRange("time_system.daytime_shift", 0.25D, 0D, 1D);
+        TIME_SYSTEM_CACHE_TTL = BUILDER.comment(new String[] { "in Milliseconds", "To improve performance during frequent queries of the default time system, the found time system can be cached for a certain period. Higher values may produce less accurate results because the time system is not updated immediately, for example, when a datapack is loaded. A value of 0 disables the cache. (Default: 100)", "A GAME RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
+            .defineInRange("time_system.time_system_cache_ttl", 100, 0, 10000);
 
         BUILDER.pop();
         SPEC = BUILDER.build();
