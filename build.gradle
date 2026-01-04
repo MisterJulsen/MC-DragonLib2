@@ -2,12 +2,12 @@ plugins {
     id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id "maven-publish"
 }
 
 architectury {
     minecraft = project.minecraft_version
 }
-
 
 allprojects {
     group = rootProject.maven_group
@@ -20,23 +20,23 @@ subprojects {
     apply plugin: 'maven-publish'
 
     base {
-        // Set up a suffixed format for the mod jar names, e.g. `example-fabric`.
         archivesName = "$rootProject.archives_name-$project.name"
     }
 
     repositories {
         mavenCentral()
         maven { url = "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven" } // Local
+        maven { url = "https://maven.mrjulsen.net" } // MrJulsen
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
         maven { url = "https://maven.parchmentmc.org" } // ParchmentMC
         maven { url = "https://maven.terraformersmc.com/" } // ModMenu
+
+
         maven { url = "https://cursemaven.com" // Time Control
             content {
                 includeGroup "curse.maven"
             }
         }
-
-        // Test
         maven { url 'https://maven.isxander.dev/releases' }
     }
 
@@ -75,12 +75,12 @@ subprojects {
             expand expandProps
         }
         inputs.properties(expandProps)
-        exclude ".cache" // Remove cache from generated data
+        exclude ".cache"
     }
 
     java {
         withSourcesJar()
-
+        withJavadocJar()
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -93,16 +93,49 @@ subprojects {
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                artifactId = rootProject.archives_name + "-" + project.name             
+                artifactId = rootProject.archives_name + "-" + project.name
                 from components.java
             }
         }
 
         repositories {
             maven {
-                name "GitHub"
-                url "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
+                name = "local"
+                url = "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
             }
+        }
+        repositories {
+            maven {
+                name = "s3"
+                url = "s3://maven"
+
+                credentials(AwsCredentials) {
+                    accessKey = System.getenv("MAVEN_ACCESS_KEY")
+                    secretKey = System.getenv("MAVEN_SECRET_KEY")
+                }
+
+                System.setProperty("org.gradle.s3.endpoint", System.getenv("MAVEN_ENDPOINT") ?: "")
+                System.setProperty("org.gradle.s3.pathStyleAccess", "true")
+            }
+        }
+    }
+
+    tasks.register("Local (private)") {
+        group = "deploying"
+        description = "Publishes all publications to the local Maven repository"
+        dependsOn("publishMavenJavaPublicationToLocalRepository")
+    }
+
+    tasks.register("Online (public)") {
+        group = "deploying"
+        description = "Publishes all publications to the S3 Maven repository"
+        dependsOn("publishMavenJavaPublicationToLocalRepository")
+        dependsOn("publishMavenJavaPublicationToS3Repository")
+    }
+
+    tasks.named("Online (public)") {
+        doFirst {
+            System.setProperty("com.amazonaws.services.s3.enforceV4ChunkedEncoding", "true")
         }
     }
 
