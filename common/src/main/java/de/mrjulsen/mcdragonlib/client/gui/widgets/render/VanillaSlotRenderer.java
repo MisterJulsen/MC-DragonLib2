@@ -1,9 +1,9 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.render;
 
-import de.mrjulsen.mcdragonlib.client.atlas.GLGuiTextureData.AbstractSprite;
+import de.mrjulsen.mcdragonlib.client.atlas.DLTextureSheetData.AbstractSprite;
 import de.mrjulsen.mcdragonlib.client.gui.container.DLSlot.SlotState;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
-import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
+import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.util.DLColor;
@@ -15,10 +15,10 @@ public class VanillaSlotRenderer implements ILayeredStateRenderer<SlotState> {
     @Override
     public void renderSprite(DLGuiGraphics graphics, int x, int y, int w, int h, DLGuiComponent component, SlotState state) {
         AbstractSprite sprite = switch (state) {
-            case SELECTED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot");
-            case DISABLED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot");
-            case DISABLED_SELECTED -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot");
-            default -> DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot");
+            case SELECTED -> DLTextureSheet.DRAGONLIB_UI.getSprite("slot");
+            case DISABLED -> DLTextureSheet.DRAGONLIB_UI.getSprite("slot");
+            case DISABLED_SELECTED -> DLTextureSheet.DRAGONLIB_UI.getSprite("slot");
+            default -> DLTextureSheet.DRAGONLIB_UI.getSprite("slot");
         };
         sprite.render(graphics, x, y, w, h);
     }

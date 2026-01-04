@@ -7,15 +7,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import de.mrjulsen.mcdragonlib.client.atlas.GLGuiTextureData.AbstractSprite;
+import de.mrjulsen.mcdragonlib.client.atlas.DLTextureSheetData.AbstractSprite;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.ScaleType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.util.GsonHelper;
 
-public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLGuiTextureData> {
+public class DLGuiTextureDataSerializer implements MetadataSectionSerializer<DLTextureSheetData> {
 	@Override
-	public GLGuiTextureData fromJson(JsonObject json) {
-		Map<String, GLGuiTextureData.AbstractSprite> result = new HashMap<>();
+	public DLTextureSheetData fromJson(JsonObject json) {
+		Map<String, DLTextureSheetData.AbstractSprite> result = new HashMap<>();
 		
 		JsonArray textureSizeJson = GsonHelper.getAsJsonArray(json, "texture_size");
 		int[] textureSize = new int[2];
@@ -31,7 +31,7 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 			String typeString = GsonHelper.getAsString(innerObject, "type");
 			ScaleType type = ScaleType.getByName(typeString);
 			
-			AbstractSprite sprite = GLGuiTextureData.EMPTY_SPRITE;
+			AbstractSprite sprite = DLTextureSheetData.EMPTY_SPRITE;
 			switch (type) {
 				case STRETCH -> {
 					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
@@ -45,7 +45,7 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 					for (int i = 0; i < sizeArray.length; i++) {
 						sizeArray[i] = GsonHelper.convertToInt(sizeArrayJson.get(i), "size[" + i + "]");
 					}
-					sprite = new GLGuiTextureData.StretchedSprite(uvArray, sizeArray);
+					sprite = new DLTextureSheetData.StretchedSprite(uvArray, sizeArray);
 				}
 				case TILE -> {
 					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
@@ -59,7 +59,7 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 					for (int i = 0; i < sizeArray.length; i++) {
 						sizeArray[i] = GsonHelper.convertToInt(sizeArrayJson.get(i), "size[" + i + "]");
 					}
-					sprite = new GLGuiTextureData.TiledSprite(uvArray, sizeArray);
+					sprite = new DLTextureSheetData.TiledSprite(uvArray, sizeArray);
 				}
 				case NINE_SLICE -> {
 					JsonArray uvArrayJson = GsonHelper.getAsJsonArray(innerObject, "uv", new JsonArray(2));
@@ -82,12 +82,12 @@ public class GLGuiTextureDataSerializer implements MetadataSectionSerializer<GLG
 					
 					boolean tiledContent = GsonHelper.getAsBoolean(innerObject, "tiled_content", false);
 					boolean tiledBorder = GsonHelper.getAsBoolean(innerObject, "tiled_border", false);
-					sprite = new GLGuiTextureData.NineSlicedSprite(uvArray, sizeArray, borderArray, tiledBorder, tiledContent);
+					sprite = new DLTextureSheetData.NineSlicedSprite(uvArray, sizeArray, borderArray, tiledBorder, tiledContent);
 				}
 			};
 			result.put(key, sprite);
 		}
-		return new GLGuiTextureData(result, textureSize);
+		return new DLTextureSheetData(result, textureSize);
 	}
 
 	@Override

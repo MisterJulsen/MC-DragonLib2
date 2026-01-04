@@ -11,19 +11,13 @@ import de.mrjulsen.mcdragonlib.client.atlas.DLTextureSheetData.AbstractSprite;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
-@Deprecated(forRemoval = true)
-public class DefaultGuiTextures {
+public class DLTextureSheet {
 
-    @Deprecated(forRemoval = true)
-    public static final DefaultGuiTextures VANILLA_BUTTON = new DefaultGuiTextures(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_buttons.png"));
-    @Deprecated(forRemoval = true)
-    public static final DefaultGuiTextures DRAGONLIB_UI = new DefaultGuiTextures(new ResourceLocation(DragonLib.MODID, "textures/gui/ui2.png"));
-    @Deprecated(forRemoval = true)
-    public static final DefaultGuiTextures VANILLA_TEXTBOX = new DefaultGuiTextures(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_textbox.png"));
-    @Deprecated(forRemoval = true)
-    public static final DefaultGuiTextures VANILLA_SCROLLBAR = new DefaultGuiTextures(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
+    public static final DLTextureSheet VANILLA_BUTTON = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_buttons.png"));
+    public static final DLTextureSheet DRAGONLIB_UI = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/ui2.png"));
+    public static final DLTextureSheet VANILLA_TEXTBOX = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_textbox.png"));
+    public static final DLTextureSheet VANILLA_SCROLLBAR = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
 
-    @Deprecated(forRemoval = true)
     public static final String SPRITE_NAME_WINDOW_ROUNDED = "window_rounded";
     
     private final ResourceLocation location;
@@ -42,22 +36,18 @@ public class DefaultGuiTextures {
             .orElse(DLTextureSheetData.EMPTY);
     });
 
-    @Deprecated(forRemoval = true)
-    public DefaultGuiTextures(ResourceLocation location) {
+    public DLTextureSheet(ResourceLocation location) {
         this.location = location;
     }
 
-    @Deprecated(forRemoval = true)
     public ResourceLocation location() {
         return location;
     }
 
-    @Deprecated(forRemoval = true)
     public DLTextureSheetData metadata() {
         return metadata.get();
     }
 
-    @Deprecated(forRemoval = true)
     public AbstractSprite getSprite(String spriteName) {
         return metadata().getSprite(spriteName);
     } 

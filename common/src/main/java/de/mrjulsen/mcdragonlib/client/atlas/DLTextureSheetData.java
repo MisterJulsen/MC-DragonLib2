@@ -12,22 +12,22 @@ import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
-public class GLGuiTextureData {
+public class DLTextureSheetData {
     public static final AbstractSprite EMPTY_SPRITE = new StretchedSprite(new int[] {0, 0}, new int[] {0, 0});
-    public static final GLGuiTextureData EMPTY = new GLGuiTextureData(Map.of("", EMPTY_SPRITE), new int[] {0, 0});
-    public static final GLGuiTextureDataSerializer SERIALIZER = new GLGuiTextureDataSerializer();
+    public static final DLTextureSheetData EMPTY = new DLTextureSheetData(Map.of("", EMPTY_SPRITE), new int[] {0, 0});
+    public static final DLGuiTextureDataSerializer SERIALIZER = new DLGuiTextureDataSerializer();
 
     static {
         EMPTY.setTextureLocation(TextureManager.INTENTIONAL_MISSING_TEXTURE);
     }
 
     public static abstract class AbstractSprite {
-        private GLGuiTextureData data = EMPTY;
-        void setMetadata(GLGuiTextureData data) {
+        private DLTextureSheetData data = EMPTY;
+        void setMetadata(DLTextureSheetData data) {
             Objects.requireNonNull(data);
             this.data = data;
         }
-        public GLGuiTextureData metadata() {
+        public DLTextureSheetData metadata() {
             return data;
         }
         public abstract void render(DLGuiGraphics graphics, int x, int y, int w, int h);
@@ -195,7 +195,7 @@ public class GLGuiTextureData {
     private final int[] textureSize;
     private ResourceLocation location;
 
-    public GLGuiTextureData(Map<String, AbstractSprite> sprites, int[] textureSize) {
+    public DLTextureSheetData(Map<String, AbstractSprite> sprites, int[] textureSize) {
         this.sprites = sprites;
         this.textureSize = textureSize;
         sprites.values().forEach(x -> x.setMetadata(this));
