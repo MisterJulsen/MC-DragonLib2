@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 
 /**
- * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/utility/animation/LerpedFloat.java
+ * @related https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/utility/animation/LerpedFloat.java
  */
 public class LerpedFloat {
 

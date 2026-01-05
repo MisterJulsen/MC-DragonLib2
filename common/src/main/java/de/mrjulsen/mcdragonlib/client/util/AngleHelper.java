@@ -5,7 +5,7 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.util.Mth;
 
 /**
- * @see https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/utility/AngleHelper.java
+ * @related https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/utility/AngleHelper.java
  */
 public class AngleHelper {
 

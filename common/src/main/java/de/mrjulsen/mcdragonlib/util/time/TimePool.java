@@ -46,7 +46,7 @@ public final class TimePool {
     /**
      * Check whether the pool is empty (no remaining milliseconds or negative).
      *
-     * @return true if remaining millis <= 0
+     * @return true if remaining millis {@code <= 0}
      */
     public boolean isEmpty() {
         return remainingMillis <= 0.0;

@@ -455,7 +455,7 @@ public final class ModelUtils
     }
 
     /**
-     * Guess the cull-face of quads returned by {@link BakedModel#getQuads(BlockState, Direction, RandomSource, ModelUtils, RenderType)}
+     * Guess the cull-face of quads returned by {@link BakedModel#getQuads(BlockState, Direction, RandomSource)}
      * with a {@code null} side (i.e. supposedly uncullable quads) and filter them to return the ones applicable to the given
      * {@link Direction} and touching the block edge. This fixes blocks becoming invisible when mods forget to specify
      * cull-faces in their models

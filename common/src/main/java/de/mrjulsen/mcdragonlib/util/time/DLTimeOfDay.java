@@ -71,7 +71,7 @@ public final class DLTimeOfDay {
      * Check whether this time-of-day lies between {@code start} and {@code end}, accounting for wrap-around.
      *
      * <p>If {@code start <= end} the check is inclusive within the interval [start, end]. If {@code start > end}
-     * the interval crosses midnight and the method returns true when the time is >= start or <= end.
+     * the interval crosses midnight and the method returns true when the time is {@code >=} start or {@code <=} end.
      *
      * @param start interval start (must not be null)
      * @param end interval end (must not be null)

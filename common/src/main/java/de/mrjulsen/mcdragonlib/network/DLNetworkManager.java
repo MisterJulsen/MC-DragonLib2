@@ -33,7 +33,7 @@ import net.minecraft.resources.ResourceLocation;
  *       {@code registerSendAndReceivePacket} or {@code registerStreamPacket}.</li>
  * </ul>
  *
- * <p>Note: channel registration and packet <-> platform {@code Packet<?>} translation are
+ * <p>Note: channel registration and packet &lt;-&gt; platform {@code Packet<?>} translation are
  * provided by platform-specific implementations.
  */
 public final class DLNetworkManager {

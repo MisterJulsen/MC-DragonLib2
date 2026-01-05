@@ -99,7 +99,7 @@ public final class DLUtils {
     }
 
     /**
-     * @see https://github.com/BluSunrize/ImmersiveEngineering/blob/1.19.2/src/main/java/blusunrize/immersiveengineering/common/util/orientation/RotationUtil.java#L28
+     * @related https://github.com/BluSunrize/ImmersiveEngineering/blob/1.19.2/src/main/java/blusunrize/immersiveengineering/common/util/orientation/RotationUtil.java#L28
      */
     public static boolean rotateBlock(Level world, BlockPos pos, Rotation rotation) {
 

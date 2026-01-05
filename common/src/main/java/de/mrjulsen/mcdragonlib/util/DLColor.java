@@ -481,7 +481,7 @@ public final class DLColor {
     /**
      * Returns true if the alpha channel is less than fully opaque.
      *
-     * @return true when alpha normalized < 1.0
+     * @return true when alpha normalized {@code < 1.0}
      * @throws IllegalStateException if called on {@link #UNDEFINED}
      */
     public boolean hasTransparency() {
@@ -491,7 +491,7 @@ public final class DLColor {
     /**
      * Returns true if the color is fully transparent (alpha == 0).
      *
-     * @return true when alpha normalized <= 0.0
+     * @return true when alpha normalized {@code <= 0.0}
      * @throws IllegalStateException if called on {@link #UNDEFINED}
      */
     public boolean isTransparent() {

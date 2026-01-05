@@ -39,7 +39,7 @@ public final class MathUtils {
      *
      * @param val value to compare
      * @param max maximum reference value (non-zero)
-     * @return proportion in range (-inf, +inf); typically used when 0 <= val <= max
+     * @return proportion in range (-inf, +inf); typically used when {@code 0 <= val <= max}
      */
     public static double proportion(double val, double max) {
         return (1D / max) * val;
@@ -67,9 +67,9 @@ public final class MathUtils {
      * Round a double value to the given number of decimal places.
      *
      * @param value value to round
-     * @param decimals number of decimal places (>= 0)
+     * @param decimals number of decimal places {@code >= 0}
      * @return rounded value
-     * @throws IllegalArgumentException if {@code decimals} < 0
+     * @throws IllegalArgumentException if {@code decimals < 0} 
      */
     public static double round(double value, int decimals) {
         if (decimals < 0)

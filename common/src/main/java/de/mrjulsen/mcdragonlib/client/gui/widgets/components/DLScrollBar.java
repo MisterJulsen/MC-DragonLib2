@@ -35,7 +35,7 @@ import de.mrjulsen.mcdragonlib.util.properties.Property;
  * increment/decrement buttons, and scroll event handling, all implemented independently.
  * </p>
  *
- * <h4>Key Characteristics:</h4>
+ * <b>Key Characteristics:</b>
  * <ul>
  *   <li>Custom implementation — does not inherit from any existing scrollbar class.</li>
  *   <li>Supports both vertical and horizontal orientation.</li>

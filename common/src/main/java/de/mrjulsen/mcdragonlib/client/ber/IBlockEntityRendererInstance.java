@@ -13,8 +13,8 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
 
     /**
      * The rendering method.
-     * @param pPartialTicks
      * @param graphics
+     * @param partialTick
      */
     void render(BERGraphics<T> graphics, float partialTick);
 
@@ -33,6 +33,7 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
      * @param pos
      * @param state
      * @param blockEntity
+     * @param data
      */
     default void update(Level level, BlockPos pos, BlockState state, T blockEntity, Object data) { }
 

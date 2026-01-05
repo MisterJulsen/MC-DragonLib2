@@ -159,7 +159,7 @@ public class BitflagProperty<T extends Enum<T> & BitflagEnum> extends AbstractSe
     }
     
     /**
-     * Alias for {@link #set(Object[]) set(T...)} that returns the applied array.
+     * Alias for {@link #set set(T...)} that returns the applied array.
      *
      * @param values the enum constants to set
      * @return the input array {@code values}

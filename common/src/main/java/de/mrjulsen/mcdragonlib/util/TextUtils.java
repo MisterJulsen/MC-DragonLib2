@@ -78,7 +78,7 @@ public final class TextUtils {
 
     /**
      * Creates a new keybind text component.
-     * @param text The keybind key
+     * @param key The keybind key
      * @return The keybind component
      */
     public static MutableComponent keybind(String key) {
@@ -150,7 +150,6 @@ public final class TextUtils {
 
     /**
      * Connects the different text components with {@code *** }.
-     * @param concatString The connection text
      * @param components The text components to combine
      * @return The combined text component.
      */
