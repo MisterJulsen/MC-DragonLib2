@@ -15,7 +15,8 @@ public class TimeFormat12Hours implements ITimeFormatter {
 
     public static final TimeFormat12Hours INSTANCE = new TimeFormat12Hours();
 
-    private TimeFormat12Hours() {}
+    @Deprecated(forRemoval = true)
+    public TimeFormat12Hours() {}
 
     @Override
     public String format(DLTime time, TimeContext context, @Nullable ITimeSystem system) {

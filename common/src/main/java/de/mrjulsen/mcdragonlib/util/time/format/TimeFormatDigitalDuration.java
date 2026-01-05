@@ -44,12 +44,12 @@ public class TimeFormatDigitalDuration implements ITimeFormatter {
     }
     
     @Deprecated(forRemoval = true)
-    public TimeFormatDigitalDuration(DLTimeUnit startTicks) {
+    public TimeFormatDigitalDuration(DLTime startTicks) {
         this(DLTimeUnit.SECONDS, false);
     }
 
     @Deprecated(forRemoval = true)
-    public TimeFormatDigitalDuration(DLTimeUnit startTicks, boolean showMillis, boolean showSeconds, boolean showMinutes, boolean showHours, boolean showDays) {
+    public TimeFormatDigitalDuration(DLTime startTicks, boolean showMillis, boolean showSeconds, boolean showMinutes, boolean showHours, boolean showDays) {
         this(DLTimeUnit.SECONDS, false);
     }
 
@@ -141,7 +141,7 @@ public class TimeFormatDigitalDuration implements ITimeFormatter {
             if (context == TimeContext.REAL && millis > 0) {
                 sb.append(".").append(String.format("%03d", millis));
             } else if (context == TimeContext.INGAME && system != null) {
-                sb.append(".").append((long) time.toTicks(system)).append("t");
+                sb.append(".").append(String.format("%02d", (long)(time.toTicks(system) % 20))).append("t");
             }
         }
 

@@ -14,7 +14,8 @@ public class ConfiguredTimeSystem implements ITimeSystem {
 
     public static final ConfiguredTimeSystem INSTANCE = new ConfiguredTimeSystem();
 
-    private ConfiguredTimeSystem() {
+    @Deprecated(forRemoval = true)
+    public ConfiguredTimeSystem() {
     }
     
     @Override

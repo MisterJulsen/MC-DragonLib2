@@ -1,7 +1,11 @@
 package de.mrjulsen.mcdragonlib.util.time;
 
 import java.util.Objects;
+import java.util.function.Supplier;
+
 import org.jetbrains.annotations.Nullable;
+
+import com.google.common.base.Suppliers;
 
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.config.ModServerConfig;
@@ -29,7 +33,7 @@ import net.minecraft.world.level.Level;
  */
 public final class DLTime implements Comparable<DLTime> {
     
-    private static final TimeCache<ITimeSystem> timeSystemCache = new TimeCache<>(() -> {
+    private static final Supplier<TimeCache<ITimeSystem>> timeSystemCache = Suppliers.memoize(() -> new TimeCache<>(() -> {
         ITimeSystem fallback = ModServerConfig.USE_CUSTOM.get() ? ConfiguredTimeSystem.INSTANCE : VanillaTimeSystem.INSTANCE;
         return TimeSystemDatapackLoader.getTimeSystem().orElseGet(() -> {
             if (ModServerConfig.AUTO_DETECT_TIME_SYSTEM.get()) {
@@ -37,7 +41,7 @@ public final class DLTime implements Comparable<DLTime> {
             }
             return fallback;
         });
-    }, ModCommonConfig.TIME_SYSTEM_CACHE_TTL.get());
+    }, ModCommonConfig.TIME_SYSTEM_CACHE_TTL.get()));
 
     /**
      * Return the currently resolved default {@link ITimeSystem}.
@@ -50,14 +54,18 @@ public final class DLTime implements Comparable<DLTime> {
      *         {@link ITimeSystem} is provided.
      */
     public static ITimeSystem defaultTimeSystem() {
-        return timeSystemCache.get();
+        return timeSystemCache.get().get();
     }
 
 
     private final double realMillis;
 
+    @Deprecated(forRemoval = true)
+    private final ITimeSystem initialSystem;
+
     DLTime(double realMillis) {
         this.realMillis = realMillis;
+        this.initialSystem = VanillaTimeSystem.INSTANCE;
     }
 
     /**
@@ -72,6 +80,7 @@ public final class DLTime implements Comparable<DLTime> {
      */
     public DLTime(double amount, DLTimeUnit unit) {
         this.realMillis = unit.toMillis(amount);
+        this.initialSystem = VanillaTimeSystem.INSTANCE;
     }
 
     /**
@@ -86,6 +95,7 @@ public final class DLTime implements Comparable<DLTime> {
     public DLTime(double ticks, ITimeSystem system) {
         Objects.requireNonNull(system);
         this.realMillis = system.getRealMillisFromTicks(ticks, 0);
+        this.initialSystem = system;
     }
 
     /**
@@ -174,6 +184,7 @@ public final class DLTime implements Comparable<DLTime> {
     public static DLTime fromGameDays(double days, ITimeSystem system) {
         return fromGameTicks(days * system.getTicksPerDay(), system);
     }
+
 
     /**
      * Obtain a {@link Builder} to incrementally construct a {@code DLTime}.
@@ -777,4 +788,87 @@ public final class DLTime implements Comparable<DLTime> {
     public String format(ITimeFormatter formatter, TimeContext context) {
         return formatter.format(this, context, VanillaTimeSystem.INSTANCE);
     }
+
+    @Deprecated(forRemoval = true)
+    public static DLTime fromIngame(long days, int hours, int minutes, int seconds, ITimeSystem system) {
+        requireSystem(system);
+        double ticksPerSecond = DLTimeUnit.SECONDS.getTicks(system);
+        double totalTicks = 0.0;
+        totalTicks += (double) days * system.getTicksPerDay();
+        totalTicks += (double) hours * 3600.0 * ticksPerSecond;
+        totalTicks += (double) minutes * 60.0 * ticksPerSecond;
+        totalTicks += (double) seconds * ticksPerSecond;
+        return new DLTime(totalTicks, system);
+    }
+
+    @Deprecated(forRemoval = true)
+    public static DLTime fromReal(long days, int hours, int minutes, int seconds, int millis, ITimeSystem system) {
+        double totalMillis = 0.0;
+        totalMillis += (double) millis;
+        totalMillis += (double) seconds * 1_000.0;
+        totalMillis += (double) minutes * 60_000.0;
+        totalMillis += (double) hours * 3_600_000.0;
+        totalMillis += (double) days * 86_400_000.0;
+        return new DLTime(totalMillis);
+    }
+
+    @Deprecated(forRemoval = true)
+    public double toTicks() {
+        return toTicks(initialSystem);
+    }
+
+    @Deprecated(forRemoval = true)
+    public double toGameSeconds() {
+        return toGameSeconds(initialSystem);
+    }
+
+    @Deprecated(forRemoval = true)
+    public double toGameMinutes() {
+        return toGameMinutes(initialSystem);
+    }
+
+    @Deprecated(forRemoval = true)
+    public double toGameHours() {
+        return toGameHours(initialSystem);
+    }
+
+    @Deprecated(forRemoval = true)
+    public double toGameDays() {
+        return toGameDays(initialSystem);
+    }    
+
+    @Deprecated(forRemoval = true)
+    public double getTicks() {
+        return toTicks(initialSystem);
+    }
+
+    @Deprecated(forRemoval = true)
+    public TimeSnapshot decomposeGameTime() {
+        TimePool pool = asPool();
+        return new TimeSnapshot(
+            (int)pool.extractGameDays(initialSystem),
+            (int)pool.extractGameHours(initialSystem),
+            (int)pool.extractGameMinutes(initialSystem),
+            (int)pool.extractGameSeconds(initialSystem),
+            (int)pool.extractGameTicks(initialSystem)
+        );
+    }
+
+    @Deprecated(forRemoval = true)
+    public TimeSnapshot decomposeRealTime() {
+        TimePool pool = asPool();
+        return new TimeSnapshot(
+            (int)pool.extractDays(),
+            (int)pool.extractHours(),
+            (int)pool.extractMinutes(),
+            (int)pool.extractSeconds(),
+            (int)pool.extractMillis()
+        );
+    }
+
+
+    @Deprecated(forRemoval = true)
+    public record TimeSnapshot(long days, int hours, int minutes, int seconds, int millis) {}
+
 }
+
