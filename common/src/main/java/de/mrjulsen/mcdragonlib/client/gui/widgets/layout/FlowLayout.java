@@ -10,18 +10,113 @@ import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 import java.lang.Math; 
 
+/**
+ * A flexible flow layout that arranges children either horizontally or vertically.
+ *
+ * <p>Features:
+ * <ul>
+ * <li>Direction: controls whether components flow horizontally (rows) or vertically (columns).</li>
+ * <li>Wrap: when enabled, components wrap to the next line/column when they exceed the available
+ *         primary-axis space; when disabled all components are laid out on a single line/column.</li>
+ * <li>FlowConstraint: per-child constraint (provided via the child's {@code layoutContraint})
+ *                   that controls per-line alignment and fill behavior.</li>
+ * <li>fillCrossAxis: when true and wrap is disabled, children will be stretched across the cross axis
+ *                  to fill the host's available cross-axis space.</li>
+ * </ul>
+ *
+ * <p>Spacing and padding:
+ * <ul>
+ * <li>horizontalGap and verticalGap control spacing between components along the respective axes.</li>
+ * <li>padding reserves outer space and reduces the available layout rectangle.</li>
+ * </ul>
+ *
+ * <p>Per-child constraints:
+ * <ul>
+ * <li>START: the default; components are placed at the current "start" coordinate for the line/col.</li>
+ * <li>END: the component is placed flush to the "end" side of the current line/col (right or bottom
+ *        for horizontal/vertical flows respectively) and subsequent positioning accounts for the gap.</li>
+ * <li>FILL: the component requests the remaining free space in the current line/column; when multiple
+ *         FILL components exist they split free space evenly. FILL components keep their cross-axis
+ *         size unless {@code fillCrossAxis} is enabled.</li>
+ * </ul>
+ *
+ * <p>Notes on constraints:
+ * <ul>
+ * <li>A child's constraint must be an instance of {@link FlowConstraint} accessible via its
+ *     {@code layoutContraint} property. If no valid constraint is present the constraint defaults to
+ *     {@link FlowConstraint#START}.</li>
+ * </ul>
+ *
+ * <p>Return:
+ * <ul>
+ * <li>The method returns a {@link LayoutResult} describing the bounding rectangle used by the
+ *     arranged children, including padding right/bottom to reflect final required content area.</li>
+ * </ul>
+ */
 public class FlowLayout implements ILayoutManager {
     
+    /**
+     * Flow direction: horizontal rows or vertical columns.
+     */
     public enum Direction { VERTICAL, HORIZONTAL }
+
+    /**
+     * Per-child constraint controlling alignment and fill behavior within a line/column.
+     *
+     * <ul>
+     * <li>START: normal placement at the beginning of the line/column.</li>
+     * <li>END: placement anchored to the end of the current line/column.</li>
+     * <li>FILL: component receives an allocated portion of remaining primary-axis space.</li>
+     * </ul>
+     */
     public enum FlowConstraint { START, END, FILL }
 
+    /**
+     * Primary flow direction; defaults to HORIZONTAL.
+     */
     public final Property<Direction> flowDirection = new Property<>(Direction.HORIZONTAL);
+
+    /**
+     * Whether children wrap onto new lines/columns when space runs out.
+     */
     public final BooleanProperty wrap = new BooleanProperty(true);
+
+    /**
+     * Horizontal gap in pixels between adjacent components.
+     */
     public final NumberProperty<Integer> horizontalGap = new NumberProperty<>(0); 
+
+    /**
+     * Vertical gap in pixels between adjacent components.
+     */
     public final NumberProperty<Integer> verticalGap = new NumberProperty<>(0);
+
+    /**
+     * Outer padding applied around the flow area.
+     */
     public final Property<Padding> padding = new Property<>(Padding.ZERO);
+
+    /**
+     * When true and wrapping is disabled, children will be stretched across the cross axis
+     * to fill the host cross-axis available space.
+     */
     public final BooleanProperty fillCrossAxis = new BooleanProperty(false);
 
+    /**
+     * Arrange children according to the configured flow direction and constraints.
+     *
+     * <p>When horizontal, children are grouped into rows; when vertical, into columns. Within each
+     * row/column the algorithm:
+     * <ul>
+     * <li>collects components for the line (respecting wrap and available space),</li>
+     * <li>calculates space to allocate for FILL components,</li>
+     * <li>assigns positions for START and END components, and</li>
+     * <li>updates the running primary and cross axis offsets for the next line/column.</li>
+     * </ul>
+     *
+     * @param host the parent container providing available width/height for layout.
+     * @return a {@link LayoutResult} with the width and height required by arranged children.
+     */
     @Override
     public LayoutResult arrangeComponents(DLGuiComponent host) {
         List<DLGuiComponent> children = host.getComponents();
