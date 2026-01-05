@@ -88,32 +88,48 @@ public final class DLTimeOfDay {
     }
 
     /**
-     * Return the hour-of-day (0..23), derived from the system used.
+     * Return the hour-of-day (0..23) as a fractional value, derived from the system used.
+     *
+     * <p>Returns the fractional hour within the day preserving sub-minute precision.
+     * Example: 14.5 represents 14:30.
+     *
+     * @param system the time system used to derive hours (must not be null)
+     * @return fractional hours since the beginning of the day implied by this instance (range: [0, 24))
      */
-    public int getHourOfDay(@NotNull ITimeSystem system) {
+    public double getHourOfDay(@NotNull ITimeSystem system) {
         double hours = getHours(system);
-        int h = (int) Math.floor(hours) % 24;
-        if (h < 0) h += 24;
+        double h = hours % 24.0;
+        if (h < 0.0) h += 24.0;
         return h;
     }
 
     /**
-     * Return the minute within the current hour (0..59).
+     * Return the minute within the current hour (0..59) as a fractional value.
+     *
+     * <p>Preserves sub-second precision; e.g. 21.64 means 21 minutes and 0.64 of a minute.
+     *
+     * @param system the time system used to derive minutes (must not be null)
+     * @return fractional minutes since the beginning of the current hour (range: [0, 60))
      */
-    public int getMinuteOfHour(@NotNull ITimeSystem system) {
+    public double getMinuteOfHour(@NotNull ITimeSystem system) {
         double totalMinutes = getMinutes(system);
-        int minute = (int) Math.floor(totalMinutes) % 60;
-        if (minute < 0) minute += 60;
+        double minute = totalMinutes % 60.0;
+        if (minute < 0.0) minute += 60.0;
         return minute;
     }
 
     /**
-     * Return the second within the current minute (0..59).
+     * Return the second within the current minute (0..59) as a fractional value.
+     *
+     * <p>Preserves sub-tick precision; e.g. 12.75 means 12 seconds and 0.75 of a second.
+     *
+     * @param system the time system used to derive seconds (must not be null)
+     * @return fractional seconds since the beginning of the current minute (range: [0, 60))
      */
-    public int getSecondOfMinute(@NotNull ITimeSystem system) {
+    public double getSecondOfMinute(@NotNull ITimeSystem system) {
         double totalSeconds = getSeconds(system);
-        int second = (int) Math.floor(totalSeconds) % 60;
-        if (second < 0) second += 60;
+        double second = totalSeconds % 60.0;
+        if (second < 0.0) second += 60.0;
         return second;
     }
 
