@@ -17,7 +17,7 @@ import de.mrjulsen.mcdragonlib.util.time.TimeContext;
  */
 public class TimeFormatVerboseDuration implements ITimeFormatter {
 
-    public static final TimeFormatVerboseDuration DEFAULT_INSTANCE = new TimeFormatVerboseDuration(new Config());
+    public static final TimeFormatVerboseDuration DEFAULT_INSTANCE = new TimeFormatVerboseDuration(new Config().showDays(true).showHours(true).showMinutes(true).showSeconds(true));
 
     private final Config config;
 
@@ -109,10 +109,10 @@ public class TimeFormatVerboseDuration implements ITimeFormatter {
      * Configuration object controlling which fields are emitted by the formatter.
      */
     public static class Config {
-        private boolean showDays = true;
-        private boolean showHours = true;
-        private boolean showMinutes = true;
-        private boolean showSeconds = true;
+        private boolean showDays = false;
+        private boolean showHours = false;
+        private boolean showMinutes = false;
+        private boolean showSeconds = false;
         private boolean showMillis = false;
         private boolean showTicks = false;
 
