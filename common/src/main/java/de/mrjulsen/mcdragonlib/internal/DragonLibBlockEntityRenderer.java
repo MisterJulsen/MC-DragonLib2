@@ -7,6 +7,7 @@ import de.mrjulsen.mcdragonlib.client.ber.BERLabel;
 import de.mrjulsen.mcdragonlib.client.ber.BasicBlockEntityRenderer;
 import de.mrjulsen.mcdragonlib.client.ber.BERLabel.EScrollMode;
 import de.mrjulsen.mcdragonlib.client.model.mesh.BasicMesh;
+import de.mrjulsen.mcdragonlib.client.model.mesh.CornerType;
 import de.mrjulsen.mcdragonlib.client.model.mesh.Mesh;
 import de.mrjulsen.mcdragonlib.client.util.DLTexture;
 import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
@@ -17,6 +18,7 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 
@@ -38,6 +40,10 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
         label.horizontalScrollMode.set(EScrollMode.ALWAYS);
 
         model = BasicMesh.fromBlock(Blocks.MAGENTA_GLAZED_TERRACOTTA.defaultBlockState(), RandomSource.create());
+        model.getFacesOfDirection(Direction.NORTH).forEach(f -> {
+            f.getCorner(CornerType.TOP_RIGHT).setU(0.5f);
+            f.setTexture(new ResourceLocation("textures/block/grass_block_side.png"));
+        });
     }
 
 
