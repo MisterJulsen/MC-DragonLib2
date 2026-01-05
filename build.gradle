@@ -85,9 +85,29 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    javadoc {
+        options {
+            title = "DragonLib API ${rootProject.release_channel}-${rootProject.mod_version}"
+            tags("apiNote:a:API Note:")
+            tags("implNote:a:Impl Note:")
+            tags("implSpec:a:Impl Spec:")
+            tags("related:a:Related:")
+            tags("example:a:Examples:")
+            tags("side:a:Valid on side:")
+        }
+    }
+
     tasks.withType(JavaCompile).configureEach {
         it.options.release = 17
     }
+    
+    tasks.withType(Javadoc) {
+        options.locale = 'en_us'
+        options.encoding = 'UTF-8'
+        options.charSet = 'UTF-8'
+    }
+
+
 
 
     publishing {
