@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Suppliers;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.config.ModServerConfig;
 import de.mrjulsen.mcdragonlib.util.TimeCache;
@@ -615,10 +616,61 @@ public final class DLTime implements Comparable<DLTime> {
         }
     }
 
+    /**
+     * Returns the ticks-per-second (TPS) of the currently active {@link TimeZone}
+     * based on the current world time.
+     *
+     * <p>The current world time is obtained via
+     * {@code DragonLib.getCurrentWorldTime()}, which returns the number of game
+     * ticks since {@code /time set 0}. This tick value is mapped into the current
+     * in-game day of the active {@link ITimeSystem}, and the corresponding
+     * {@link TimeZone} is selected.</p>
+     *
+     * <p>The TPS is derived from the TimeZone's real-time tick duration:</p>
+     *
+     * <pre>
+     * TPS = 1000 / realMillisPerTick
+     * </pre>
+     *
+     * @return the TPS of the currently active TimeZone
+     * @throws IllegalStateException if no matching TimeZone can be found
+     */
+    public static double getCurrentTimeZoneTPS() {
+        ITimeSystem system = DLTime.defaultTimeSystem();
+        long ticksPerDay = system.getTicksPerDay();
 
+        double worldTick = DragonLib.getCurrentWorldTime();
+        double tickInDay = Math.floorMod((long) worldTick, ticksPerDay) + (worldTick - Math.floor(worldTick));
 
+        return system.getTimeZones().stream()
+                .sorted()
+                .filter(z -> tickInDay >= z.startTick() && tickInDay < z.endTick())
+                .findFirst()
+                .map(z -> 1000.0 / z.getRealMillisPerTick())
+                .orElse(0.0);
+    }
 
-
+    /**
+     * Calculates the ratio between vanilla Minecraft TPS (20) and the TPS of the
+     * currently active {@link TimeZone}.
+     *
+     * <p>The returned value describes how much faster or slower game time progresses
+     * compared to vanilla Minecraft. For example:</p>
+     *
+     * <ul>
+     *   <li>Current TimeZone TPS = 1.25</li>
+     *   <li>Result = {@code 20 / 1.25 = 16}</li>
+     * </ul>
+     *
+     * <p>This means that while one world-time tick passes in the current TimeZone,
+     * the game has already advanced by 16 vanilla ticks.</p>
+     *
+     * @return the ratio {@code 20 / currentTimeZoneTPS}
+     */
+    public static double getCurrentTimeZoneVanillaTpsRatio() {
+        double timeZoneTps = getCurrentTimeZoneTPS();
+        return 20.0 / timeZoneTps;
+    }
 
 
 
