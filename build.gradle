@@ -1,7 +1,8 @@
 plugins {
     id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false    
+    id "net.mrjulsen.mod-build-tools" version "1.0.0"
     id "maven-publish"
 }
 
@@ -113,6 +114,20 @@ subprojects {
     publishing {
         publications {
             mavenJava(MavenPublication) {
+                artifactId = base.archivesName.get()
+                from components.java
+            }
+        }
+
+        repositories {
+        }
+    }
+
+
+/*
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
                 artifactId = rootProject.archives_name + "-" + project.name
                 from components.java
             }
@@ -158,9 +173,32 @@ subprojects {
             System.setProperty("com.amazonaws.services.s3.enforceV4ChunkedEncoding", "true")
         }
     }
+    */
 
     java {
         withSourcesJar()
         withJavadocJar()
+    }
+    
+    modBuildTools {
+        publish {
+            localRepoDir = "${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
+            s3Bucket = "maven"
+            endpointEnv = System.getenv("MAVEN_ENDPOINT")
+            accessKeyEnv = System.getenv("MAVEN_ACCESS_KEY")
+            secretKeyEnv = System.getenv("MAVEN_SECRET_KEY")
+            publishCommon = false
+        }
+        javadoc {
+            title = "DragonLib API ${release_channel}-${mod_version}"
+            tags = [
+                "apiNote:a:API Note:",
+                "implNote:a:Impl Note:",
+                "implSpec:a:Impl Spec:",
+                "related:a:Related:",
+                "example:a:Examples:",
+                "side:a:Valid on side:"
+            ]
+        }
     }
 }

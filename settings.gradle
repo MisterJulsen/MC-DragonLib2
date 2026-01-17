@@ -4,6 +4,7 @@ pluginManagement {
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://files.minecraftforge.net/maven/" }
         maven { url = "https://maven.parchmentmc.org" }
+        maven { url = "https://maven.mrjulsen.net" }
         gradlePluginPortal()
     }
 }
