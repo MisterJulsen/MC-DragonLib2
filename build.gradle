@@ -86,45 +86,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    javadoc {
-        options {
-            title = "DragonLib API ${rootProject.release_channel}-${rootProject.mod_version}"
-            tags("apiNote:a:API Note:")
-            tags("implNote:a:Impl Note:")
-            tags("implSpec:a:Impl Spec:")
-            tags("related:a:Related:")
-            tags("example:a:Examples:")
-            tags("side:a:Valid on side:")
-        }
-    }
-
     tasks.withType(JavaCompile).configureEach {
         it.options.release = 17
     }
-    
-    tasks.withType(Javadoc) {
-        options.locale = 'en_us'
-        options.encoding = 'UTF-8'
-        options.charSet = 'UTF-8'
-    }
 
-
-
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                artifactId = base.archivesName.get()
-                from components.java
-            }
-        }
-
-        repositories {
-        }
-    }
-
-
-/*
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -134,46 +99,8 @@ subprojects {
         }
 
         repositories {
-            maven {
-                name = "local"
-                url = "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
-            }
-        }
-        repositories {
-            maven {
-                name = "s3"
-                url = "s3://maven"
-
-                credentials(AwsCredentials) {
-                    accessKey = System.getenv("MAVEN_ACCESS_KEY")
-                    secretKey = System.getenv("MAVEN_SECRET_KEY")
-                }
-
-                System.setProperty("org.gradle.s3.endpoint", System.getenv("MAVEN_ENDPOINT") ?: "")
-                System.setProperty("org.gradle.s3.pathStyleAccess", "true")
-            }
         }
     }
-
-    tasks.register("Local (private)") {
-        group = "deploying"
-        description = "Publishes all publications to the local Maven repository"
-        dependsOn("publishMavenJavaPublicationToLocalRepository")
-    }
-
-    tasks.register("Online (public)") {
-        group = "deploying"
-        description = "Publishes all publications to the S3 Maven repository"
-        dependsOn("publishMavenJavaPublicationToLocalRepository")
-        dependsOn("publishMavenJavaPublicationToS3Repository")
-    }
-
-    tasks.named("Online (public)") {
-        doFirst {
-            System.setProperty("com.amazonaws.services.s3.enforceV4ChunkedEncoding", "true")
-        }
-    }
-    */
 
     java {
         withSourcesJar()
