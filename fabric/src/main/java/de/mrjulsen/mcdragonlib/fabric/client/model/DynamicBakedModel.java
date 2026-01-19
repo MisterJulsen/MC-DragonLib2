@@ -1,11 +1,12 @@
 package de.mrjulsen.mcdragonlib.fabric.client.model;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import de.mrjulsen.mcdragonlib.client.model.extension.IBakedQuadExtension;
 import de.mrjulsen.mcdragonlib.client.model.ICustomModelBlockEntity;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.util.TriState;
@@ -33,37 +35,47 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
-    
-	private static final Renderer RENDERER = RendererAccess.INSTANCE.getRenderer();
-	
-	
+    private static final Renderer RENDERER = RendererAccess.INSTANCE.getRenderer();
 
     private final BlockState defaultState;
     private final BakedModel src;
     private final DLModel newModel;
 
+    private record MaterialKey(RenderType renderType, boolean emissive, boolean disableAo) {}
+    private final Map<MaterialKey, RenderMaterial> materialCache = new ConcurrentHashMap<>();
+
     public DynamicBakedModel(BakedModel src, BlockState defaultState, DLModel newModel) {
-        Objects.requireNonNull(src);
-        Objects.requireNonNull(defaultState);
-        Objects.requireNonNull(newModel);
-
-        this.src = src;
-        this.defaultState = defaultState;
-        this.newModel = newModel;
+        this.src = Objects.requireNonNull(src);
+        this.defaultState = Objects.requireNonNull(defaultState);
+        this.newModel = Objects.requireNonNull(newModel);
     }
 
-    @Override
-    public BakedModel getOriginalModel() {
-        return src;
-    }
+    private RenderMaterial getMaterial(RenderType renderType, BakedQuad quad) {
+        boolean isEmissive = false;
+        boolean hasAo = true;
 
-    @Override
-    public DLModel getModel() {
-        return newModel;
+        if (quad instanceof IBakedQuadExtension ext) {
+            //isEmissive = ext.dragonlib$getFaceData().emissive();
+            //hasAo = ext.dragonlib$getFaceData().ambientOcclusion();
+        }
+
+        return materialCache.computeIfAbsent(new MaterialKey(renderType, isEmissive, !hasAo), key -> {
+            MaterialFinder finder = RENDERER.materialFinder().blendMode(BlendMode.fromRenderLayer(key.renderType));
+
+            //finder.emissive(key.emissive);
+            boolean modelUsesAo = useAmbientOcclusion();
+            boolean quadAllowsAo = !key.disableAo;
+
+            //finder.ambientOcclusion(modelUsesAo && quadAllowsAo ? TriState.DEFAULT : TriState.FALSE);
+            finder.ambientOcclusion(modelUsesAo && quadAllowsAo ? TriState.DEFAULT : TriState.FALSE);
+
+            return finder.find();
+        });
     }
 
     @Override
     public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+
         ModelContext modelContext = ModelContext.EMPTY;
         if (blockView.getBlockEntity(pos) instanceof ICustomModelBlockEntity be) {
             modelContext = be.getModelContext();
@@ -76,29 +88,38 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
         emitQuads(context, randomSupplier.get(), defaultState, ModelType.ITEM, ModelContext.EMPTY);
     }
 
-    private void emitQuads(RenderContext context, RandomSource rand, BlockState state, ModelType type,ModelContext modelContext) {
-		final MaterialFinder materialFinder = useAmbientOcclusion() ? RENDERER.materialFinder() : RENDERER.materialFinder().ambientOcclusion(TriState.FALSE);
-        Map<RenderType, RenderMaterial> materialByRenderType = new HashMap<>();
-        
-        for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
-			final Direction cullFace = ModelHelper.faceFromIndex(i);
+    private void emitQuads(RenderContext context, RandomSource rand, BlockState state, ModelType type, ModelContext modelContext) {
+        QuadEmitter emitter = context.getEmitter();
 
-			if (!context.hasTransform() && (type == ModelType.BLOCK && context.isFaceCulled(cullFace))) {
-				continue;
-			}
+        for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
+            final Direction cullFace = ModelHelper.faceFromIndex(i);
+
+            if (type == ModelType.BLOCK && cullFace != null && context.isFaceCulled(cullFace)) {
+                continue;
+            }
 
             for (RenderType renderType : newModel.getSupportedRenderTypes()) {
                 final List<BakedQuad> quads = newModel.getQuads(type, src, state, rand, renderType, cullFace, modelContext);
-                final int count = quads.size();
 
-                for (int j = 0; j < count; j++) {
-                    final BakedQuad q = quads.get(j);
-                    context.getEmitter()
-                        .fromVanilla(q, materialByRenderType.computeIfAbsent(renderType, x -> materialFinder.blendMode(BlendMode.fromRenderLayer(renderType)).find()), cullFace)
-                        .emit();
+                for (BakedQuad q : quads) {
+                    RenderMaterial material = getMaterial(renderType, q);
+                    emitter.fromVanilla(q, material, cullFace);
+                    emitter.emit();
                 }
             }
-		}
+        }
+    }
+
+
+
+    @Override
+    public BakedModel getOriginalModel() {
+        return src;
+    }
+
+    @Override
+    public DLModel getModel() {
+        return newModel;
     }
 
     @Override

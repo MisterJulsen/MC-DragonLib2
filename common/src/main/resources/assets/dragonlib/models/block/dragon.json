@@ -1,7 +1,29 @@
 {
-    "parent": "block/cube_all",
 	"textures": {
-		"all": "dragonlib:block/dragon",
+		"icon": "dragonlib:block/pain",
 		"particle": "block/soul_sand"
-	}
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 16, 16],
+					"texture": "#icon",
+					"cullface": "north",
+					"dragonlib_data": {
+						"ambient_occlusion": false,
+						"emissive": true,
+						"tags": [ "Test" ]
+					}
+				},
+				"east": { "uv": [0, 0, 16, 16], "texture": "#icon", "cullface": "east" },
+				"south": {"uv": [0, 0, 16, 16], "texture": "#icon", "cullface": "south"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#icon", "cullface": "west"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#icon", "cullface": "up"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#icon", "cullface": "down"}
+			}
+		}
+	]
 }

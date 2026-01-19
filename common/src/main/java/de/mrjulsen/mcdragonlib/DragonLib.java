@@ -3,11 +3,9 @@ package de.mrjulsen.mcdragonlib;
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
-import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
-import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
-import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntity;
-import de.mrjulsen.mcdragonlib.internal.DragonLibBlockEntityRenderer;
+import de.mrjulsen.mcdragonlib.internal.*;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketType;
@@ -145,7 +143,7 @@ public class DragonLib {
                 */
             });
             DLOverlayManager.init();
-            //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
+            DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }
 
         // On server tick
