@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import de.mrjulsen.mcdragonlib.client.model.extension.IBakedQuadExtension;
 import de.mrjulsen.mcdragonlib.client.model.ICustomModelBlockEntity;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
@@ -20,7 +19,6 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -41,7 +39,7 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     private final BakedModel src;
     private final DLModel newModel;
 
-    private record MaterialKey(RenderType renderType, boolean emissive, boolean disableAo) {}
+    private record MaterialKey(RenderType renderType) {}
     private final Map<MaterialKey, RenderMaterial> materialCache = new ConcurrentHashMap<>();
 
     public DynamicBakedModel(BakedModel src, BlockState defaultState, DLModel newModel) {
@@ -51,31 +49,15 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     }
 
     private RenderMaterial getMaterial(RenderType renderType, BakedQuad quad) {
-        boolean isEmissive = false;
-        boolean hasAo = true;
-
-        if (quad instanceof IBakedQuadExtension ext) {
-            //isEmissive = ext.dragonlib$getFaceData().emissive();
-            //hasAo = ext.dragonlib$getFaceData().ambientOcclusion();
-        }
-
-        return materialCache.computeIfAbsent(new MaterialKey(renderType, isEmissive, !hasAo), key -> {
-            MaterialFinder finder = RENDERER.materialFinder().blendMode(BlendMode.fromRenderLayer(key.renderType));
-
-            //finder.emissive(key.emissive);
-            boolean modelUsesAo = useAmbientOcclusion();
-            boolean quadAllowsAo = !key.disableAo;
-
-            //finder.ambientOcclusion(modelUsesAo && quadAllowsAo ? TriState.DEFAULT : TriState.FALSE);
-            finder.ambientOcclusion(modelUsesAo && quadAllowsAo ? TriState.DEFAULT : TriState.FALSE);
-
+        return materialCache.computeIfAbsent(new MaterialKey(renderType), key -> {
+            MaterialFinder finder = RENDERER.materialFinder()
+                    .blendMode(BlendMode.fromRenderLayer(key.renderType));
             return finder.find();
         });
     }
 
     @Override
     public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
-
         ModelContext modelContext = ModelContext.EMPTY;
         if (blockView.getBlockEntity(pos) instanceof ICustomModelBlockEntity be) {
             modelContext = be.getModelContext();
