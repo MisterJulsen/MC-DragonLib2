@@ -11,24 +11,24 @@
   ],
   "changelog_categories": [
     {
-      "inputs": ["added", "✨"],
-      "output": "✨"
+      "inputs": ["added", "add", "✨"],
+      "output": "Added"
     },
     {
-      "inputs": ["fixed", "🐛"],
-      "output": "🐛"
+      "inputs": ["fixed", "fix", "🐛"],
+      "output": "Fixed"
     },
     {
-      "inputs": ["changed", "♻️"],
-      "output": "♻️"
+      "inputs": ["changed", "change", "♻️"],
+      "output": "Changed"
     },
     {
-      "inputs": ["removed", "🔥"],
-      "output": "🔥"
+      "inputs": ["removed", "remove", "🔥"],
+      "output": "Removed"
     },
     {
-      "inputs": ["updated", "⬆️"],
-      "output": "⬆️"
+      "inputs": ["updated", "update", "⬆️"],
+      "output": "Updated"
     }
   ],
   "release_channels": {
