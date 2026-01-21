@@ -6,6 +6,7 @@ import java.util.Queue;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ICustomModelFactory;
+import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedModelWrapper;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.forge.client.model.DynamicBakedModel;
 import de.mrjulsen.mcdragonlib.forge.client.model.loaders.MultipartObjLoader;
@@ -29,10 +30,14 @@ public final class ClientEvents {
     public static void registerGeometryLoaders(RegisterGeometryLoaders event) {
         event.register("multipart_obj", MultipartObjLoader.INSTANCE);
     }
-    
+
+
     @SubscribeEvent
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> registry = event.getModels();
+        for (Map.Entry<ResourceLocation, BakedModel> entry : registry.entrySet()) {
+            registry.put(entry.getKey(), DLBakedModelWrapper.wrap(entry.getValue()));
+        }
 
         Queue<ICustomModelFactory> replacements = DLBlockModelRegistry.getCustomRegisteredModels(registry);
         while (!replacements.isEmpty()) {
