@@ -6,9 +6,9 @@ import java.util.Queue;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ICustomModelFactory;
-import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedModelWrapper;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.forge.client.model.DynamicBakedModel;
+import de.mrjulsen.mcdragonlib.forge.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.forge.client.model.loaders.MultipartObjLoader;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
@@ -29,15 +29,13 @@ public final class ClientEvents {
     @SubscribeEvent
     public static void registerGeometryLoaders(RegisterGeometryLoaders event) {
         event.register("multipart_obj", MultipartObjLoader.INSTANCE);
+        event.register("advanced_json", DLModelExtensionLoader.INSTANCE);
     }
 
 
     @SubscribeEvent
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> registry = event.getModels();
-        for (Map.Entry<ResourceLocation, BakedModel> entry : registry.entrySet()) {
-            registry.put(entry.getKey(), DLBakedModelWrapper.wrap(entry.getValue()));
-        }
 
         Queue<ICustomModelFactory> replacements = DLBlockModelRegistry.getCustomRegisteredModels(registry);
         while (!replacements.isEmpty()) {

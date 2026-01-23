@@ -143,7 +143,7 @@ public class DragonLib {
                 */
             });
             DLOverlayManager.init();
-            DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
+            //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }
 
         // On server tick

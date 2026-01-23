@@ -28,12 +28,12 @@ public abstract class TransformationMixin implements TransformationExtensions {
 
 	@Override
 	public Matrix3f dragonlib$getNormalMatrix() {
-		port_lib$checkNormalTransform();
+		dragonlib$checkNormalTransform();
 		return normalTransform;
 	}
 
 	@Unique
-	private void port_lib$checkNormalTransform() {
+	private void dragonlib$checkNormalTransform() {
 		if (normalTransform == null) {
 			normalTransform = new Matrix3f(this.matrix);
 			normalTransform.invert();

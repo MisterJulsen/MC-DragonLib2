@@ -15,12 +15,7 @@
         "ServerboundCustomPayloadPacketAccessor",
         "StringSplitterAccessor",
         "TextureManagerMixin",
-        "VertexFormatAccessor",
-        "extension.BakedQuadMixin",
-        "extension.BlockElementFaceDeserializerMixin",
-        "extension.BlockFaceElementMixin",
-        "extension.FaceBakeryMixin",
-        "extension.ModelBakeryMixin"
+        "VertexFormatAccessor"
     ],
     "mixins": [
         "ItemMixin",

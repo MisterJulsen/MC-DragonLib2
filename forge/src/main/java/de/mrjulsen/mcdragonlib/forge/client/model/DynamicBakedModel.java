@@ -3,7 +3,7 @@ package de.mrjulsen.mcdragonlib.forge.client.model;
 import java.util.List;
 import java.util.Objects;
 
-import de.mrjulsen.mcdragonlib.client.model.extension.forge.DLBakedModelWrapperImpl;
+import net.minecraftforge.client.model.BakedModelWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,25 +24,23 @@ import net.minecraftforge.client.ChunkRenderTypeSet;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 
-public class DynamicBakedModel extends DLBakedModelWrapperImpl implements IDynamicBakedModel {
+public class DynamicBakedModel extends BakedModelWrapper<BakedModel> implements IDynamicBakedModel {
 
     private final ModelProperty<ModelContext> MODEL_CONTEXT_PROPERTY = new ModelProperty<>();
 
     private final BlockState defaultState;
-    private final BakedModel src;
     private final DLModel newModel;
 
     public DynamicBakedModel(BakedModel src, BlockState defaultState, DLModel newModel) {
         super(src);
         Objects.requireNonNull(defaultState);
-        this.src = src;
         this.defaultState = defaultState;
         this.newModel = newModel;
     }
 
     @Override
     public BakedModel getOriginalModel() {
-        return src;
+        return originalModel;
     }
 
     @Override
@@ -53,7 +51,7 @@ public class DynamicBakedModel extends DLBakedModelWrapperImpl implements IDynam
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {        
         ModelType type = ModelType.isItem(state == null);
-        return newModel.getQuads(type, src, state == null ? defaultState : state, rand, renderType, side, data.has(MODEL_CONTEXT_PROPERTY) ? data.get(MODEL_CONTEXT_PROPERTY) : ModelContext.EMPTY);
+        return newModel.getQuads(type, originalModel, state == null ? defaultState : state, rand, renderType, side, data.has(MODEL_CONTEXT_PROPERTY) ? data.get(MODEL_CONTEXT_PROPERTY) : ModelContext.EMPTY);
     }
 
     @Override
@@ -65,7 +63,7 @@ public class DynamicBakedModel extends DLBakedModelWrapperImpl implements IDynam
     }
    
     @Override
-    public ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
+    public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
         return ChunkRenderTypeSet.of(newModel.getSupportedRenderTypes());
     }
 
@@ -76,7 +74,7 @@ public class DynamicBakedModel extends DLBakedModelWrapperImpl implements IDynam
 
     @Override
     public boolean useAmbientOcclusion() {
-        return newModel.useAmbientOcclusion() == null ? src.useAmbientOcclusion() : newModel.useAmbientOcclusion();
+        return newModel.useAmbientOcclusion() == null ? originalModel.useAmbientOcclusion() : Boolean.TRUE.equals(newModel.useAmbientOcclusion());
     }
 
     @Override

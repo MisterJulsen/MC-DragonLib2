@@ -1,6 +1,7 @@
 {
+	"loader": "dragonlib:advanced_json",
 	"textures": {
-		"icon": "dragonlib:block/pain",
+		"icon": "dragonlib:block/dragon",
 		"particle": "block/soul_sand"
 	},
 	"elements": [

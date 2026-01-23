@@ -8,9 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import de.mrjulsen.mcdragonlib.client.model.extension.DLFaceData;
-import de.mrjulsen.mcdragonlib.client.model.extension.IBakedQuadExtension;
-import dev.architectury.injectables.annotations.ExpectPlatform;
+import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedQuad;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -92,11 +90,10 @@ public class Face implements ITransformable<Face> {
         float spriteW = u1 - u0;
         float spriteH = v1 - v0;
 
-        if (quad instanceof IBakedQuadExtension ext && ext.dragonlib$getFaceData() != null) {
-            this.ambientOcclusion = ext.dragonlib$getFaceData().ambientOcclusion();
-            this.emissive = ext.dragonlib$getFaceData().emissive();
-            this.color = DLColor.fromInt(ext.dragonlib$getFaceData().color());
-            this.tags = new ArrayList<>(ext.dragonlib$getFaceData().tags());
+        if (quad instanceof DLBakedQuad ext) {
+            this.ambientOcclusion = ext.isAmbientOcclusion();
+            this.emissive = ext.isEmissive();
+            this.tags = new ArrayList<>(ext.getTags());
         }
         
         for (int i = 0; i < corners.size(); i++) {
@@ -335,28 +332,17 @@ public class Face implements ITransformable<Face> {
             ModelUtils.packLight(corner.getLightAsArray(), vertexData, i);
         }
 
-
-        BakedQuad quad = buildQuad(
-            this,
+        return DLBakedQuad.create(
             vertexData,
             getTintIndex(),
             hasOverrideNormalDirection() ? overrideNormalDirection : normalDir,
             getSprite().orElse(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(getTextureLocation())),
-            isShade()
+            isShade(),
+            ambientOcclusion,
+            emissive,
+            List.copyOf(tags)
         );
-
-        IBakedQuadExtension ext = (IBakedQuadExtension)quad;
-        DLFaceData data = new DLFaceData(color.getAsARGB(), ambientOcclusion, emissive, ImmutableList.copyOf(tags));
-        ext.dragonlib$setFaceData(data);
-
-        return quad;
     }
-
-    @ExpectPlatform
-    static BakedQuad buildQuad(Face face, int[] vertices, int tintIndex, Direction direction, TextureAtlasSprite sprite, boolean shade) {
-        throw new AssertionError();
-    }
-
 
 
 

@@ -4,19 +4,12 @@ import com.google.common.collect.ImmutableMap;
 
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ModelRegistryData;
-import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedModelWrapper;
 import de.mrjulsen.mcdragonlib.fabric.client.model.DynamicBakedModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public class DLModelLoadingPlugin implements ModelLoadingPlugin {
@@ -33,8 +26,7 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
                 DLBlockModelRegistry.setOriginalModel(data.state(), model);
                 model = new DynamicBakedModel(model, data.state(), data.factory().getModelFactory().get());
             }
-
-            return DLBakedModelWrapper.wrap(model);
+            return model;
         });
     }
 }

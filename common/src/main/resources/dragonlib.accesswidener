@@ -5,3 +5,7 @@ accessible class net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientO
 accessible field net/minecraft/client/gui/screens/Screen renderables Ljava/util/List;
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace brightness [F
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientOcclusionFace lightmap [I
+accessible class net/minecraft/client/resources/model/ModelBakery$ModelBakerImpl
+accessible field net/minecraft/client/resources/model/ModelBakery bakedCache Ljava/util/Map;
+accessible class net/minecraft/client/resources/model/ModelBakery$BakedCacheKey
+accessible method net/minecraft/client/resources/model/ModelBakery$BakedCacheKey <init> (Lnet/minecraft/resources/ResourceLocation;Lcom/mojang/math/Transformation;Z)V
