@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedQuad;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -52,6 +53,11 @@ public class Face implements ITransformable<Face> {
     private RenderType renderType = RenderType.solid();
     private boolean useAlternateSplitLine = false;
 
+    // Custom
+    private boolean ambientOcclusion = true;
+    private boolean emissive = false;
+    private List<String> tags = List.of();
+
     private Direction overrideNormalDirection;
 
     public Face(Vector3f[] positions) {
@@ -63,7 +69,9 @@ public class Face implements ITransformable<Face> {
         }
         this.setTexture(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(DragonLib.MODID, "block/white")));
         createEdges();
-        recalculateNormals();
+        Vector3f normal = recalculateNormals();
+        this.normalDirection = Direction.getNearest(normal.x(), normal.y(), normal.z());
+
     }
     
     public Face(BakedQuad quad, Direction cullface) {
@@ -81,6 +89,12 @@ public class Face implements ITransformable<Face> {
         float v1 = quad.getSprite().getV1();
         float spriteW = u1 - u0;
         float spriteH = v1 - v0;
+
+        if (quad instanceof DLBakedQuad ext) {
+            this.ambientOcclusion = ext.isAmbientOcclusion();
+            this.emissive = ext.isEmissive();
+            this.tags = new ArrayList<>(ext.getTags());
+        }
         
         for (int i = 0; i < corners.size(); i++) {
             ModelUtils.unpackPosition(vertexData, pos, i);
@@ -304,6 +318,7 @@ public class Face implements ITransformable<Face> {
         
         float spriteW = sprite.getU1() - sprite.getU0();
         float spriteH = sprite.getV1() - sprite.getV0();
+
         for (int i = 0; i < specificCorners.length; i++) { 
             FaceVertex corner = specificCorners[i];
             DLColor col = DLColor.mixTint(getColor(), corner.getVertex().getColor());
@@ -317,17 +332,17 @@ public class Face implements ITransformable<Face> {
             ModelUtils.packLight(corner.getLightAsArray(), vertexData, i);
         }
 
-        return new BakedQuad(
+        return DLBakedQuad.create(
             vertexData,
             getTintIndex(),
             hasOverrideNormalDirection() ? overrideNormalDirection : normalDir,
             getSprite().orElse(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(getTextureLocation())),
-            isShade()
+            isShade(),
+            ambientOcclusion,
+            emissive,
+            List.copyOf(tags)
         );
     }
-
-
-
 
 
 
@@ -416,6 +431,14 @@ public class Face implements ITransformable<Face> {
         return useAlternateSplitLine;
     }
 
+    public boolean isEmissive() {
+        return emissive;
+    }
+
+    public boolean useAmbientOcclusion() {
+        return ambientOcclusion;
+    }
+
     public void setTexture(TextureAtlasSprite sprite) {
         Objects.requireNonNull(sprite);
         this.sprite = sprite;
@@ -450,6 +473,18 @@ public class Face implements ITransformable<Face> {
 
     public void setUseAlternateSplitLine(boolean b) {
         this.useAlternateSplitLine = b;
+    }
+
+    public void setEmissive(boolean b) {
+        this.emissive = b;
+    }
+
+    public void setAmbientOcclusion(boolean b) {
+        this.ambientOcclusion = b;
+    }
+
+    public List<String> getTags() {
+        return tags;
     }
 
     public DLColor getColor() {

@@ -37,7 +37,7 @@ import java.util.Map;
  * {@link ObjMaterialLibrary material library} override.
  */
 public class MultipartObjLoader implements IGeometryLoader<MultipartObjModel>, ResourceManagerReloadListener {
-    public static MultipartObjLoader INSTANCE = new MultipartObjLoader();
+    public static final MultipartObjLoader INSTANCE = new MultipartObjLoader();
     public static final ResourceLocation ID = new ResourceLocation(DragonLib.MODID, "multipart_obj");
 
     private final Map<MultipartObjModel.ModelSettings, MultipartObjModel> modelCache = Maps.newConcurrentMap();

@@ -1,29 +1,31 @@
 package de.mrjulsen.mcdragonlib.fabric.client.model;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.client.model.ICustomModelBlockEntity;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
+import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedQuad;
+import de.mrjulsen.mcdragonlib.client.model.extension.DLFaceData;
+import de.mrjulsen.mcdragonlib.client.model.extension.fabric.DLBakedQuadImpl;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
+import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.DLBakedModelExtension;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,34 +34,36 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
-    
-	private static final Renderer RENDERER = RendererAccess.INSTANCE.getRenderer();
-	
-	
+public class DynamicBakedModel extends ForwardingBakedModel implements IDynamicBakedModel {
+    private static final Renderer RENDERER = RendererAccess.INSTANCE.getRenderer();
 
     private final BlockState defaultState;
-    private final BakedModel src;
     private final DLModel newModel;
 
+    private record MaterialKey(RenderType renderType, boolean ambientOcclusion, boolean emissive) {
+        public static MaterialKey create(RenderType rendertype, BakedQuad bakedquad) {
+            if (bakedquad instanceof DLBakedQuad ext) {
+                return new MaterialKey(rendertype, ext.isAmbientOcclusion(), ext.isEmissive());
+            }
+            return new MaterialKey(rendertype, DLFaceData.DEFAULT.ambientOcclusion(), DLFaceData.DEFAULT.emissive());
+        }
+    }
+    private final Map<MaterialKey, RenderMaterial> materialCache = new ConcurrentHashMap<>();
+
     public DynamicBakedModel(BakedModel src, BlockState defaultState, DLModel newModel) {
-        Objects.requireNonNull(src);
-        Objects.requireNonNull(defaultState);
-        Objects.requireNonNull(newModel);
-
-        this.src = src;
-        this.defaultState = defaultState;
-        this.newModel = newModel;
+        this.wrapped = Objects.requireNonNull(src);
+        this.defaultState = Objects.requireNonNull(defaultState);
+        this.newModel = Objects.requireNonNull(newModel);
     }
 
-    @Override
-    public BakedModel getOriginalModel() {
-        return src;
-    }
-
-    @Override
-    public DLModel getModel() {
-        return newModel;
+    private RenderMaterial getMaterial(RenderType renderType, BakedQuad quad) {
+        return materialCache.computeIfAbsent(MaterialKey.create(renderType, quad), key -> {
+            MaterialFinder finder = RENDERER.materialFinder().blendMode(BlendMode.fromRenderLayer(key.renderType));
+            if (quad instanceof DLBakedQuad ext) {
+                finder = DLBakedModelExtension.applyMaterial(ext, finder);
+            }
+            return finder.find();
+        });
     }
 
     @Override
@@ -76,74 +80,40 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
         emitQuads(context, randomSupplier.get(), defaultState, ModelType.ITEM, ModelContext.EMPTY);
     }
 
-    private void emitQuads(RenderContext context, RandomSource rand, BlockState state, ModelType type,ModelContext modelContext) {
-		final MaterialFinder materialFinder = useAmbientOcclusion() ? RENDERER.materialFinder() : RENDERER.materialFinder().ambientOcclusion(TriState.FALSE);
-        Map<RenderType, RenderMaterial> materialByRenderType = new HashMap<>();
-        
-        for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
-			final Direction cullFace = ModelHelper.faceFromIndex(i);
+    private void emitQuads(RenderContext context, RandomSource rand, BlockState state, ModelType type, ModelContext modelContext) {
+        QuadEmitter emitter = context.getEmitter();
 
-			if (!context.hasTransform() && (type == ModelType.BLOCK && context.isFaceCulled(cullFace))) {
-				continue;
-			}
+        for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
+            final Direction cullFace = ModelHelper.faceFromIndex(i);
+
+            if (type == ModelType.BLOCK && cullFace != null && context.isFaceCulled(cullFace)) {
+                continue;
+            }
 
             for (RenderType renderType : newModel.getSupportedRenderTypes()) {
-                final List<BakedQuad> quads = newModel.getQuads(type, src, state, rand, renderType, cullFace, modelContext);
-                final int count = quads.size();
+                final List<BakedQuad> quads = newModel.getQuads(type, wrapped, state, rand, renderType, cullFace, modelContext);
 
-                for (int j = 0; j < count; j++) {
-                    final BakedQuad q = quads.get(j);
-                    context.getEmitter()
-                        .fromVanilla(q, materialByRenderType.computeIfAbsent(renderType, x -> materialFinder.blendMode(BlendMode.fromRenderLayer(renderType)).find()), cullFace)
-                        .emit();
+                for (BakedQuad q : quads) {
+                    emitter.fromVanilla(q, getMaterial(renderType, q), cullFace).emit();
                 }
             }
-		}
+        }
+    }
+
+
+
+    @Override
+    public BakedModel getOriginalModel() {
+        return wrapped;
+    }
+
+    @Override
+    public DLModel getModel() {
+        return newModel;
     }
 
     @Override
     public boolean isVanillaAdapter() {
         return false;
     }
-
-    @Override
-    public List<BakedQuad> getQuads(BlockState states, Direction side, RandomSource rand) {        
-        return List.of();
-    }
-
-    @Override
-    public ItemOverrides getOverrides() {
-        return src.getOverrides();
-    }
-
-    @Override
-    public TextureAtlasSprite getParticleIcon() {
-        return src.getParticleIcon();
-    }
-
-    @Override
-    public ItemTransforms getTransforms() {
-        return src.getTransforms();
-    }
-
-    @Override
-    public boolean isCustomRenderer() {
-        return src.isCustomRenderer();
-    }
-
-    @Override
-    public boolean isGui3d() {
-        return src.isGui3d();
-    }
-
-    @Override
-    public boolean useAmbientOcclusion() {
-        return newModel.useAmbientOcclusion() == null ? src.useAmbientOcclusion() : newModel.useAmbientOcclusion();
-    }
-
-    @Override
-    public boolean usesBlockLight() {
-        return src.usesBlockLight();
-    }
-    
 }

@@ -24,7 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
 public class DragonLibBlock extends BaseEntityBlock {
 
     public DragonLibBlock(BlockBehaviour.Properties properties) {
-        super(properties.noOcclusion());
+        super(properties);
     }
 
     public static class DragonLibItem extends BlockItem {

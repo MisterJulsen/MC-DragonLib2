@@ -42,6 +42,5 @@
       "update_checker": true,
       "badges": [ "library" ]
     }
-  },
-  "accessWidener": "${modid}.accesswidener"
+  }
 }

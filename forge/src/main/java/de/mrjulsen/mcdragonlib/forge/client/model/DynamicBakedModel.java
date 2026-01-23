@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.forge.client.model;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraftforge.client.model.BakedModelWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,9 +14,6 @@ import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,24 +24,23 @@ import net.minecraftforge.client.ChunkRenderTypeSet;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 
-public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
+public class DynamicBakedModel extends BakedModelWrapper<BakedModel> implements IDynamicBakedModel {
 
     private final ModelProperty<ModelContext> MODEL_CONTEXT_PROPERTY = new ModelProperty<>();
 
     private final BlockState defaultState;
-    private final BakedModel src;
     private final DLModel newModel;
 
     public DynamicBakedModel(BakedModel src, BlockState defaultState, DLModel newModel) {
+        super(src);
         Objects.requireNonNull(defaultState);
-        this.src = src;
         this.defaultState = defaultState;
         this.newModel = newModel;
     }
 
     @Override
     public BakedModel getOriginalModel() {
-        return src;
+        return originalModel;
     }
 
     @Override
@@ -54,8 +51,9 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {        
         ModelType type = ModelType.isItem(state == null);
-        return newModel.getQuads(type, src, state == null ? defaultState : state, rand, renderType, side, data.has(MODEL_CONTEXT_PROPERTY) ? data.get(MODEL_CONTEXT_PROPERTY) : ModelContext.EMPTY);
+        return newModel.getQuads(type, originalModel, state == null ? defaultState : state, rand, renderType, side, data.has(MODEL_CONTEXT_PROPERTY) ? data.get(MODEL_CONTEXT_PROPERTY) : ModelContext.EMPTY);
     }
+
     @Override
     public @NotNull ModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData modelData) {
         if (level.getBlockEntity(pos) instanceof ICustomModelBlockEntity be) {
@@ -65,25 +63,8 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     }
    
     @Override
-    public ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
+    public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
         return ChunkRenderTypeSet.of(newModel.getSupportedRenderTypes());
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public ItemTransforms getTransforms() {
-        return src.getTransforms();
-    }
-
-    @Override
-    public ItemOverrides getOverrides() {
-        return src.getOverrides();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public TextureAtlasSprite getParticleIcon() {
-        return src.getParticleIcon();
     }
 
     @Override
@@ -92,22 +73,12 @@ public class DynamicBakedModel implements BakedModel, IDynamicBakedModel {
     }
 
     @Override
-    public boolean isGui3d() {
-        return src.isGui3d();
-    }
-
-    @Override
     public boolean useAmbientOcclusion() {
-        return newModel.useAmbientOcclusion() == null ? src.useAmbientOcclusion() : newModel.useAmbientOcclusion();
+        return newModel.useAmbientOcclusion() == null ? originalModel.useAmbientOcclusion() : Boolean.TRUE.equals(newModel.useAmbientOcclusion());
     }
 
     @Override
-    public boolean usesBlockLight() {
-        return src.usesBlockLight();
-    }
-
-    @Override
-    public List<BakedQuad> getQuads(BlockState state, Direction direction, RandomSource rand) {
+    public @NotNull List<BakedQuad> getQuads(BlockState state, Direction direction, @NotNull RandomSource rand) {
         return getQuads(state, direction, rand, ModelData.EMPTY, null);
     }
     

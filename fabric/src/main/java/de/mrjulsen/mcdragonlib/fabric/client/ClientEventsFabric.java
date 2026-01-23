@@ -1,6 +1,7 @@
 package de.mrjulsen.mcdragonlib.fabric.client;
 
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.RegisterGeometryLoadersCallback;
+import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.MultipartObjLoader;
 import de.mrjulsen.mcdragonlib.fabric.client.model.obj.ObjLoader;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,5 +16,6 @@ public class ClientEventsFabric implements ClientModInitializer {
         ModelLoadingPlugin.register(new DLModelLoadingPlugin());
 		RegisterGeometryLoadersCallback.EVENT.register(loaders -> loaders.put(ObjLoader.ID, ObjLoader.INSTANCE));
 		RegisterGeometryLoadersCallback.EVENT.register(loaders -> loaders.put(MultipartObjLoader.ID, MultipartObjLoader.INSTANCE));
+		RegisterGeometryLoadersCallback.EVENT.register(loaders -> loaders.put(DLModelExtensionLoader.ID, DLModelExtensionLoader.INSTANCE));
     }
 }
