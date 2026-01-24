@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.BakedModelWrapper;
-import net.minecraftforge.client.model.QuadTransformers;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,10 +29,6 @@ public class DLBakedModelExtension extends BakedModelWrapper<BakedModel> {
     public DLBakedModelExtension(BakedModel parent, Map<DLFaceKey, DLFaceData> faceData) {
         super(parent);
         this.faceData = faceData;
-        System.out.println(this);
-        for (Map.Entry<DLFaceKey, DLFaceData> data : faceData.entrySet()) {
-            System.out.println(" - " + data.getKey() + ", " +  data.getValue());
-        }
     }
 
     @Override
@@ -42,7 +37,7 @@ public class DLBakedModelExtension extends BakedModelWrapper<BakedModel> {
     }
 
     @Override
-    public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand) {
+    public @NotNull List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand) {
         return cachedQuads.computeIfAbsent(new CacheKey(state, side), k -> {
             List<BakedQuad> src = super.getQuads(state, side, rand);
             List<BakedQuad> quads = new ArrayList<>(src.size());

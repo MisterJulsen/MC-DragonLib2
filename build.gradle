@@ -97,9 +97,6 @@ subprojects {
                 from components.java
             }
         }
-
-        repositories {
-        }
     }
 
     java {
