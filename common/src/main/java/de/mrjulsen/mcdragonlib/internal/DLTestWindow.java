@@ -174,7 +174,7 @@ public class DLTestWindow extends DLWindow {
         autocompleteBox.multiline.set(false);
         autocompleteBox.autocompleteManager.set((DLAutocompleteWindow<String> win, DLRichTextEditBox box) -> {
             List<String> str = new ArrayList<>();
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 10000; i++) {
                 str.add("Test " + i);
             }
             win.suggestions.set(str);

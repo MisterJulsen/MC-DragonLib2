@@ -21,7 +21,7 @@ public interface IAutocompletionManager<T> {
      * @return The new autocomplete window instance.
      */
     default DLAutocompleteWindow<T> createWindow(DLWindowManager windowManager, DLRichTextEditBox textBox) {
-        DLAutocompleteWindow<T> win = new DLAutocompleteWindow<>(windowManager, textBox); 
+        DLAutocompleteWindow<T> win = new DLAutocompleteWindow<>(windowManager, textBox);
         Point pos = textBox.toScreenCoordinates();
         win.setPosition(pos.x(), pos.y() + textBox.height());
         return win;

@@ -9,6 +9,7 @@ import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.time.DLTime;
 import de.mrjulsen.mcdragonlib.util.time.DLTimeUnit;
@@ -30,6 +31,11 @@ public class TimeWindow extends DLWindow {
     public TimeWindow(DLWindowManager manager) {
         super(manager);
         movable.set(true);
+    }
+
+    @Override
+    public Rectangle getRenderBounds() {
+        return Rectangle.withSize(x(), y(), width() + 20, height() + 20);
     }
 
     @Override
