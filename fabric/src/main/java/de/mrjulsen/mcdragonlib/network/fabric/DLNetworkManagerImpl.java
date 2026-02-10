@@ -15,6 +15,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
 public class DLNetworkManagerImpl {
     
     public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
@@ -36,6 +39,19 @@ public class DLNetworkManagerImpl {
             @Override
             public void queue(Runnable runnable) {
                 taskQueue.execute(runnable);
+            }
+
+            @Override
+            public <O> O queueResult(Supplier<O> supplier) {
+                CompletableFuture<O> future = new CompletableFuture<>();
+                taskQueue.execute(() -> {
+                    try {
+                        future.complete(supplier.get());
+                    } catch (Throwable t) {
+                        future.completeExceptionally(t);
+                    }
+                });
+                return future.join();
             }
             
             @Override

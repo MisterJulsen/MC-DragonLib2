@@ -9,6 +9,7 @@ import de.mrjulsen.mcdragonlib.internal.*;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketType;
+import de.mrjulsen.mcdragonlib.network.NetworkThreadPool;
 import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
@@ -128,8 +129,9 @@ public class DragonLib {
 
         DragonLibCrossPlatform.registerConfig();        
         ReloadListenerRegistry.register(PackType.SERVER_DATA, new TimeSystemDatapackLoader());
-        //NetworkTest.init();
+        NetworkTest.init();
         //ModMenuTypes.register();
+
         
 
         if (Platform.getEnv() == EnvType.CLIENT) {
@@ -143,6 +145,15 @@ public class DragonLib {
                 */
             });
             DLOverlayManager.init();
+
+            ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
+                NetworkThreadPool.init();
+            });
+
+            ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {
+                NetworkThreadPool.shutdown();
+            });
+
             //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
         }
 
@@ -153,7 +164,7 @@ public class DragonLib {
 
         LifecycleEvent.SERVER_STARTED.register((server) -> {
             DragonLib.currentServer = server;
-
+            NetworkThreadPool.init();
         });
 
         LifecycleEvent.SERVER_STOPPED.register((server) -> {
@@ -163,6 +174,7 @@ public class DragonLib {
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
+            NetworkThreadPool.shutdown();
         }); 
 
         CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) -> {

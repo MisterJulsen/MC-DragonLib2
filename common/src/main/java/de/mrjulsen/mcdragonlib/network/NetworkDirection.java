@@ -24,8 +24,8 @@ public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDi
         }
     }
 
-    public static final C2S C2S = (packet) -> {};
-    public static final S2C S2C = (packet) -> {};
+    public static final C2S C2S = (packet) -> { throw new IllegalStateException("Please create your own and new instance of NetworkDirection."); };
+    public static final S2C S2C = (packet) -> { throw new IllegalStateException("Please create your own and new instance of NetworkDirection."); };
 
     void send(Packet<?> packet);
     NetworkSide getDirection();

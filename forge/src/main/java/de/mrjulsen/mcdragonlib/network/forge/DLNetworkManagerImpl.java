@@ -19,7 +19,9 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.event.EventNetworkChannel;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Mod.EventBusSubscriber(modid = DragonLib.MODID)
 public class DLNetworkManagerImpl {
@@ -50,7 +52,21 @@ public class DLNetworkManagerImpl {
                 public void queue(Runnable runnable) {
                     context.enqueueWork(runnable);
                 }
-                
+
+                @Override
+                public <O> O queueResult(Supplier<O> supplier) {
+                    CompletableFuture<O> future = new CompletableFuture<>();
+                    context.enqueueWork(() -> {
+                        try {
+                            future.complete(supplier.get());
+                        } catch (Throwable t) {
+                            future.completeExceptionally(t);
+                        }
+                    });
+                    return future.join();
+                }
+
+
                 @Override
                 public Env getEnvironment() {
                     return context.getDirection().getReceptionSide() == LogicalSide.CLIENT ? Env.CLIENT : Env.SERVER;

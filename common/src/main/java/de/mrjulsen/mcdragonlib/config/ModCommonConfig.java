@@ -14,6 +14,9 @@ public class ModCommonConfig {
     public static final ForgeConfigSpec.ConfigValue<Double> TIME_DEFAULT_TPS;
     public static final ForgeConfigSpec.ConfigValue<Double> TIME_DAYTIME_SHIFT_FACTOR;
     public static final ForgeConfigSpec.ConfigValue<Integer> TIME_SYSTEM_CACHE_TTL;
+    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_RESPONSE_TIMEOUT;
+    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_THREAD_TIMEOUT;
+    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_THREAD_COUNT;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");
@@ -35,6 +38,13 @@ public class ModCommonConfig {
             .defineInRange("time_system.daytime_shift", 0.25D, 0D, 1D);
         TIME_SYSTEM_CACHE_TTL = BUILDER.comment(new String[] { "in Milliseconds", "To improve performance during frequent queries of the default time system, the found time system can be cached for a certain period. Higher values may produce less accurate results because the time system is not updated immediately, for example, when a datapack is loaded. A value of 0 disables the cache. (Default: 100)", "A GAME RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
             .defineInRange("time_system.time_system_cache_ttl", 100, 0, 10000);
+
+        NETWORK_RESPONSE_TIMEOUT = BUILDER.comment(new String[] { "in Seconds", "The time to wait for a response before an error is thrown. (Default: 60)" })
+                .defineInRange("networking.response_timeout", 60, 10, 300);
+        NETWORK_THREAD_TIMEOUT = BUILDER.comment(new String[] { "in Seconds", "The maximum amount of time a networking thread can be busy before the task is terminated. (Default: 30)", "A WORLD RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
+                .defineInRange("networking.thread_timeout", 30, 10, 60);
+        NETWORK_THREAD_COUNT = BUILDER.comment(new String[] { "The number of threads to be used for networking. This should not exceed the number of available CPU cores, as more threads will cause performance issues. By default (auto = 0), the amount of available CPU cores are used, but at least two. (Default: 0)", "A WORLD RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
+                .defineInRange("networking.thread_count", 0, 0, 32);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

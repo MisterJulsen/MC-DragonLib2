@@ -4,7 +4,17 @@ import de.mrjulsen.mcdragonlib.data.INBTSerializable;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import net.minecraft.nbt.CompoundTag;
 
-public abstract class NetworkPacketData implements INBTSerializable {    
+import java.util.function.Function;
+
+public abstract class NetworkPacketData implements INBTSerializable {
+
+    static final Function<DLStatus, NetworkPacketData> DEFAULT_INSTANCE = (status) -> new NetworkPacketData(status) {
+        @Override
+        protected void write(CompoundTag nbt) {}
+
+        @Override
+        protected void read(CompoundTag nbt) {}
+    };
     
     private static final String NBT_STATUS = "Status";
     private static final String NBT_DATA = "Data";

@@ -55,4 +55,8 @@ public record DLStatus(byte flag, int code, String message) {
     public boolean isOK() {
         return flag == FLAG_OK;
     }
+
+    public boolean noIssues() {
+        return isOK() || isDone();
+    }
 }

@@ -37,12 +37,23 @@ public class NetworkTest {
     }
 
 
-    public static final DLNetworkManager NETWORK = new DLNetworkManager(new ResourceLocation(DragonLib.MODID, "test"), "1");
+    public static final DLNetworkManager NETWORK = new DLNetworkManager(new ResourceLocation(DragonLib.MODID, "network_test"), "1");
 
     public static final NetworkPacketType.Send<NetworkDirection.C2S, TestData> SEND = NETWORK.registerSendOnlyPacket("string_message", NetworkDirection.C2S,
         (data, ctx) -> {
             DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
         }, TestData::new);
+
+    public static final NetworkPacketType.SendAndReceive<NetworkDirection.C2S, TestData, TestData> SEND_AND_RECEIVE = NETWORK.registerSendAndReceivePacket("test_msg", NetworkDirection.C2S,
+            (data, ctx) -> {
+                DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
+                try {
+                    Thread.sleep(100000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                return new TestData(data.getStatus(), data.txt);
+            }, TestData::new, TestData::new);
 
     public static void init() {
     }

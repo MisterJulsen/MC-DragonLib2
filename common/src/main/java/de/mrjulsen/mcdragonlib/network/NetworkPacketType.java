@@ -10,9 +10,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
+import de.mrjulsen.mcdragonlib.util.Cache;
+import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
 import org.jetbrains.annotations.Nullable;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketData.Empty;
 import de.mrjulsen.mcdragonlib.network.NetworkProcessor.StreamReceiver;
@@ -42,12 +45,15 @@ import net.minecraft.server.level.ServerPlayer;
  * @param <O> output/response packet data type, implementing {@link NetworkPacketData}
  */
 public abstract class NetworkPacketType<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> {
+
     private final ResourceLocation channelId;
     private final String name;
     private final PacketType type;
     private final NetworkSide direction;
     private final Function<DLStatus, I> sendFactory;
     private final Function<DLStatus, O> responseFactory;
+
+    final Cache<Boolean> shouldUseOldNetworkSystem;
 
     public NetworkPacketType(ResourceLocation channelId, PacketType type, NetworkDirection direction, String name, Function<DLStatus, I> sendFactory, Function<DLStatus, O> responseFactory) {
         this.channelId = channelId;
@@ -56,6 +62,19 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.direction = direction.getDirection();
         this.sendFactory = sendFactory;
         this.responseFactory = responseFactory;
+
+        this.shouldUseOldNetworkSystem = new Cache<>(() -> {
+            boolean result =  DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-3.0.20-beta").map(r -> {
+                if (ModCommonConfig.DEBUG_NETWORKING.get()) {
+                    DLNetworkManager.LOGGER.info("Check Network System Version: " + r);
+                }
+                return r.relation() == DependencyVersionChecker.VersionRelation.IS_OLDER;
+            }).orElse(false);
+            if (result) {
+                DLNetworkManager.LOGGER.warn(channelId.getNamespace() + " was built with an older version of DragonLib's networking system. For compatibility, it uses the old system.");
+            }
+            return result;
+        });
     }
 
     /**
@@ -74,6 +93,55 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         } else {
             action.get().run();
         }
+    }
+
+    static <T extends NetworkPacketData> void runAndRespondAsync(NetworkPacketType<?, ?, ?> type, Supplier<T> task, Consumer<CompoundTag> response, Function<Throwable, T> errorFactory) {
+        NetworkThreadPool.executeWithResponse(type, () -> {
+                    try {
+                        return task.get();
+                    } catch (Exception e) {
+                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        return errorFactory.apply(e);
+                    }
+                },
+                (result) -> {
+                    CompoundTag nbt;
+                    try {
+                        nbt = result.serializeNbt();
+                    } catch (Exception e) {
+                        Exception exception = e;
+                        if (result != null) {
+                            DLStatus previousStatus = result.getStatus();
+                            if (previousStatus != null && !previousStatus.noIssues()) {
+                                Exception previousException = new Exception("Caused by [Flag: " + previousStatus.flag() + ", Code: " + previousStatus.code() + "]: " + result.getStatus().message());
+                                String combinedMessage = exception.getMessage() + "; " + previousException.getMessage();
+                                RuntimeException ex = new RuntimeException(combinedMessage, exception);
+                                ex.addSuppressed(previousException);
+                                exception = ex;
+                            }
+                        }
+                        DLNetworkManager.LOGGER.error("Could not serialize response. Please check the response data factory.", exception);
+                        nbt = NetworkPacketData.DEFAULT_INSTANCE.apply(DLStatus.error(exception)).serializeNbt();
+                    }
+                    response.accept(nbt);
+                },
+                errorFactory
+        );
+    }
+
+    static <T extends NetworkPacketData> void runAsync(NetworkPacketType<?, ?, ?> type, Runnable task, Consumer<Throwable> onError) {
+        NetworkThreadPool.execute(type, () -> {
+                    try {
+                        task.run();
+                    } catch (Exception e) {
+                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        onError.accept(e);
+                    }
+                },
+                (e) -> {
+                    DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                    onError.accept(e);
+                });
     }
     
     /**
@@ -268,11 +336,15 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            context.queue(() -> {                
-                runSafe(context.getEnvironment(), () -> () -> {
-                    handler.execute(in, context);
+            if (shouldUseOldNetworkSystem.get()) {
+                context.queue(() -> {
+                    runSafe(context.getEnvironment(), () -> () -> {
+                        handler.execute(in, context);
+                    });
                 });
-            });
+                return;
+            }
+            NetworkPacketType.runAsync(this, () -> handler.execute(in, context), (e) -> {});
         }
 
         @Override
@@ -332,16 +404,26 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, NetworkPacketData.Empty in) {
-            context.queue(() -> {                
-                runSafe(context.getEnvironment(), () -> () -> {
-                    try {
-                        O data = handler.execute(context);
-                        respondInternal(info, context, data.serializeNbt());
-                    } catch (Exception e) {
-                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
-                    }
+            if (shouldUseOldNetworkSystem.get()) {
+                context.queue(() -> {
+                    runSafe(context.getEnvironment(), () -> () -> {
+                        try {
+                            O data = handler.execute(context);
+                            respondInternal(info, context, data.serializeNbt());
+                        } catch (Exception e) {
+                            respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                        }
+                    });
                 });
-            });
+                return;
+            }
+
+            NetworkPacketType.runAndRespondAsync(
+                    this,
+                    () -> handler.execute(context),
+                    (nbt) -> respondInternal(info, context, nbt),
+                    (ex) -> createEmptyOutputData(DLStatus.error(ex))
+            );
         }
 
         @Override
@@ -362,7 +444,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future.thenAccept(responseCallback).exceptionally(ex -> {
-                DLNetworkManager.LOGGER.error("Error while waiting for response.", ex);
+                DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
                 errorCallback.run();
                 return null;
             }).orTimeout(60, TimeUnit.SECONDS);
@@ -423,16 +505,26 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            context.queue(() -> {
-                runSafe(context.getEnvironment(), () -> () -> {
-                    try {
-                        O data = handler.execute((I)in, context);
-                        respondInternal(info, context, data.serializeNbt());
-                    } catch (Exception e) {
-                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
-                    }
+            if (shouldUseOldNetworkSystem.get()) {
+                context.queue(() -> {
+                    runSafe(context.getEnvironment(), () -> () -> {
+                        try {
+                            O data = handler.execute((I)in, context);
+                            respondInternal(info, context, data.serializeNbt());
+                        } catch (Exception e) {
+                            respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                        }
+                    });
                 });
-            });
+                return;
+            }
+
+            NetworkPacketType.runAndRespondAsync(
+                    this,
+                    () -> handler.execute(in, context),
+                    (nbt) -> respondInternal(info, context, nbt),
+                    (ex) -> createEmptyOutputData(DLStatus.error(ex))
+            );
         }
 
         @Override
@@ -441,23 +533,39 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                 ((CompletableFuture<O>)callbacks.remove(info.requestId())).complete(in);
             }
         }
-        
+
+        /**
+         * Sends a request with the given input payload and registers success/error handlers.
+         *
+         * @param sender network direction used to send
+         * @param data input payload to serialize and send
+         * @param responseCallback invoked when response arrives
+         * @param errorCallback invoked if the request times out or fails
+         */
+        public void send(N sender, I data, Consumer<O> responseCallback, Runnable errorCallback) {
+            send(sender, data, ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), responseCallback, errorCallback);
+        }
         
         /**
          * Sends a request with the given input payload and registers success/error handlers.
          *
          * @param sender network direction used to send
          * @param data input payload to serialize and send
-         * @param responseCallback consumer invoked when response arrives
-         * @param errorCallback runnable invoked if the request times out or fails
+         * @param timeout The time in seconds before the system stops waiting for a response and returns an error
+         * @param responseCallback invoked when response arrives
+         * @param errorCallback invoked if the request times out or fails
          */
-        public void send(N sender, I data, Consumer<O> responseCallback, Runnable errorCallback) {
+        public void send(N sender, I data, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
-            future.thenAccept(responseCallback).exceptionally(ex -> {
-                DLNetworkManager.LOGGER.error("Error while waiting for response.", ex);
-                errorCallback.run();
-                return null;
-            }).orTimeout(60, TimeUnit.SECONDS);
+            future
+                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .thenAccept(responseCallback)
+                    .exceptionally(ex -> {
+                        DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                            errorCallback.run();
+                            return null;
+                    }
+            );
             send(sender, data, future);
         }
         
@@ -546,48 +654,88 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveRequest(PacketHeaderInfo info, NetworkPacketContext context, I in) {
-            context.queue(() -> {                
-                runSafe(context.getEnvironment(), () -> () -> {
-                    try {
-                        O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in, context);
+            if (shouldUseOldNetworkSystem.get()) {
+                context.queue(() -> {
+                    runSafe(context.getEnvironment(), () -> () -> {
+                        try {
+                            O data = ((StreamReceiver<I, O>)outputCache.computeIfAbsent(info.requestId(), l -> receiverFactory.get())).execute((I)in, context);
+                            if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
+                                outputCache.remove(info.requestId());
+                            }
+                            respondInternal(info, context, data.serializeNbt());
+                        } catch (Exception e) {
+                            respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                            outputCache.remove(info.requestId());
+                        }
+                    });
+                });
+                return;
+            }
+
+            NetworkPacketType.runAndRespondAsync(
+                    this,
+                    () -> {
+                        StreamReceiver<I, O> receiver = (StreamReceiver<I, O>) outputCache.computeIfAbsent(info.requestId(), id -> receiverFactory.get());
+                        O data = receiver.execute(in, context);
+
                         if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
                             outputCache.remove(info.requestId());
                         }
-                        respondInternal(info, context, data.serializeNbt());
-                    } catch (Exception e) {
-                        respondInternal(info, context, createEmptyOutputData(DLStatus.error(e)).serializeNbt());
+                        return data;
+                    },
+                    (nbt) -> respondInternal(info, context, nbt),
+                    (ex) -> {
                         outputCache.remove(info.requestId());
+                        return createEmptyOutputData(DLStatus.error(ex));
                     }
-                });
-            });
-            
+            );
         }
 
         @Override
         void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, O in) {
-            context.queue(() -> {                
-                runSafe(context.getEnvironment(), () -> () -> {
-                    try {
-                        I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(false, Optional.of(in), Optional.of(context));
-                        RequestData<N, O> requestData = ((RequestData<N, O>)callbacks.get(info.requestId()));
-                        if (!in.getStatus().isDone()) {
-                            sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
-                        }
-                        if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
-                            callbacks.remove(info.requestId()).callback().accept(data.getStatus());
+            if (shouldUseOldNetworkSystem.get()) {
+                context.queue(() -> {
+                    runSafe(context.getEnvironment(), () -> () -> {
+                        try {
+                            I data = ((StreamProvider<I, O>)inputCache.get(info.requestId())).execute(false, Optional.of(in), Optional.of(context));
+                            RequestData<N, O> requestData = ((RequestData<N, O>)callbacks.get(info.requestId()));
+                            if (!in.getStatus().isDone()) {
+                                sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
+                            }
+                            if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
+                                callbacks.remove(info.requestId()).callback().accept(data.getStatus());
+                                inputCache.remove(info.requestId());
+                            }
+                        } catch (Exception e) {
+                            sendInternal(info.requestId(), (N)context.buildDirection(), createEmptyInputData(DLStatus.error(e)).serializeNbt());
+                            callbacks.remove(info.requestId()).callback().accept(DLStatus.error(e));
                             inputCache.remove(info.requestId());
                         }
-                    } catch (Exception e) {
-                        sendInternal(info.requestId(), (N)context.buildDirection(), createEmptyInputData(DLStatus.error(e)).serializeNbt());
-                        callbacks.remove(info.requestId()).callback().accept(DLStatus.error(e));
-                        inputCache.remove(info.requestId());
-                    }
+                    });
                 });
+                return;
+            }
+
+            runAsync(this, () -> {
+                StreamProvider<I, O> provider = (StreamProvider<I, O>) inputCache.get(info.requestId());
+                I data = provider.execute(false, Optional.of(in), Optional.of(context));
+                RequestData<N, O> requestData = (RequestData<N, O>) callbacks.get(info.requestId());
+
+                if (!in.getStatus().isDone()) {
+                    sendInternal(requestData.requestId(), NetworkDirection.forContext(requestData.sender(), context), data.serializeNbt());
+                }
+
+                if (in.getStatus().isDone() || in.getStatus().isError() || in.getStatus().isCancel()) {
+                    callbacks.remove(info.requestId()).callback().accept(data.getStatus());
+                    inputCache.remove(info.requestId());
+                }
+            }, e -> {
+                sendInternal(info.requestId(), (N) context.buildDirection(), createEmptyInputData(DLStatus.error(e)).serializeNbt());
+                callbacks.remove(info.requestId()).callback().accept(DLStatus.error(e));
+                inputCache.remove(info.requestId());
             });
-            
         }
-        
-        
+
         /**
          * Sends the initial stream request and registers the provided {@link StreamProvider} as the input source.
          *
