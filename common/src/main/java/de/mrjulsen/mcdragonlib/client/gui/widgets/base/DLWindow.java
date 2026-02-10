@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.events.IEvent;
+import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
@@ -133,6 +134,11 @@ public abstract class DLWindow extends DLGuiComponent {
         super.setY(y);
     }
 
+
+    @Override
+    public Rectangle getRenderBounds() {
+        return Rectangle.withSize(x(), y(), Math.max(width(), 0), Math.max(height(), 0));
+    }
 
 
     public static <T extends DLWindow> T openWindow(WindowBuilder<T> builder) {

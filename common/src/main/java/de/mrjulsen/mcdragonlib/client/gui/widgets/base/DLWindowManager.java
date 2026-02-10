@@ -239,7 +239,7 @@ public class DLWindowManager implements IEventDispatcher<DLWindowManager>, MenuA
                 iterateAll(false, (win, i) -> {
                     graphics.poseStack().pushPose();
                     graphics.poseStack().translate(win.x(), win.y(), i);
-                    win.renderEvent(graphics, mouseX - win.x(), mouseY - win.y(), layer, win.x(), win.y(), 0, 0, win.getPositionBox(), 1);
+                    win.renderEvent(graphics, mouseX - win.x(), mouseY - win.y(), layer, win.x(), win.y(), 0, 0, win.getRenderBounds(), 1);
                     graphics.poseStack().popPose();
                     return true;
                 });
