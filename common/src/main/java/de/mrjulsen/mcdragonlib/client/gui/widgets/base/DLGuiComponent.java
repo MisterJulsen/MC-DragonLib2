@@ -32,15 +32,7 @@ import de.mrjulsen.mcdragonlib.util.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -175,6 +167,8 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
     // Container
     private final ConcurrentLinkedDeque<DLGuiComponent> components = new ConcurrentLinkedDeque<>();
 
+    private final Cache<List<DLGuiComponent>> cachedComponents;
+
     // Widget
     private DLWindowManager windowManager = null;
     private DLGuiComponent parent;
@@ -299,6 +293,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
 
     private boolean layoutLoopFix = false;
     private boolean applyingLayout = false;
+    private boolean doLayout = true;
 
     /**
      * Construct a new component with the given local position and size.
@@ -313,6 +308,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         this.y = y;
         this.width = w;
         this.height = h;
+        this.cachedComponents = new Cache<>(() -> ImmutableList.copyOf(components));
 
         addEventListener(DLGuiStandardEvents.RenderEvent.class, (src, e) -> {
             if (src.width() <= 0 || src.height() <= 0)
@@ -365,12 +361,21 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         });
     }
 
+    public void suspendLayout() {
+        doLayout = false;
+    }
+
+    public void resumeLayout() {
+        doLayout = true;
+        applyLayout();
+    }
+
     /**
      * Request the layout manager to arrange child components and notify listeners.
      * <p>This method guards against re-entrance using an internal flag.</p>
      */
     protected final void applyLayout() {
-        if (applyingLayout) return;
+        if (applyingLayout || !doLayout) return;
         applyingLayout = true;
         LayoutResult result = this.layout.get().arrangeComponents(this);
         invokeEvent(this, new DLGuiStandardEvents.ComponentLayoutUpdatedEvent(result));
@@ -709,6 +714,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         if (components.contains(component)) {
             components.remove(component);
             components.addLast(component);
+            cachedComponents.clear();
             return true;
         }
         return false;
@@ -724,6 +730,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         if (components.contains(component)) {
             components.remove(component);
             components.addFirst(component);
+            cachedComponents.clear();
             return true;
         }
         return false;
@@ -882,6 +889,19 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
      * @throws IllegalArgumentException if the component is a window or invalid for menus
      */
     public <T extends DLGuiComponent> T addComponent(T component) {
+        addComponentInternal(component);
+        invokeEvent(this, new DLGuiStandardEvents.ComponentAddedEvent(List.of(component)), true);
+        return component;
+    }
+
+    public void addComponents(List<DLGuiComponent> components) {
+        for (var comp : components) {
+            this.addComponent(comp);
+        }
+        invokeEvent(this, new DLGuiStandardEvents.ComponentAddedEvent(components), true);
+    }
+
+    private <T extends DLGuiComponent> T addComponentInternal(T component) {
         Objects.requireNonNull(component);
 
         if (component instanceof DLWindow) {
@@ -900,7 +920,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         component.setParent(this);
         component.setWindowManager(windowManager);
         component.invalidateGlobalCoordinates(true, true);
-        invokeEvent(this, new DLGuiStandardEvents.ComponentAddedEvent(component), true);
+        cachedComponents.clear();
         return component;
     }
 
@@ -912,13 +932,32 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
      * @return true if removed
      */
     public <T extends DLGuiComponent> boolean removeComponent(T component) {
+        boolean b = removeComponentInternal(component);
+        if (b) {
+            invokeEvent(this, new DLGuiStandardEvents.ComponentRemovedEvent(List.of(component)), true);
+        }
+        return b;
+    }
+
+    public boolean removeComponents(List<DLGuiComponent> components) {
+        boolean b = false;
+        for (var comp : components) {
+            b |= removeComponentInternal(comp);
+        }
+        if (b) {
+            invokeEvent(this, new DLGuiStandardEvents.ComponentRemovedEvent(components), true);
+        }
+        return b;
+    }
+
+    private <T extends DLGuiComponent> boolean removeComponentInternal(T component) {
         Objects.requireNonNull(component);
         boolean b = this.components.remove(component);
+        cachedComponents.clear();
         if (b) {
             component.setParent(null);
             component.setWindowManager(null);
             component.invalidateGlobalCoordinates(true, true);
-            invokeEvent(this, new DLGuiStandardEvents.ComponentRemovedEvent(component), true);
         }
         return b;
     }
@@ -1062,7 +1101,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
      * @return list of children
      */
     public List<DLGuiComponent> getComponents() {
-        return ImmutableList.copyOf(components);
+        return cachedComponents.get();
     }
 
     /**
@@ -1072,7 +1111,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
      * @return list of matching children
      */
     public List<DLGuiComponent> getComponentsMatching(Predicate<DLGuiComponent> predicate) {
-        return components.stream().filter(predicate::test).toList();
+        return getComponents().stream().filter(predicate::test).toList();
     }
 
     /**
@@ -1123,6 +1162,7 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
                 iterator.remove();
             }
         }
+        cachedComponents.clear();
         invokeEvent(this, new DLGuiStandardEvents.ComponentsClearEvent(Phase.POST, bool), true);
     }
 
@@ -1655,33 +1695,35 @@ public abstract class DLGuiComponent implements IEventDispatcher<DLGuiComponent>
         Rectangle childRenderBounds = getChildRenderBounds();
         Rectangle childClipBounds = Rectangle.intersection(scissorBounds, Rectangle.offset(childRenderBounds, xOffset, yOffset));
 
-        for (DLGuiComponent child : getComponents()) {
-            if (!child.visible.get())
-                continue;
+        if (doLayout) {
+            for (DLGuiComponent child : getComponents()) {
+                if (!child.visible.get())
+                    continue;
 
-            double localChildX = child.x() - getScrollOffsetX();
-            double localChildY = child.y() - getScrollOffsetY();
-            Rectangle renderBounds = child.getRenderBounds();
-            double childScreenX = xOffset + (localChildX + renderBounds.x()) * globalScale;
-            double childScreenY = yOffset + (localChildY + renderBounds.y()) * globalScale;
-            double childScreenW = renderBounds.width() * globalScale;
-            double childScreenH = renderBounds.height() * globalScale;
+                double localChildX = child.x() - getScrollOffsetX();
+                double localChildY = child.y() - getScrollOffsetY();
+                Rectangle renderBounds = child.getRenderBounds();
+                double childScreenX = xOffset + (localChildX + renderBounds.x()) * globalScale;
+                double childScreenY = yOffset + (localChildY + renderBounds.y()) * globalScale;
+                double childScreenW = renderBounds.width() * globalScale;
+                double childScreenH = renderBounds.height() * globalScale;
 
-            if (childScreenX + childScreenW <= childClipBounds.x() || childScreenY + childScreenH <= childClipBounds.y()
-                    || childScreenX >= childClipBounds.x() + childClipBounds.width()
-                    || childScreenY >= childClipBounds.y() + childClipBounds.height())
-                continue;
+                if (childScreenX + childScreenW <= childClipBounds.x() || childScreenY + childScreenH <= childClipBounds.y()
+                        || childScreenX >= childClipBounds.x() + childClipBounds.width()
+                        || childScreenY >= childClipBounds.y() + childClipBounds.height())
+                    continue;
 
-            Rectangle intersection = Rectangle.intersection(childClipBounds, Rectangle.withSize((renderBounds.x() + localChildX) * globalScale + xOffset, (renderBounds.y() + localChildY) * globalScale + yOffset, renderBounds.width() * globalScale, renderBounds.height() * globalScale));
-            if (intersection.width() <= 0 || intersection.height() <= 0)
-                continue;
+                Rectangle intersection = Rectangle.intersection(childClipBounds, Rectangle.withSize((renderBounds.x() + localChildX) * globalScale + xOffset, (renderBounds.y() + localChildY) * globalScale + yOffset, renderBounds.width() * globalScale, renderBounds.height() * globalScale));
+                if (intersection.width() <= 0 || intersection.height() <= 0)
+                    continue;
 
-            graphics.poseStack().pushPose();
-            graphics.poseStack().translate(localChildX, localChildY, 0);
-            child.renderEvent(graphics, mouseX - localChildX * globalScale, mouseY - localChildY * globalScale, layer,
-                    xOffset + (localChildX * globalScale), yOffset + (localChildY * globalScale),
-                    scrollOffsetX + getScrollOffsetX(), scrollOffsetY + getScrollOffsetY(), intersection, globalScale);
-            graphics.poseStack().popPose();
+                graphics.poseStack().pushPose();
+                graphics.poseStack().translate(localChildX, localChildY, 0);
+                child.renderEvent(graphics, mouseX - localChildX * globalScale, mouseY - localChildY * globalScale, layer,
+                        xOffset + (localChildX * globalScale), yOffset + (localChildY * globalScale),
+                        scrollOffsetX + getScrollOffsetX(), scrollOffsetY + getScrollOffsetY(), intersection, globalScale);
+                graphics.poseStack().popPose();
+            }
         }
 
         if (useScissor)

@@ -1,7 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
@@ -49,6 +48,10 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
         }
 
         protected void refresh() {
+            boolean wasVisible = contentPanel.visible.get();
+            contentPanel.suspendLayout();
+            contentPanel.visible.set(false);
+
             this.contentPanel.clearComponents();
             Map<String, DLGuiComponent> content = subComponents.stream().collect(Collectors.toMap(x -> x.name(), x -> x.component()));
 
@@ -71,6 +74,7 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
             int x = 0;
             int maxH = 0;
 
+            List<DLGuiComponent> componentsToAdd = new LinkedList<>();
             for (DataSlot s : collectionComponentRef.dataSlots) {
                 int w = widths.get(s.name());
                 DLGuiComponent c = content.get(s.name());
@@ -79,11 +83,15 @@ public abstract class DLAbstractDataView<T, I extends DLAbstractDataView.DLDataV
                     c.setPosition(x, 0);
                     c.setSize(w, h);
                     maxH = Math.max(maxH, h);
-                    contentPanel.addComponent(c);
+                    componentsToAdd.add(c);
                 }
                 x += w;
             }
+            contentPanel.addComponents(componentsToAdd);
             setHeight(maxH);
+
+            contentPanel.resumeLayout();
+            contentPanel.visible.set(wasVisible);
         }
     }
 }

@@ -199,9 +199,9 @@ public final class DLGuiStandardEvents {
      * initialize state, attach listeners, or re-run layout depending on the
      * parent implementation's semantics.</p>
      *
-     * @param child the component instance that was added as a child
+     * @param children the component instance that was added as a child
      */
-    public record ComponentAddedEvent(DLGuiComponent child) implements IEvent {
+    public record ComponentAddedEvent(List<DLGuiComponent> children) implements IEvent {
     }
 
     /**
@@ -210,9 +210,9 @@ public final class DLGuiStandardEvents {
      * <p>Emitted when a component is detached from its parent. Typical handlers
      * perform cleanup, detach resources or update layout and focus state.</p>
      *
-     * @param child the component instance that was removed
+     * @param children the component instance that was removed
      */
-    public record ComponentRemovedEvent(DLGuiComponent child) implements IEvent {
+    public record ComponentRemovedEvent(List<DLGuiComponent> children) implements IEvent {
     }
 
     /**

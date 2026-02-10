@@ -1,5 +1,8 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -85,14 +88,23 @@ public abstract class DLAbstractCollectionComponent<T, I extends DLAbstractColle
     }
 
     protected void createComponents() {
+        boolean wasVisible = contentPanel.visible.get();
+        contentPanel.suspendLayout();
+        contentPanel.visible.set(false);
+
         contentPanel.clearComponents();
+        List<DLGuiComponent> listItems = new LinkedList<>();
         for (T item : items.get()) {
             if (!filter.get().test(item)) {
                 continue;
             }
             I listItem = itemBuilder.get().apply(item);
-            contentPanel.addComponent(listItem);
+            listItems.add(listItem);
         }
+        contentPanel.addComponents(listItems);
+
+        contentPanel.resumeLayout();
+        contentPanel.visible.set(wasVisible);
     }
 
     protected abstract I defaultItemBuilder(T item);
