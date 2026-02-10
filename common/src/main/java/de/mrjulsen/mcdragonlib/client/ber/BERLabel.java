@@ -324,7 +324,8 @@ public class BERLabel {
         }
 
         DLColor bgColor = backgroundColor.get();
-        if (bgColor != null && bgColor.getAlphaF() > 0) {
+        boolean hasBg = bgColor != null && bgColor.getAlphaF() > 0;
+        if (hasBg) {
             PaddingF padding = backgroundPadding.get();
             
             float bgX, bgY, bgW, bgH;
@@ -375,7 +376,10 @@ public class BERLabel {
         }
 
         graphics.poseStack().pushPose();
-        graphics.poseStack().translate(finalX, finalY, 0.001);
+        graphics.poseStack().translate(finalX, finalY, 0.002);
+        if (hasBg) {
+            graphics.poseStack().translate(0, 0, 0.02);
+        }
 
         float currentUnscaledX = 0f;
         for (StyledChar styledChar : cachedGlyphs) {
