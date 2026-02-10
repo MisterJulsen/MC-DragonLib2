@@ -122,16 +122,19 @@ public class TimeFormatDigitalDuration implements ITimeFormatter {
             sb.append(String.format("%02d", days));
             started = true;
         }
-        if (hours > 0 || started || minUnit == DLTimeUnit.HOURS) {
+
+        if (hours > 0 || started || minUnit == DLTimeUnit.HOURS || minUnit == DLTimeUnit.MINUTES) {
             if (started) sb.append(":");
             sb.append(String.format("%02d", hours));
             started = true;
         }
-        if (minutes > 0 || started || minUnit == DLTimeUnit.MINUTES) {
+
+        if (minutes > 0 || started || minUnit == DLTimeUnit.MINUTES || minUnit == DLTimeUnit.SECONDS) {
             if (started) sb.append(":");
             sb.append(String.format("%02d", minutes));
             started = true;
         }
+
         if (seconds > 0 || started || minUnit == DLTimeUnit.SECONDS) {
             if (started) sb.append(":");
             sb.append(String.format("%02d", seconds));
