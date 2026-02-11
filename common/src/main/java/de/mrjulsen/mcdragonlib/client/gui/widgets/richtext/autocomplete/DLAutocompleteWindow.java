@@ -206,7 +206,7 @@ public class DLAutocompleteWindow<T> extends DLWindow {
 
     private void closeAndSetValue() {
         supressTextUpdate = true;
-        if (!filteredItems.isEmpty() && selectedIndex < filteredItems.size() - 1 && selectedIndex >= 0) {
+        if (!filteredItems.isEmpty() && selectedIndex < filteredItems.size() && selectedIndex >= 0) {
             parentComponent.text.get().set(textFormat.get().apply(filteredItems.get(selectedIndex)).getString());
         }
         getWindowManager().closeWindow(this);
