@@ -99,6 +99,7 @@ public final class DLOverlayManager {
         }
         if (!initialized()) {
             root = new DLWindowManager(null, builder, GuiUtils.getScreenWidth(), GuiUtils.getScreenHeight(), (mgr) -> root = null);
+            root.updateLayout((int)GuiUtils.getScreenWidth(), (int)GuiUtils.getScreenHeight());
         } else {
             root.createWindow(builder);
         }

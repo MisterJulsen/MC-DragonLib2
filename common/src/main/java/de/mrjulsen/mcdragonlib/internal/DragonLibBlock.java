@@ -50,7 +50,8 @@ public class DragonLibBlock extends BaseEntityBlock {
 
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.isClientSide) {
-            DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;
         } else {
 
