@@ -48,18 +48,15 @@ public class BlockModelMixin implements BlockModelExtensions {
 	private final VisibilityData visibilityData = new VisibilityData();
 
 	@Inject(
-			method = "bake(Lnet/minecraft/client/resources/model/ModelBaker;Lnet/minecraft/client/renderer/block/model/BlockModel;Ljava/util/function/Function;Lnet/minecraft/client/resources/model/ModelState;Lnet/minecraft/resources/ResourceLocation;Z)Lnet/minecraft/client/resources/model/BakedModel;",
+			method = "bake(Lnet/minecraft/client/resources/model/ModelBaker;Lnet/minecraft/client/renderer/block/model/BlockModel;Ljava/util/function/Function;Lnet/minecraft/client/resources/model/ModelState;Z)Lnet/minecraft/client/resources/model/BakedModel;",
 			at = @At("HEAD"),
 			cancellable = true
 	)
-	public void handleCustomModels(ModelBaker modelBaker, BlockModel ownerModel, Function<Material, TextureAtlasSprite> spriteGetter,
-								   ModelState modelTransform, ResourceLocation modelLocation, boolean guiLight3d, CallbackInfoReturnable<BakedModel> cir) {
+	public void handleCustomModels(ModelBaker modelBaker, BlockModel ownerModel, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, boolean guiLight3d, CallbackInfoReturnable<BakedModel> cir) {
 		IUnbakedGeometry<?> geometry = dragonlib$getCustomGeometry();
 		if (geometry != null) {
 			ItemOverrides overrides = dragonlib$getOverrides(modelBaker, ownerModel, spriteGetter);
-			cir.setReturnValue(geometry.bake(
-					(BlockModel) (Object) this, modelBaker, spriteGetter, modelTransform, overrides, modelLocation, guiLight3d
-			));
+			cir.setReturnValue(geometry.bake((BlockModel) (Object) this, modelBaker, spriteGetter, modelTransform, overrides, guiLight3d));
 		}
 	}
 

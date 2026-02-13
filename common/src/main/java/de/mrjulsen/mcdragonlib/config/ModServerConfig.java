@@ -1,14 +1,15 @@
 package de.mrjulsen.mcdragonlib.config;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ModServerConfig {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> USE_CUSTOM;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> AUTO_DETECT_TIME_SYSTEM;
-    public static final ForgeConfigSpec.ConfigValue<String> PREFERRED_MOD;
+
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.ConfigValue<Boolean> USE_CUSTOM;
+    public static final ModConfigSpec.ConfigValue<Boolean> AUTO_DETECT_TIME_SYSTEM;
+    public static final ModConfigSpec.ConfigValue<String> PREFERRED_MOD;
 
     static {
         BUILDER.push(DragonLib.MODID + "_server_config");

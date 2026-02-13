@@ -160,7 +160,7 @@ public class DLBlockModelRegistry implements ResourceManagerReloadListener {
         }
     }
 
-    public static Queue<ICustomModelFactory> getCustomRegisteredModels(Map<ResourceLocation, BakedModel> registry) {
+    public static Queue<ICustomModelFactory> getCustomRegisteredModels(Map<ModelResourceLocation, BakedModel> registry) {
         return new LinkedBlockingQueue<>(customModels);
     }
 
@@ -170,11 +170,11 @@ public class DLBlockModelRegistry implements ResourceManagerReloadListener {
             ICustomModelFactory factory = customModels.poll();
             if (factory.getModelFactory() != null) {
                 for (BlockState state : factory.getStates()) {
-                    ResourceLocation location = BlockModelShaper.stateToModelLocation(state);
+                    ModelResourceLocation location = BlockModelShaper.stateToModelLocation(state);
                     if (factory.getType() == ModelType.ITEM) {
-                        location = new ModelResourceLocation(location, "inventory");
+                        location = new ModelResourceLocation(location.id(), "inventory");
                     }
-                    builder.put(location, new ModelRegistryData(factory, state));
+                    builder.put(location.id(), new ModelRegistryData(factory, state));
                 }
             }
         }

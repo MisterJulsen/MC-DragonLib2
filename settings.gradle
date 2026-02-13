@@ -9,8 +9,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'DragonLib 3 - 1.20.1'
+rootProject.name = 'DragonLib 3 - 1.21.1'
 
 include 'common'
 include 'fabric'
-include 'forge'
+include 'neoforge'

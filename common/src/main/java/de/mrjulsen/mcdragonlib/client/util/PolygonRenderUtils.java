@@ -139,15 +139,15 @@ public final class PolygonRenderUtils {
             Vector2f v3 = new Vector2f(p0);
 
             if (!isCCW(v0, v1, v2)) {
-                vertexConsumer.vertex(matrix, v0.x, v0.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v1.x, v1.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v2.x, v2.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v3.x, v3.y, 0).color(red, green, blue, alpha).endVertex();
+                vertexConsumer.addVertex(matrix, v0.x, v0.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v1.x, v1.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v2.x, v2.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v3.x, v3.y, 0).setColor(red, green, blue, alpha);
             } else {
-                vertexConsumer.vertex(matrix, v0.x, v0.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v3.x, v3.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v2.x, v2.y, 0).color(red, green, blue, alpha).endVertex();
-                vertexConsumer.vertex(matrix, v1.x, v1.y, 0).color(red, green, blue, alpha).endVertex();
+                vertexConsumer.addVertex(matrix, v0.x, v0.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v3.x, v3.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v2.x, v2.y, 0).setColor(red, green, blue, alpha);
+                vertexConsumer.addVertex(matrix, v1.x, v1.y, 0).setColor(red, green, blue, alpha);
             }
 
         }
@@ -192,10 +192,10 @@ public final class PolygonRenderUtils {
                 v2 = tmp;
             }
 
-            vertexConsumer.vertex(matrix, v2.x, v2.y, (float) z).color(r, g, b, a).endVertex();
-            vertexConsumer.vertex(matrix, v2.x, v2.y, (float) z).color(r, g, b, a).endVertex();
-            vertexConsumer.vertex(matrix, v1.x, v1.y, (float) z).color(r, g, b, a).endVertex();
-            vertexConsumer.vertex(matrix, v0.x, v0.y, (float) z).color(r, g, b, a).endVertex();
+            vertexConsumer.addVertex(matrix, v2.x, v2.y, (float) z).setColor(r, g, b, a);
+            vertexConsumer.addVertex(matrix, v2.x, v2.y, (float) z).setColor(r, g, b, a);
+            vertexConsumer.addVertex(matrix, v1.x, v1.y, (float) z).setColor(r, g, b, a);
+            vertexConsumer.addVertex(matrix, v0.x, v0.y, (float) z).setColor(r, g, b, a);
         }
 
         graphics.graphics().flush();

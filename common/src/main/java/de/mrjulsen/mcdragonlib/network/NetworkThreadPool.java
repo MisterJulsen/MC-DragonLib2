@@ -80,7 +80,7 @@ public final class NetworkThreadPool {
 
         CompletableFuture
                 .runAsync(task, executor())
-                .completeOnTimeout(error.get(), timeout, TimeUnit.SECONDS)
+                //.completeOnTimeout(error.get(), timeout, TimeUnit.SECONDS)
                 .exceptionally(e -> {
                     onError.accept(unwrapCompletionException(e));
                     return null;

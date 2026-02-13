@@ -1,0 +1,20 @@
+{
+    "generated_at": "2026-02-11T21:36:28Z",
+    "mod_id": "dragonlib",
+    "display_name": "DragonLib",
+    "mod_version": "3.0.21",
+    "minecraft_version": "1.20.1",
+    "release_channel_raw": "beta",
+    "full_version": "1.20.1-3.0.21-beta",
+    "release_channel": "beta",
+    "artifacts": {
+        "fabric": {
+            "filename": "dragonlib-fabric-1.20.1-3.0.21-beta",
+            "platform": "fabric"
+        },
+        "forge": {
+            "filename": "dragonlib-forge-1.20.1-3.0.21-beta",
+            "platform": "forge"
+        }
+    }
+}

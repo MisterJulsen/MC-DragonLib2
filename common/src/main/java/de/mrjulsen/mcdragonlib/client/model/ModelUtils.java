@@ -16,7 +16,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 
 import de.mrjulsen.mcdragonlib.client.model.mesh.FaceVertex;
-import de.mrjulsen.mcdragonlib.mixin.VertexFormatAccessor;
 
 import java.util.*;
 
@@ -27,18 +26,18 @@ public final class ModelUtils
     //public static final ChunkRenderTypeSet TRANSLUCENT = ChunkRenderTypeSet.of(RenderType.translucent());
     private static final float UV_SUBSTEP_COUNT = 8F;
 
-    public static final int STRIDE = DefaultVertexFormat.BLOCK.getIntegerSize();
-    public static final int POSITION = findOffset(DefaultVertexFormat.ELEMENT_POSITION);
-    public static final int COLOR = findOffset(DefaultVertexFormat.ELEMENT_COLOR);
-    public static final int UV0 = findOffset(DefaultVertexFormat.ELEMENT_UV0);
-    public static final int UV1 = findOffset(DefaultVertexFormat.ELEMENT_UV1);
-    public static final int UV2 = findOffset(DefaultVertexFormat.ELEMENT_UV2);
-    public static final int NORMAL = findOffset(DefaultVertexFormat.ELEMENT_NORMAL);
+    public static final int STRIDE = DefaultVertexFormat.BLOCK.getVertexSize() / 4;
+    public static final int POSITION = findOffset(VertexFormatElement.POSITION);
+    public static final int COLOR = findOffset(VertexFormatElement.COLOR);
+    public static final int UV0 = findOffset(VertexFormatElement.UV0);
+    public static final int UV1 = findOffset(VertexFormatElement.UV1);
+    public static final int UV2 = findOffset(VertexFormatElement.UV2);
+    public static final int NORMAL = findOffset(VertexFormatElement.NORMAL);
 
     private static int findOffset(VertexFormatElement element) {
         // Divide by 4 because we want the int offset
         var index = DefaultVertexFormat.BLOCK.getElements().indexOf(element);
-        return index < 0 ? -1 : ((VertexFormatAccessor)(Object)DefaultVertexFormat.BLOCK).dragonlib$getOffsets().getInt(index) / 4;
+        return index < 0 ? -1 : DefaultVertexFormat.BLOCK.getOffset(element) / 4;
     }
 
     public static void unpackPosition(int[] vertexData, float[] pos, int vert)

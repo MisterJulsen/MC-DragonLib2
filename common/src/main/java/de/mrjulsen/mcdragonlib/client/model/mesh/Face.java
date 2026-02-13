@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedQuad;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -67,7 +68,7 @@ public class Face implements ITransformable<Face> {
         for (int i = 0; i < positions.length; i++) {
             corners.set(i, new FaceVertex(new Vertex(positions[i], new Vector3f(), DLColor.WHITE), CornerType.getByIndex(i).uv(), new int[] { 0, 0 }));
         }
-        this.setTexture(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(DragonLib.MODID, "block/white")));
+        this.setTexture(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(DLUtils.resourceLocation(DragonLib.MODID, "block/white")));
         createEdges();
         Vector3f normal = recalculateNormals();
         this.normalDirection = Direction.getNearest(normal.x(), normal.y(), normal.z());
@@ -677,7 +678,6 @@ public class Face implements ITransformable<Face> {
 
         PoseStack.Pose lastPose = graphics.poseStack().last();
         Matrix4f poseMatrix = lastPose.pose();
-        Matrix3f normalMatrix = lastPose.normal();
 
         float atlasU0 = (sprite != null) ? sprite.getU0() : 0.0f;
         float atlasV0 = (sprite != null) ? sprite.getV0() : 0.0f;
@@ -735,16 +735,16 @@ public class Face implements ITransformable<Face> {
             float correctedZ = pos.z() * scaleXZ;
             float correctedY = pos.y() * scaleY;
             
-            consumer.vertex(poseMatrix, correctedX, correctedY, correctedZ);
-            consumer.color(finalR, finalG, finalB, finalA);
-            consumer.uv(finalU, finalV);
-            consumer.uv2(getBlockLight(lightmap[i]), getSkyLight(lightmap[i]));
-            consumer.overlayCoords(packedOverlay);
+            consumer.addVertex(poseMatrix, correctedX, correctedY, correctedZ);
+            consumer.setColor(finalR, finalG, finalB, finalA);
+            consumer.setUv(finalU, finalV);
+            consumer.setUv2(getBlockLight(lightmap[i]), getSkyLight(lightmap[i]));
+            consumer.setOverlay(packedOverlay);
             
             Vector3f normal = v.getNormal();
-            consumer.normal(normalMatrix, normal.x(), normal.y(), normal.z());
+            consumer.setNormal(lastPose, normal.x(), normal.y(), normal.z());
             
-            consumer.endVertex();
+            //consumer.endVertex();
         }
     }
 

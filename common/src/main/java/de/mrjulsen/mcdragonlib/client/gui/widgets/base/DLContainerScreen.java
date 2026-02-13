@@ -37,7 +37,7 @@ public class DLContainerScreen<M extends AbstractContainerMenu> extends Abstract
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         DLGuiGraphics graphics = new DLGuiGraphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, partialTick);
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         root.render(graphics, mouseX, mouseY);
     }
@@ -67,7 +67,7 @@ public class DLContainerScreen<M extends AbstractContainerMenu> extends Abstract
     }
 
     public boolean onScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollY);
+        return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

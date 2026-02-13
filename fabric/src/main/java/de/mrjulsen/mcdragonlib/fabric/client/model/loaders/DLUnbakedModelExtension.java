@@ -26,8 +26,8 @@ public class DLUnbakedModelExtension implements IUnbakedGeometry<DLUnbakedModelE
     }
 
     @Override
-    public BakedModel bake(BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d) {
-        BakedModel vanilla = parent.bake(baker, parent, spriteGetter, modelState, modelLocation, isGui3d);
+    public BakedModel bake(BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, boolean isGui3d) {
+        BakedModel vanilla = parent.bake(baker, parent, spriteGetter, modelState, isGui3d);
         return new DLBakedModelExtension(vanilla, faceData);
     }
 }

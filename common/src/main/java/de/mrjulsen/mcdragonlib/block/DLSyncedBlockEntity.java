@@ -1,6 +1,8 @@
 package de.mrjulsen.mcdragonlib.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -16,8 +18,8 @@ public abstract class DLSyncedBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public CompoundTag getUpdateTag() {
-		return this.saveWithFullMetadata();
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+		return this.saveWithFullMetadata(registries);
 	}
 
 	@Override
@@ -27,12 +29,12 @@ public abstract class DLSyncedBlockEntity extends BlockEntity {
 
 	// Special handling for client update packets
 	public void readClient(CompoundTag tag) {
-		load(tag);
+		loadAdditional(tag, RegistryAccess.EMPTY);
 	}
 
 	// Special handling for client update packets
 	public CompoundTag writeClient(CompoundTag tag) {
-		saveAdditional(tag);
+		saveAdditional(tag, RegistryAccess.EMPTY);
 		return tag;
 	}
 

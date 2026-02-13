@@ -212,16 +212,19 @@ public abstract class DLModel {
         float r;
         float g;
         float b;
-        for (Iterator<BakedQuad> iterator = quads.iterator(); iterator.hasNext(); consumer.putBulkData(pose, bakedQuad, r, g, b, packedLight, packedOverlay)) {
+        float a;
+        for (Iterator<BakedQuad> iterator = quads.iterator(); iterator.hasNext(); consumer.putBulkData(pose, bakedQuad, r, g, b, a, packedLight, packedOverlay)) {
             bakedQuad = (BakedQuad)iterator.next();
             if (bakedQuad.isTinted()) {
                 r = Mth.clamp(color.getRedF(), 0.0F, 1.0F);
                 g = Mth.clamp(color.getGreenF(), 0.0F, 1.0F);
                 b = Mth.clamp(color.getBlueF(), 0.0F, 1.0F);
+                a = Mth.clamp(color.getAlphaF(), 0.0F, 1.0F);
             } else {
                 r = 1.0F;
                 g = 1.0F;
                 b = 1.0F;
+                a = 1.0F;
             }
         }
 

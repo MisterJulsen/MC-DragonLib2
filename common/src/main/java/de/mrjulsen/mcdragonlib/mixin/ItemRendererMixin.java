@@ -19,17 +19,17 @@ import net.minecraft.world.item.ItemStack;
 
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
-    
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V", ordinal = 1, shift = Shift.BEFORE))
-    public void dragonlib$render(ItemStack itemStack, ItemDisplayContext context, boolean leftHand, PoseStack poseStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
-		if (itemStack.getItem() instanceof ICustomItemRenderer renderer) {
+
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V", shift = Shift.BEFORE))
+    public void dragonlib$render(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
+        if (itemStack.getItem() instanceof ICustomItemRenderer renderer) {
             poseStack.pushPose();
-            DLGraphics graphics = new DLGraphics(poseStack, buffer, combinedLight, combinedOverlay, 1f);
+            DLGraphics graphics = new DLGraphics(poseStack, bufferSource, combinedLight, combinedOverlay, 1f);
             poseStack.scale(DragonLib.BLOCK_PIXEL, DragonLib.BLOCK_PIXEL, DragonLib.BLOCK_PIXEL);
             poseStack.pushPose();
-            renderer.renderAdditional(graphics, itemStack, context, leftHand, poseStack, buffer, combinedLight, combinedOverlay, model);
+            renderer.renderAdditional(graphics, itemStack, displayContext, leftHand, poseStack, bufferSource, combinedLight, combinedOverlay, model);
             poseStack.popPose();
             poseStack.popPose();
         }
-	}
+    }
 }

@@ -14,8 +14,7 @@
         "ScreenAccessor",
         "ServerboundCustomPayloadPacketAccessor",
         "StringSplitterAccessor",
-        "TextureManagerMixin",
-        "VertexFormatAccessor"
+        "TextureManagerMixin"
     ],
     "mixins": [
         "ItemMixin",

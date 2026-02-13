@@ -31,6 +31,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 
+import net.minecraft.util.StringUtil;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -475,11 +476,11 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
     public boolean onCharTyped(char codePointChar, int modifiers) {
         if (readOnly.get()) return false;
 
-        if (isFocused() && SharedConstants.isAllowedChatCharacter(codePointChar) && text.get() != null) {
+        if (isFocused() && StringUtil.isAllowedChatCharacter(codePointChar) && text.get() != null) {
             int cursorPosBeforeInsert = getGlobalCursorIndex();
             deleteSelection();
             cursorPosBeforeInsert = getGlobalCursorIndex();
-            String charToInsert = SharedConstants.filterText(Character.toString(codePointChar));
+            String charToInsert = StringUtil.filterText(Character.toString(codePointChar));
             int codePointsInserted = text.get().insert(cursorPosBeforeInsert, charToInsert, null, null);
 
             if (!Character.isLowSurrogate(codePointChar)) {
@@ -775,7 +776,7 @@ public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
             deleteSelection();
             String clipboardText = getClipboard();
             if (!clipboardText.isEmpty()) {
-                String filteredText = SharedConstants.filterText(clipboardText);
+                String filteredText = StringUtil.filterText(clipboardText);
                 boolean validUrl = DLUtils.isValidURL(clipboardText);
                 int insertIndex = getGlobalCursorIndex();
                 int insertedCodePoints = text.get().insert(insertIndex, filteredText, validUrl ? TextStyle.URL_STYLE : null, null);

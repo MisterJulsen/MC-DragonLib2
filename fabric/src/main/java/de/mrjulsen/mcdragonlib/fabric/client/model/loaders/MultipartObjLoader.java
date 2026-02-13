@@ -20,6 +20,7 @@ import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.MultipartObjModel.Mod
 import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.MultipartObjModel.SubModelSettings;
 import de.mrjulsen.mcdragonlib.fabric.client.model.obj.ObjMaterialLibrary;
 import de.mrjulsen.mcdragonlib.fabric.client.model.obj.ObjTokenizer;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +29,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 
 public class MultipartObjLoader implements ModelLoadingPlugin, IGeometryLoader<MultipartObjModel> {
-    public static final ResourceLocation ID = new ResourceLocation(DragonLib.MODID, "multipart_obj");
+    public static final ResourceLocation ID = DLUtils.resourceLocation(DragonLib.MODID, "multipart_obj");
 	public static final MultipartObjLoader INSTANCE = new MultipartObjLoader();
 
 	private final Map<MultipartObjModel.ModelSettings, MultipartObjModel> modelCache = Maps.newConcurrentMap();
@@ -67,7 +68,7 @@ public class MultipartObjLoader implements ModelLoadingPlugin, IGeometryLoader<M
         }
 
         MultipartObjModel.ModelSettings settings = new MultipartObjModel.ModelSettings(
-            new ResourceLocation(modelLocation),
+                DLUtils.resourceLocation(modelLocation),
             automaticCulling,
             shadeQuads,
             flipV,
@@ -81,8 +82,8 @@ public class MultipartObjLoader implements ModelLoadingPlugin, IGeometryLoader<M
         for (SubModelSettings subModelSettings : settings.subSettings()) {
             i++;
             MultipartObjModel subModel = subModelSettings.isJson() ? 
-                readSubModel(new ResourceLocation(subModelSettings.model())) :
-                loadModel(new ModelSettings(new ResourceLocation(subModelSettings.model()), automaticCulling, shadeQuads, flipV, emissiveAmbient, mtlOverride, List.of()))
+                readSubModel(DLUtils.resourceLocation(subModelSettings.model())) :
+                loadModel(new ModelSettings(DLUtils.resourceLocation(subModelSettings.model()), automaticCulling, shadeQuads, flipV, emissiveAmbient, mtlOverride, List.of()))
             ;
             for (ModelObject part : subModel.getParts()) {
                 ModelGroup group = ((ModelGroup)part);

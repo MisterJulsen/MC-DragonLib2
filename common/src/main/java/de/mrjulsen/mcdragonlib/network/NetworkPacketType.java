@@ -14,6 +14,7 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.Nullable;
 
 import de.mrjulsen.mcdragonlib.data.DLStatus;
@@ -260,7 +261,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      */
     protected void sendInternal(long requestId, N sender, @Nullable CompoundTag nbt) {
         PacketHeaderInfo info = getInfo(CommunicationType.REQUEST, requestId);
-        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
+        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), getName(), info, sender.getDirection(), nbt);
         for (Packet<?> packet : mcPackets) {
             sender.send(packet);
         }
@@ -292,7 +293,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
     protected void respondInternal(PacketHeaderInfo header, NetworkPacketContext context, @Nullable CompoundTag nbt) {
         NetworkDirection sender = getDirection() == NetworkSide.C2S ? NetworkDirection.toPlayer((ServerPlayer)context.getPlayer()) : NetworkDirection.toServer();
         PacketHeaderInfo info = getInfo(CommunicationType.RESPONSE, header.requestId());
-        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), info, sender.getDirection(), nbt);
+        List<Packet<?>> mcPackets = NetworkPacker.pack(getChannelId(), getName(), info, sender.getDirection(), nbt);
         for (Packet<?> packet : mcPackets) {
             sender.send(packet);
         }

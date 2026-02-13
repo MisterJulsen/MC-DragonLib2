@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -322,8 +323,7 @@ public class GuiUtils {
 
         Matrix4f matrix = graphics.poseStack().last().pose();
         Tesselator tess = Tesselator.getInstance();
-        BufferBuilder buffer = tess.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder buffer = tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         int fullXTiles = w / (int)uW;
         int fullYTiles = h / (int)vH;
@@ -350,17 +350,17 @@ public class GuiUtils {
                 float quadX1 = quadX0 + tileWidth;
                 float quadY1 = quadY0 + tileHeight;
 
-                buffer.vertex(matrix, quadX0, quadY1, 0).uv(u0, v1).endVertex();
-                buffer.vertex(matrix, quadX1, quadY1, 0).uv(u1, v1).endVertex();
-                buffer.vertex(matrix, quadX1, quadY0, 0).uv(u1, v0).endVertex();
-                buffer.vertex(matrix, quadX0, quadY0, 0).uv(u0, v0).endVertex();
+                buffer.addVertex(matrix, quadX0, quadY1, 0).setUv(u0, v1);
+                buffer.addVertex(matrix, quadX1, quadY1, 0).setUv(u1, v1);
+                buffer.addVertex(matrix, quadX1, quadY0, 0).setUv(u1, v0);
+                buffer.addVertex(matrix, quadX0, quadY0, 0).setUv(u0, v0);
 
                 offsetX += tileWidth;
             }
             offsetY += tileHeight;
         }
 
-        tess.end();
+        //tess.
     }
 
     /**
@@ -492,13 +492,12 @@ public class GuiUtils {
         RenderSystem.setShaderTexture(0, textureId);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         Matrix4f matrix4f = pose.last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY1, (float)pBlitOffset).uv(pMinU, pMinV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX1, (float)pY2, (float)pBlitOffset).uv(pMinU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY2, (float)pBlitOffset).uv(pMaxU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)pX2, (float)pY1, (float)pBlitOffset).uv(pMaxU, pMinV).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferbuilder.addVertex(matrix4f, (float)pX1, (float)pY1, (float)pBlitOffset).setUv(pMinU, pMinV);
+        bufferbuilder.addVertex(matrix4f, (float)pX1, (float)pY2, (float)pBlitOffset).setUv(pMinU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, (float)pX2, (float)pY2, (float)pBlitOffset).setUv(pMaxU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, (float)pX2, (float)pY1, (float)pBlitOffset).setUv(pMaxU, pMinV);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
     
     private static void blit(GuiGraphics graphics, int textureId, int pX, int pY, int pWidth, int pHeight, float pUOffset, float pVOffset, int pUWidth, int pVHeight, int pTextureWidth, int pTextureHeight) {
@@ -579,13 +578,12 @@ public class GuiUtils {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y, 0).color(vertexColors[0].getAsARGB()).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y, 0).color(vertexColors[1].getAsARGB()).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x, y + h, 0).color(vertexColors[2].getAsARGB()).endVertex();
-        buffer.vertex(graphics.poseStack().last().pose(), x + w, y + h, 0).color(vertexColors[3].getAsARGB()).endVertex();
-        tessellator.end();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        buffer.addVertex(graphics.poseStack().last().pose(), x + w, y, 0).setColor(vertexColors[0].getAsARGB());
+        buffer.addVertex(graphics.poseStack().last().pose(), x, y, 0).setColor(vertexColors[1].getAsARGB());
+        buffer.addVertex(graphics.poseStack().last().pose(), x, y + h, 0).setColor(vertexColors[2].getAsARGB());
+        buffer.addVertex(graphics.poseStack().last().pose(), x + w, y + h, 0).setColor(vertexColors[3].getAsARGB());
+        //tessellator.end();
 
         RenderSystem.disableBlend();
     }
@@ -771,8 +769,8 @@ public class GuiUtils {
         float s = 16 * scale;
         graphics.poseStack().pushPose();
         graphics.poseStack().translate((double)x, (double)y, 16 * (scale + 1));
-        graphics.poseStack().mulPoseMatrix((new Matrix4f()).scaling(s, s, -s));
-        graphics.poseStack().mulPoseMatrix(transformation);
+        graphics.poseStack().mulPose((new Matrix4f()).scaling(s, s, -s));
+        graphics.poseStack().mulPose(transformation);
         Lighting.setupForEntityInInventory();
         EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
         if (cameraOrientation != null) {
@@ -976,8 +974,8 @@ public class GuiUtils {
         stack.pushPose();
         stack.scale(1, 1, -1);
         stack.translate((double)x, (double)y, 16 * (scale + 1));
-        stack.mulPoseMatrix((new Matrix4f()).scaling((float)s, (float)s, (float)(s)));
-        stack.mulPoseMatrix(transformation);
+        stack.mulPose((new Matrix4f()).scaling((float)s, (float)s, (float)(s)));
+        stack.mulPose(transformation);
         MultiBufferSource.BufferSource buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
         model.render(graphics.poseStack().last(), buffersource.getBuffer(renderType), ModelType.BLOCK, state, ModelContext.EMPTY, DLColor.WHITE, LightTexture.FULL_BRIGHT, 0);
         buffersource.endBatch();

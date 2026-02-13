@@ -5,6 +5,7 @@ import com.mojang.math.Transformation;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.extensions.TransformationExtensions;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.mixin.client.BlockModelAccessor;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.mixin.client.ItemModelGeneratorAccessor;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -57,11 +58,11 @@ public class UnbakedGeometryHelper {
 			tex = namespace != null ? namespace + ":" + path : path;
 		}
 
-		return new Material(TextureAtlas.LOCATION_BLOCKS, new ResourceLocation(tex));
+		return new Material(TextureAtlas.LOCATION_BLOCKS, DLUtils.resourceLocation(tex));
 	}
 
-		public static BakedQuad bakeElementFace(BlockElement element, BlockElementFace face, TextureAtlasSprite sprite, Direction direction, ModelState state, ResourceLocation modelLocation) {
-		return FACE_BAKERY.bakeQuad(element.from, element.to, face, sprite, direction, state, element.rotation, element.shade, modelLocation);
+	public static BakedQuad bakeElementFace(BlockElement element, BlockElementFace face, TextureAtlasSprite sprite, Direction direction, ModelState state, ResourceLocation modelLocation) {
+		return FACE_BAKERY.bakeQuad(element.from, element.to, face, sprite, direction, state, element.rotation, element.shade);
 	}
 
 		public static RenderContext.QuadTransform applyRootTransform(ModelState modelState, Transformation rootTransform) {
@@ -76,8 +77,8 @@ public class UnbakedGeometryHelper {
 		for (BlockElement element : elements) {
 			element.faces.forEach((side, face) -> {
 				@SuppressWarnings("deprecation")
-				var sprite = spriteGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, new ResourceLocation(face.texture)));
-				quads.add(BlockModelAccessor.dragonlib$getFaceBakery().bakeQuad(element.from, element.to, face, sprite, side, modelState, element.rotation, element.shade, modelLocation));
+				var sprite = spriteGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, DLUtils.resourceLocation(face.texture())));
+				quads.add(BlockModelAccessor.dragonlib$getFaceBakery().bakeQuad(element.from, element.to, face, sprite, side, modelState, element.rotation, element.shade));
 			});
 		}
 	}

@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import de.mrjulsen.mcdragonlib.client.gui.builtin.WritableSignScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,17 +47,17 @@ public abstract class DLWritableSignBlockEntity extends DLSyncedBlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.lines = new String[this.getRenderConfig().lineData().length];
         for (int i = 0; i < this.getRenderConfig().lineData().length; i++) {
-            this.lines[i] = compound.getString("line" + i);
+            this.lines[i] = tag.getString("line" + i);
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (this.lines != null) {
             for (int i = 0; i < this.getRenderConfig().lineData().length; i++) {
                 tag.putString("line" + i, this.lines[i]);

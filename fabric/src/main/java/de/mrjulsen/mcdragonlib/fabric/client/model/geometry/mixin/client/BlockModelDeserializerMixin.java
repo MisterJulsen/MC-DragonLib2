@@ -13,6 +13,7 @@ import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.GeometryLoaderManage
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.IGeometryLoader;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.IUnbakedGeometry;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.extensions.BlockModelExtensions;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.resources.ResourceLocation;
 
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,7 @@ public abstract class BlockModelDeserializerMixin {
 		if (loaderId == null)
 			return null;
 
-		ResourceLocation name = new ResourceLocation(loaderId);
+		ResourceLocation name = DLUtils.resourceLocation(loaderId);
 		IGeometryLoader<?> loader = GeometryLoaderManager.get(name);
 		if (loader == null) {
 			if (!GeometryLoaderManager.KNOWN_MISSING_LOADERS.contains(name)) {

@@ -74,7 +74,7 @@ public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> 
 
 	private Either<ModelSettings, RuntimeException> tryReadSettings(JsonObject json) {
 		try {
-			ResourceLocation objLocation = new ResourceLocation(GsonHelper.getAsString(json, "model"));
+			ResourceLocation objLocation = DLUtils.resourceLocation(GsonHelper.getAsString(json, "model"));
 			return Either.left(new ModelSettings(objLocation,
 					GsonHelper.getAsBoolean(json, "automaticCulling", true),
 					GsonHelper.getAsBoolean(json, "shadeQuads", true),
@@ -140,7 +140,7 @@ public class ObjLoader implements ModelLoadingPlugin, IGeometryLoader<ObjModel> 
 				if (json != null) {
 					return tryReadSettings(json).map(settings -> {
 						try {
-							return loadModel(resourceManager.getResourceOrThrow(new ResourceLocation(GsonHelper.getAsString(json, "model"))), settings);
+							return loadModel(resourceManager.getResourceOrThrow(DLUtils.resourceLocation(GsonHelper.getAsString(json, "model"))), settings);
 						} catch (FileNotFoundException e) {
 							throw new RuntimeException(e);
 						}

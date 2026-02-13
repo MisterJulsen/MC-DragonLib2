@@ -1,5 +1,5 @@
 plugins {
-    id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.7-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false    
     id "net.mrjulsen.mod-build-tools" version "1.0.4"
@@ -45,7 +45,7 @@ subprojects {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
         mappings loom.layered() {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchment_version}@zip")
+            parchment("org.parchmentmc.data:parchment-${rootProject.parchment_minecraft_version}:${rootProject.parchment_version}@zip")
         }
     }
     
@@ -65,14 +65,14 @@ subprojects {
             "discord": rootProject.discord,
             "next_unsupported_minecraft_version": rootProject.next_unsupported_minecraft_version,
             "dragonlib_version": "$rootProject.minecraft_version-$rootProject.mod_version",
-            "forge_loader_version": rootProject.forge_loader_version,
-            "forge_dependency_version": rootProject.forge_dependency_version,
+            "neoforge_loader_version": rootProject.neoforge_loader_version,
+            "neoforge_dependency_version": rootProject.neoforge_dependency_version,
             "fabric_loader_version": rootProject.fabric_loader_version,
             "java_version": rootProject.java_version,
             "architectury_api_version": rootProject.architectury_api_version,
             "maven_group": rootProject.maven_group,
         ]
-        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/mods.toml', "dragonlib.mixins.json", 'architectury.common.json']) {
+        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/neoforge.mods.toml', "dragonlib.mixins.json", 'architectury.common.json']) {
             expand expandProps
         }
         inputs.properties(expandProps)
@@ -82,12 +82,12 @@ subprojects {
     java {
         withSourcesJar()
         withJavadocJar()
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.release = 17
+        it.options.release = 21
     }
 
     publishing {

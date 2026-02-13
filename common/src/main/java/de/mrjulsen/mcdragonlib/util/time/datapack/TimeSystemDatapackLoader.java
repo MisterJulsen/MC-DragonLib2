@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.time.DatapackTimeSystem;
 import de.mrjulsen.mcdragonlib.util.time.ITimeSystem;
 import net.minecraft.resources.ResourceLocation;
@@ -40,7 +41,7 @@ public class TimeSystemDatapackLoader extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager resourceManager, ProfilerFiller profiler) {
         try {
-            ResourceLocation key = new ResourceLocation(DragonLib.MODID, "time_system");
+            ResourceLocation key = DLUtils.resourceLocation(DragonLib.MODID, "time_system");
             JsonElement json = objects.get(key);
             if (json == null) {
                 system = null;

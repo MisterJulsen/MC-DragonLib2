@@ -14,16 +14,13 @@ import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 
 public interface IUnbakedGeometry<T extends IUnbakedGeometry<T>> {
-	BakedModel bake(
-			BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
-			ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d
-	);
+	BakedModel bake(BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, boolean isGui3d);
 
-		default void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, BlockModel context) {
+	default void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, BlockModel context) {
 
 	}
 
-		default Set<String> getConfigurableComponentNames() {
+	default Set<String> getConfigurableComponentNames() {
 		return Set.of();
 	}
 }

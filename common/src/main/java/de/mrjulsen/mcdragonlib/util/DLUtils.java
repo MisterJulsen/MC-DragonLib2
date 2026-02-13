@@ -11,6 +11,8 @@ import java.net.URL;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
+import net.minecraft.advancements.AdvancementHolder;
 import org.apache.commons.codec.binary.Base64;
 
 import com.mojang.blaze3d.platform.NativeImage;
@@ -30,15 +32,20 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public final class DLUtils {
 
     public static ResourceLocation resourceLocation(String namespace, String path) {
-        return new ResourceLocation(namespace, path);
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 
     public static ResourceLocation resourceLocation(String path) {
-        return new ResourceLocation(path);
+        return ResourceLocation.parse(path);
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {
-        Advancement adv = player.getServer().getAdvancements().getAdvancement(new ResourceLocation(modid, name));
+        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(modid, name);
+        AdvancementHolder adv = player.getServer().getAdvancements().get(location);
+        if (adv == null) {
+            DragonLib.LOGGER.warn("Advancement does not exist: " + location);
+            return;
+        }
         player.getAdvancements().award(adv, criteriaKey);
     }
 

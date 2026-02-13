@@ -60,7 +60,7 @@ public final class RenderUtils {
     }
 
     public static void addVert(VertexConsumer builder, DLGraphics graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
-        builder.vertex(graphics.poseStack().last().pose(), x, y, z).color(r, g, b, a).uv(u, v).uv2(lu, lv).overlayCoords(OverlayTexture.NO_OVERLAY).normal(graphics.poseStack().last().normal(), 0, 0, 1).endVertex();
+        builder.addVertex(graphics.poseStack().last().pose(), x, y, z).setColor(r, g, b, a).setUv(u, v).setUv2(lu, lv).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(graphics.poseStack().last(), 0, 0, 1);
     }
 
     private static void renderWithoutAO(VertexConsumer builder, DLGraphics graphics, float x0, float y0, float z0, float x1, float y1, float z1, float u0, float v0, float u1, float v1, float r, float g, float b, float a, int packedLight) {
@@ -206,6 +206,7 @@ public final class RenderUtils {
     
 
     public static void drawDebugLineGradient(PoseStack poseStack, VertexConsumer consumer, Vector3f from, Vector3f to, DLColor colorA, DLColor colorB) {
+        PoseStack.Pose lastPose = poseStack.last();
         Matrix4f matrix4f = poseStack.last().pose();
         Matrix3f matrix3f = poseStack.last().normal();
 
@@ -220,8 +221,8 @@ public final class RenderUtils {
             dz /= length;
         }
 
-        consumer.vertex(matrix4f, (float) from.x(), (float) from.y(), (float) from.z()).color(colorA.getRedF(), colorA.getGreenF(), colorA.getBlueF(), colorA.getAlphaF()).normal(matrix3f, dx, dy, dz).endVertex();
-        consumer.vertex(matrix4f, (float) to.x(), (float) to.y(), (float) to.z()).color(colorB.getRedF(), colorB.getGreenF(), colorB.getBlueF(), colorB.getAlphaF()).normal(matrix3f, dx, dy, dz).endVertex();
+        consumer.addVertex(matrix4f, (float) from.x(), (float) from.y(), (float) from.z()).setColor(colorA.getRedF(), colorA.getGreenF(), colorA.getBlueF(), colorA.getAlphaF()).setNormal(lastPose, dx, dy, dz);
+        consumer.addVertex(matrix4f, (float) to.x(), (float) to.y(), (float) to.z()).setColor(colorB.getRedF(), colorB.getGreenF(), colorB.getBlueF(), colorB.getAlphaF()).setNormal(lastPose, dx, dy, dz);
     }
 
     public static void drawDebugLine(PoseStack poseStack, VertexConsumer consumer, Vector3f from, Vector3f to, DLColor color) {

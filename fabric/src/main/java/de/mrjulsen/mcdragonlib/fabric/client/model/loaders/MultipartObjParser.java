@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -50,9 +51,9 @@ public class MultipartObjParser {
 		if (materialLibraryOverrideLocation != null) {
 			String lib = materialLibraryOverrideLocation;
 			if (lib.contains(":")) {
-				mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(new ResourceLocation(lib));
+				mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(DLUtils.resourceLocation(lib));
 			} else {
-				mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(new ResourceLocation(modelDomain, modelPath + lib));
+				mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(DLUtils.resourceLocation(modelDomain, modelPath + lib));
 			}
 		}
 
@@ -67,9 +68,9 @@ public class MultipartObjParser {
 
 					String lib = line[1];
 					if (lib.contains(":")) {
-						mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(new ResourceLocation(lib));
+						mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(DLUtils.resourceLocation(lib));
 					} else {
-						mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(new ResourceLocation(modelDomain, modelPath + lib));
+						mtllib = ObjLoader.INSTANCE.loadMaterialLibrary(DLUtils.resourceLocation(modelDomain, modelPath + lib));
 					}
 					break;
 				}

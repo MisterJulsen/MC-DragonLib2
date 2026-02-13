@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class NetworkPacker {
 
-    public static List<Packet<?>> pack(ResourceLocation channelId, PacketHeaderInfo info, NetworkSide side, CompoundTag rawData) {
+    public static List<Packet<?>> pack(ResourceLocation channelId, String name, PacketHeaderInfo info, NetworkSide side, CompoundTag rawData) {
         final int headerSize = SegmentedPacketHeaderInfo.getSize(info);
         
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -34,7 +34,7 @@ public class NetworkPacker {
             header.writeBufferHeader(stateBuf);
             FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(stateBuf, buf));
             
-            packets.add(DLNetworkManager.toPacket(channelId, side, packetBuffer));
+            packets.add(DLNetworkManager.toPacket(channelId, name, side, packetBuffer));
         } else {
             for (int i = 0; i < parts; i++) {
                 FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
@@ -51,7 +51,7 @@ public class NetworkPacker {
                 packetBuffer.writeBytes(buf.retainedSlice(buf.readerIndex(), next));
                 buf.skipBytes(next);
                 
-                packets.add(DLNetworkManager.toPacket(channelId, side, packetBuffer));
+                packets.add(DLNetworkManager.toPacket(channelId, name, side, packetBuffer));
             }
             buf.retain();
         }

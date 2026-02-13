@@ -5,6 +5,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import dev.architectury.impl.NetworkAggregator;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,9 +154,11 @@ public final class DLNetworkManager {
             throw new IllegalArgumentException("A packet with id '" + packet.getName() + "' has already been registered for '" + channelId + "'.");
         }
         managers.computeIfAbsent(channelId, x -> {
-            registerChannel(channelId, protocolVersion);
+            //registerChannel(channelId, protocolVersion);
             return this;
         });
+
+        registerChannel(channelId, packet.getName(), packet.getDirection(), protocolVersion);
         packets.put(packet.getName(), packet);
         LOGGER.info("Registering {} network packet of type {} with id '{}' in '{}'.", packet.getDirection(), packet.getType(), packet.getName(), channelId);
         return packet;
@@ -170,15 +178,15 @@ public final class DLNetworkManager {
      * Retrieves a registered packet by name if it exists and matches the requested side.
      *
      * @param name packet id
-     * @param side {@link NetworkSide} expected side for the packet
+     //* @param side {@link NetworkSide} expected side for the packet
      * @return an {@link Optional} containing the {@link NetworkPacketType} if found and matching side
      */
-    public Optional<NetworkPacketType<?, ?, ?>> getRegisteredPacket(String name, NetworkSide side) {
+    public Optional<NetworkPacketType<?, ?, ?>> getRegisteredPacket(String name/*, NetworkSide side*/) {
         if (!isPacketRegistered(name)) {
             return Optional.empty();
         }
         NetworkPacketType<?, ?, ?> type = packets.get(name);
-        if (type == null || type.getDirection() != side) {
+        if (type == null/* || type.getDirection() != side*/) {
             return Optional.empty();
         }
         return Optional.of(type);
@@ -196,7 +204,7 @@ public final class DLNetworkManager {
      * @see dev.architectury.injectables.annotations.ExpectPlatform
      */
     @ExpectPlatform
-    public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
+    public static void registerChannel(ResourceLocation channelId, String name, NetworkSide side, String protocolVersion) {
         throw new AssertionError();
     }
 
@@ -214,7 +222,7 @@ public final class DLNetworkManager {
      * @throws AssertionError when called on non-platform implementation stub
      */
     @ExpectPlatform
-    public static Packet<?> toPacket(ResourceLocation channelId, NetworkSide side, FriendlyByteBuf buffer) {
+    public static Packet<?> toPacket(ResourceLocation channelId, String name, NetworkSide side, FriendlyByteBuf buffer) {
         throw new AssertionError();
     }    
         
@@ -239,7 +247,6 @@ public final class DLNetworkManager {
         if (!managers.containsKey(channelId)) return;
 
         SegmentedPacketHeaderInfo header = SegmentedPacketHeaderInfo.readBufferHeader(buf);
-
         CommunicationType communication = header.type().communication();
         NetworkSide fSide;
         if (communication == CommunicationType.RESPONSE) {
@@ -248,9 +255,9 @@ public final class DLNetworkManager {
             fSide = side == NetworkSide.S2C ? NetworkSide.C2S : NetworkSide.S2C;
         }
 
-        managers.get(channelId).getRegisteredPacket(header.type().name(), fSide).ifPresentOrElse(x -> {
+        managers.get(channelId).getRegisteredPacket(header.type().name()/*, fSide*/).ifPresentOrElse(x -> {
             NetworkPacker.unpack(header, fSide, buf, context, (rawData) -> {
-                CompoundTag nbt = rawData.readAnySizeNbt();
+                CompoundTag nbt = rawData.readNbt();
                 x.receive(header.type(), context, nbt, communication);
                 NetworkPacker.cleanUp(header, fSide);
             });
@@ -258,6 +265,17 @@ public final class DLNetworkManager {
             LOGGER.warn("There is no {} packet registered with ID '{}' in '{}'.", fSide, header.type().name(), channelId);
             NetworkPacker.cleanUp(header, fSide);
         });
+    }
+
+    public record BufCustomPacketPayload(Type<BufCustomPacketPayload> _type, byte[] payload) implements CustomPacketPayload {
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return this._type();
+        }
+
+        public static StreamCodec<ByteBuf, BufCustomPacketPayload> streamCodec(Type<BufCustomPacketPayload> type) {
+            return ByteBufCodecs.BYTE_ARRAY.map(bytes -> new BufCustomPacketPayload(type, bytes), BufCustomPacketPayload::payload);
+        }
     }
 
 }

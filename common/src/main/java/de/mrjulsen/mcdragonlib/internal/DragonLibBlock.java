@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import com.mojang.serialization.MapCodec;
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
@@ -26,8 +28,15 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class DragonLibBlock extends BaseEntityBlock {
 
+    public static final MapCodec<DragonLibBlock> CODEC = simpleCodec(DragonLibBlock::new);
+
     public DragonLibBlock(BlockBehaviour.Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     public static class DragonLibItem extends BlockItem {
@@ -46,15 +55,18 @@ public class DragonLibBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-    
-
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (pLevel.isClientSide) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide) {
             //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
-            DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
+            //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
+
+            NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
+                DragonLib.LOGGER.info("Response: " + response.txt);
+            }, () -> {});
+            //NetworkTest.SEND.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"));
             return InteractionResult.SUCCESS;
         } else {
-
             //pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
             return InteractionResult.CONSUME;
         }

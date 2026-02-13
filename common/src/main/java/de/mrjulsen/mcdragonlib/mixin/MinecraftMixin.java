@@ -18,11 +18,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
 
+    /*
     @Inject(method = "setInitialScreen", at = @At(value = "HEAD"), cancellable = true)
     public void dragonlib$showScreen(RealmsClient realmsClient, ReloadInstance reloadInstance, GameConfig.QuickPlayData quickPlayData, CallbackInfo ci) {
         //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
         //ci.cancel();
     }
+     */
 
     @Inject(method = "resizeDisplay", at = @At(value = "TAIL"))
     public void dragonlib$resizeDisplay(CallbackInfo ci) {

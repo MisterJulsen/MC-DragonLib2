@@ -7,6 +7,7 @@ import com.mojang.datafixers.util.Either;
 import de.mrjulsen.mcdragonlib.client.model.extension.DLFaceData;
 import de.mrjulsen.mcdragonlib.client.model.extension.DLFaceKey;
 import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.IGeometryLoader;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.ItemOverride;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DLModelExtensionLoader implements IGeometryLoader<DLUnbakedModelExtension> {
-    public static final ResourceLocation ID = new ResourceLocation("dragonlib", "advanced_json");
+    public static final ResourceLocation ID = DLUtils.resourceLocation("dragonlib", "advanced_json");
     public static final DLModelExtensionLoader INSTANCE = new DLModelExtensionLoader();
 
     private record DirectionKey(Direction dir) {}
@@ -82,7 +83,7 @@ public class DLModelExtensionLoader implements IGeometryLoader<DLUnbakedModelExt
                 guiLight = BlockModel.GuiLight.getByName(GsonHelper.getAsString(jsonObject, "gui_light"));
             }
 
-            ResourceLocation resourceLocation = string.isEmpty() ? null : new ResourceLocation(string);
+            ResourceLocation resourceLocation = string.isEmpty() ? null : DLUtils.resourceLocation(string);
             return new BlockModel(resourceLocation, list, map, boolean_, guiLight, itemTransforms, list2);
         }
 

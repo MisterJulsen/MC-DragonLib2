@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.client.gui.container;
 
 import java.util.List;
 
+import net.minecraft.world.item.Item;
 import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -381,7 +382,7 @@ public class DLSlot extends DLGuiComponent {
     }
 
     public static List<Component> getTooltipFromItem(ItemStack item) {
-        return item.getTooltipLines(Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips ? Default.ADVANCED : Default.NORMAL);
+        return item.getTooltipLines(Item.TooltipContext.EMPTY, Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips ? Default.ADVANCED : Default.NORMAL);
     }
 
     public Slot getSlot() {

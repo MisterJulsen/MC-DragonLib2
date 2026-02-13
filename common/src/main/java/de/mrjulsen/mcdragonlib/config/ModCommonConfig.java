@@ -1,22 +1,22 @@
 package de.mrjulsen.mcdragonlib.config;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ModCommonConfig {
-    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
-    public static final ForgeConfigSpec.ConfigValue<Boolean> DEBUG_NETWORKING;
-    public static final ForgeConfigSpec.ConfigValue<ECachingMode> CACHING;
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.ConfigValue<Boolean> DEBUG_NETWORKING;
+    public static final ModConfigSpec.ConfigValue<ECachingMode> CACHING;
     
-    public static final ForgeConfigSpec.ConfigValue<Boolean> TIME_AUTO;
-    public static final ForgeConfigSpec.ConfigValue<Long> TIME_TICKS_PER_DAY;
-    public static final ForgeConfigSpec.ConfigValue<Double> TIME_DEFAULT_TPS;
-    public static final ForgeConfigSpec.ConfigValue<Double> TIME_DAYTIME_SHIFT_FACTOR;
-    public static final ForgeConfigSpec.ConfigValue<Integer> TIME_SYSTEM_CACHE_TTL;
-    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_RESPONSE_TIMEOUT;
-    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_THREAD_TIMEOUT;
-    public static final ForgeConfigSpec.ConfigValue<Integer> NETWORK_THREAD_COUNT;
+    public static final ModConfigSpec.ConfigValue<Boolean> TIME_AUTO;
+    public static final ModConfigSpec.ConfigValue<Long> TIME_TICKS_PER_DAY;
+    public static final ModConfigSpec.ConfigValue<Double> TIME_DEFAULT_TPS;
+    public static final ModConfigSpec.ConfigValue<Double> TIME_DAYTIME_SHIFT_FACTOR;
+    public static final ModConfigSpec.ConfigValue<Integer> TIME_SYSTEM_CACHE_TTL;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_RESPONSE_TIMEOUT;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_THREAD_TIMEOUT;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_THREAD_COUNT;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");

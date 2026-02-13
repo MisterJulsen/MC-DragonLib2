@@ -36,9 +36,9 @@ public final class DLOverlayManager {
             root.close();
         });
 
-        dev.architectury.event.events.client.ClientGuiEvent.RENDER_HUD.register((guiGraphics, partialTick) -> {
+        dev.architectury.event.events.client.ClientGuiEvent.RENDER_HUD.register((guiGraphics, deltaTracker) -> {
             if (!initialized()) return;
-            DLGuiGraphics graphics = new DLGuiGraphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, partialTick);
+            DLGuiGraphics graphics = new DLGuiGraphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, deltaTracker.getGameTimeDeltaPartialTick(true));
             root.render(graphics, (int)GuiUtils.mouseXOnScreen(), (int)GuiUtils.mouseYOnScreen());
         });
 

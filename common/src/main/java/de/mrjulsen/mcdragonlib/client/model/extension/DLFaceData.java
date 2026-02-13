@@ -21,6 +21,6 @@ public record DLFaceData(boolean ambientOcclusion, boolean emissive, List<String
     ).apply(builder, DLFaceData::new));
 
     public static DLFaceData read(JsonElement obj, DLFaceData fallback) throws JsonParseException {
-        return obj == null ? fallback : CODEC.parse(JsonOps.INSTANCE, obj).getOrThrow(false, JsonParseException::new);
+        return obj == null ? fallback : CODEC.parse(JsonOps.INSTANCE, obj).getOrThrow(JsonParseException::new);
     }
 }

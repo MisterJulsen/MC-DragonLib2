@@ -33,13 +33,14 @@ public abstract class MouseHandlerMixin {
         }
     }
     
-    @Inject(method = "onMove", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;wrapScreenError(Ljava/lang/Runnable;Ljava/lang/String;Ljava/lang/String;)V", shift = Shift.BEFORE, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void dragonlib$onMove(long windowPointer, double x, double y, CallbackInfo ci, Screen screen, double mx, double my) {
+    @Inject(method = "onMove", at = @At(value = "TAIL"))
+    private void dragonlib$onMove(long windowPointer, double xpos, double ypos, CallbackInfo ci) {
         if (windowPointer == Minecraft.getInstance().getWindow().getWindow()) {
-            DLOverlayManager.mouseMoved(mx, my);
+            DLOverlayManager.mouseMoved(xpos, ypos);
         }
     }
 
+    /*
     @Redirect(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"))
     private boolean dragonlib$onScroll(Screen screen, double mouseX, double mouseY, double delta) {
         if (screen instanceof DLScreen dlScreen) {
@@ -47,4 +48,6 @@ public abstract class MouseHandlerMixin {
         }
         return screen.mouseScrolled(mouseX, mouseY, delta) ? false : DLOverlayManager.mouseScrolled(mouseX, mouseY, xScrollOffset, delta);
     }
+
+     */
 }

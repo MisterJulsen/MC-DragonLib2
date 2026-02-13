@@ -21,8 +21,8 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
 
         pluginContext.modifyModelAfterBake().register((original, context) -> {
             BakedModel model = original;
-            if (factories.containsKey(context.id())) {
-                ModelRegistryData data = factories.get(context.id());
+            if (factories.containsKey(context.resourceId())) {
+                ModelRegistryData data = factories.get(context.resourceId());
                 DLBlockModelRegistry.setOriginalModel(data.state(), model);
                 model = new DynamicBakedModel(model, data.state(), data.factory().getModelFactory().get());
             }

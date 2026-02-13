@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import org.joml.Vector4f;
 
 import com.google.common.collect.Maps;
@@ -35,7 +36,7 @@ public class ObjMaterialLibrary {
 					break;
 				}
 				case "texture":
-					currentMaterial.texture = new ResourceLocation(line[1]);
+					currentMaterial.texture = DLUtils.resourceLocation(line[1]);
 					break;
 
 				case "Ka":

@@ -109,8 +109,8 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 		return rootComponentNames;
 	}
 
-		@Override
-	public BakedModel bake(BlockModel owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d) {
+	@Override
+	public BakedModel bake(BlockModel owner, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides, boolean isGui3d) {
 		ImmutableList<Mesh> meshes = bakeMeshes(owner, baker, spriteGetter, modelTransform);
 		TextureAtlasSprite particle = spriteGetter.apply(owner.getMaterial("particle"));
 		return new ObjBakedModel(
@@ -121,8 +121,7 @@ public class ObjModel implements IUnbakedGeometry<ObjModel>, UnbakedModel {
 
 		@Nullable
 	@Override
-	public BakedModel bake(@NotNull ModelBaker baker, @NotNull Function<Material, TextureAtlasSprite> spriteGetter,
-						   @NotNull ModelState modelTransform, @NotNull ResourceLocation modelLocation) {
+	public BakedModel bake(@NotNull ModelBaker baker, @NotNull Function<Material, TextureAtlasSprite> spriteGetter, @NotNull ModelState modelTransform) {
 		ImmutableList<Mesh> meshes = bakeMeshes(null, baker, spriteGetter, modelTransform);
 		TextureAtlasSprite particle = spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, MissingTextureAtlasSprite.getLocation()));
 		return new ObjBakedModel(

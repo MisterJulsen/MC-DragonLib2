@@ -7,6 +7,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLTexture;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.resources.ResourceLocation;
 
 public enum GuiIcons {
@@ -27,7 +28,7 @@ public enum GuiIcons {
     private int v;
 
     public static final int ICON_SIZE = 16;
-    public static final DLTexture ICON_TEXTURE = new DLTexture(new ResourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256);
+    public static final DLTexture ICON_TEXTURE = new DLTexture(DLUtils.resourceLocation(DragonLib.MODID, "textures/gui/icons.png"), 256, 256);
 
     GuiIcons(String id, int u, int v) {
         this.id = id;

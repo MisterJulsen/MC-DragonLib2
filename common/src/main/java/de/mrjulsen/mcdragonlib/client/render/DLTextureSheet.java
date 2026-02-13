@@ -8,15 +8,16 @@ import com.google.common.base.Suppliers;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.atlas.DLTextureSheetData;
 import de.mrjulsen.mcdragonlib.client.atlas.DLTextureSheetData.AbstractSprite;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 public class DLTextureSheet {
 
-    public static final DLTextureSheet VANILLA_BUTTON = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_buttons.png"));
-    public static final DLTextureSheet DRAGONLIB_UI = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/ui2.png"));
-    public static final DLTextureSheet VANILLA_TEXTBOX = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_textbox.png"));
-    public static final DLTextureSheet VANILLA_SCROLLBAR = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
+    public static final DLTextureSheet VANILLA_BUTTON = new DLTextureSheet(DLUtils.resourceLocation(DragonLib.MODID, "textures/gui/vanilla_buttons.png"));
+    public static final DLTextureSheet DRAGONLIB_UI = new DLTextureSheet(DLUtils.resourceLocation(DragonLib.MODID, "textures/gui/ui2.png"));
+    public static final DLTextureSheet VANILLA_TEXTBOX = new DLTextureSheet(DLUtils.resourceLocation(DragonLib.MODID, "textures/gui/vanilla_textbox.png"));
+    public static final DLTextureSheet VANILLA_SCROLLBAR = new DLTextureSheet(DLUtils.resourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
 
     public static final String SPRITE_NAME_WINDOW_ROUNDED = "window_rounded";
     

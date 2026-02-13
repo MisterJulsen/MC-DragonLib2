@@ -13,7 +13,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.INumberFormatAdapter;
-import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
+import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
@@ -233,10 +233,10 @@ public class DLColorPickerWindow extends DLWindow {
 
     @Override
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        DefaultGuiTextures.DRAGONLIB_UI.getSprite("window_rounded").render(graphics, 0, 0, width(), height());
-        DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, picker.x() + picker.width() + 5, picker.y(), 60, 24);
+        DLTextureSheet.DRAGONLIB_UI.getSprite("window_rounded").render(graphics, 0, 0, width(), height());
+        DLTextureSheet.DRAGONLIB_UI.getSprite("slot").render(graphics, picker.x() + picker.width() + 5, picker.y(), 60, 24);
         if (showAlpha) {
-            DefaultGuiTextures.DRAGONLIB_UI.getSprite("transparency").render(graphics, picker.x() + picker.width() + 6, picker.y() + 1, 58, 22);
+            DLTextureSheet.DRAGONLIB_UI.getSprite("transparency").render(graphics, picker.x() + picker.width() + 6, picker.y() + 1, 58, 22);
         }
 
         if (initialColor.isUndefined()) {
