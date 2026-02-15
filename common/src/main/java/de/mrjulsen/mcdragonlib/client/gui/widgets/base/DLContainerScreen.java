@@ -66,7 +66,8 @@ public class DLContainerScreen<M extends AbstractContainerMenu> extends Abstract
         return root.mouseReleased(mouseX, mouseY, button) || super.mouseReleased(mouseX, mouseY, button);
     }
 
-    public boolean onScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 

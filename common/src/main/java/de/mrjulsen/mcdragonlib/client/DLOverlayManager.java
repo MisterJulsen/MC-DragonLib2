@@ -8,6 +8,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.base.WindowBuilder;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import dev.architectury.event.EventResult;
+import dev.architectury.event.events.client.ClientScreenInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.minecraft.client.Minecraft;
 
@@ -65,6 +66,11 @@ public final class DLOverlayManager {
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_DRAGGED_POST.register((mc, screen, mouseX, mouseY, button, dragX, dragY) -> {
             if (!initialized()) return EventResult.pass();
             boolean result = root.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+            return result ? EventResult.interruptTrue() : EventResult.pass();
+        });
+        ClientScreenInputEvent.MOUSE_SCROLLED_POST.register((mc, screen, mouseX, mouseY, scrollX, scrollY) -> {
+            if (!initialized()) return EventResult.pass();
+            boolean result = root.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_RELEASED_PRE.register((mc, screen, mouseX, mouseY, button) -> {
