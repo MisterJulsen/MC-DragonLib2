@@ -32,3 +32,6 @@ mandatory = true
 versionRange = "[${architectury_api_version},)"
 ordering = "BEFORE"
 side = "BOTH"
+
+[[mixins]]
+config = "${modid}.mixins.json"
