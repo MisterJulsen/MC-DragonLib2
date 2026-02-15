@@ -58,7 +58,7 @@ public class DragonLibBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
-            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
 
             /*

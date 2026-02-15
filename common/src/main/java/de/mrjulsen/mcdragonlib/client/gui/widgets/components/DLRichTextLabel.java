@@ -606,19 +606,17 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
                 float hX2 = dX + charWidthInScaledSpace;
                 float hY2 = currentLineMarker.lineHeight() / segment.style().scale() + (float)lineSpacing.get() / 2f;
 
-
-                Tesselator tesselator = Tesselator.getInstance();
-                BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
                 RenderSystem.setShader(GameRenderer::getPositionColorShader);
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
                 RenderSystem.disableCull();
 
+                BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
                 bufferBuilder.addVertex(pose, hX1, hY2, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX2, hY2, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX2, hY1, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX1, hY1, 0.0F).setColor(hr, hg, hb, ha);
-                //tesselator.end();
+                BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 
                 RenderSystem.enableCull();
                 RenderSystem.disableBlend();
@@ -638,17 +636,17 @@ public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.Men
                 float hX2 = dX + charWidthInScaledSpace;
                 float hY2 = currentLineMarker.lineHeight() / segment.style().scale();
 
-                Tesselator tesselator = Tesselator.getInstance();
-                BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
                 RenderSystem.setShader(GameRenderer::getPositionColorShader);
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
                 RenderSystem.disableCull();
 
+                BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
                 bufferBuilder.addVertex(pose, hX1, hY2, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX2, hY2, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX2, hY1, 0.0F).setColor(hr, hg, hb, ha);
                 bufferBuilder.addVertex(pose, hX1, hY1, 0.0F).setColor(hr, hg, hb, ha);
+                BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 
                 RenderSystem.enableCull();
                 RenderSystem.disableBlend();

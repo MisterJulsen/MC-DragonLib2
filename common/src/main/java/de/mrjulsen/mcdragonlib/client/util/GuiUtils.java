@@ -322,8 +322,7 @@ public class GuiUtils {
         float vSpan = maxV - minV;
 
         Matrix4f matrix = graphics.poseStack().last().pose();
-        Tesselator tess = Tesselator.getInstance();
-        BufferBuilder buffer = tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         int fullXTiles = w / (int)uW;
         int fullYTiles = h / (int)vH;
@@ -331,6 +330,7 @@ public class GuiUtils {
         float restY = h % vH;
 
         float offsetY = 0f;
+        boolean bufferUsed = false;
         for (int yTile = 0; yTile <= fullYTiles; yTile++) {
             float tileHeight = (yTile < fullYTiles) ? vH : restY;
             if (tileHeight <= 0) break;
@@ -350,17 +350,20 @@ public class GuiUtils {
                 float quadX1 = quadX0 + tileWidth;
                 float quadY1 = quadY0 + tileHeight;
 
-                buffer.addVertex(matrix, quadX0, quadY1, 0).setUv(u0, v1);
-                buffer.addVertex(matrix, quadX1, quadY1, 0).setUv(u1, v1);
-                buffer.addVertex(matrix, quadX1, quadY0, 0).setUv(u1, v0);
-                buffer.addVertex(matrix, quadX0, quadY0, 0).setUv(u0, v0);
+                buffer.addVertex(matrix, quadX0, quadY1, 0).setUv(u0, v1).setColor(1, 1, 1, 1);
+                buffer.addVertex(matrix, quadX1, quadY1, 0).setUv(u1, v1).setColor(1, 1, 1, 1);
+                buffer.addVertex(matrix, quadX1, quadY0, 0).setUv(u1, v0).setColor(1, 1, 1, 1);
+                buffer.addVertex(matrix, quadX0, quadY0, 0).setUv(u0, v0).setColor(1, 1, 1, 1);
+                bufferUsed = true;
 
                 offsetX += tileWidth;
             }
             offsetY += tileHeight;
         }
+        if (bufferUsed) {
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
+        }
 
-        //tess.
     }
 
     /**
@@ -577,13 +580,12 @@ public class GuiUtils {
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         buffer.addVertex(graphics.poseStack().last().pose(), x + w, y, 0).setColor(vertexColors[0].getAsARGB());
         buffer.addVertex(graphics.poseStack().last().pose(), x, y, 0).setColor(vertexColors[1].getAsARGB());
         buffer.addVertex(graphics.poseStack().last().pose(), x, y + h, 0).setColor(vertexColors[2].getAsARGB());
         buffer.addVertex(graphics.poseStack().last().pose(), x + w, y + h, 0).setColor(vertexColors[3].getAsARGB());
-        //tessellator.end();
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         RenderSystem.disableBlend();
     }
