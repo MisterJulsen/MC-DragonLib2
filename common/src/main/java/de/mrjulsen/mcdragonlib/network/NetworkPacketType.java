@@ -14,6 +14,7 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
+import io.netty.handler.timeout.TimeoutException;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.Nullable;
 
@@ -562,7 +563,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     .orTimeout(timeout, TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
-                        DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                            if (ex instanceof TimeoutException) {
+                                DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                            } else {
+                                DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]" , ex);
+                            }
                             errorCallback.run();
                             return null;
                     }
