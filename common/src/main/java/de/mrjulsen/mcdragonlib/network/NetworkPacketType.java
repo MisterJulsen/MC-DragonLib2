@@ -65,7 +65,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.responseFactory = responseFactory;
 
         this.shouldUseOldNetworkSystem = new Cache<>(() -> {
-            boolean result =  DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-3.0.20-beta").map(r -> {
+            boolean result =  DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-beta-3.0.20").map(r -> {
                 if (ModCommonConfig.DEBUG_NETWORKING.get()) {
                     DLNetworkManager.LOGGER.info("Check Network System Version: " + r);
                 }
