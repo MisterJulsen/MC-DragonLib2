@@ -446,9 +446,9 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             CompletableFuture<O> future = new CompletableFuture<>();
             future.thenAccept(responseCallback).exceptionally(ex -> {
                 if (ex instanceof TimeoutException) {
-                    DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                    DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
                 } else {
-                    DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]" , ex);
+                    DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
                 }
                 errorCallback.run();
                 return null;
