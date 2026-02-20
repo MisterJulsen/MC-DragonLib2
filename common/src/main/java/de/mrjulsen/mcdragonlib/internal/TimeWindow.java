@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.internal;
 import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
 import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
@@ -25,12 +26,20 @@ import de.mrjulsen.mcdragonlib.util.time.format.TimeFormatVerboseDuration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import org.lwjgl.glfw.GLFW;
 
 public class TimeWindow extends DLWindow {
 
     public TimeWindow(DLWindowManager manager) {
         super(manager);
         movable.set(true);
+
+        addEventListener(DLGuiStandardEvents.KeyPressEvent.class, (s, e) -> {
+            if (e.keyCode() == GLFW.GLFW_KEY_K) {
+                getWindowManager().closeWindow(this);
+            }
+            return true;
+        });
     }
 
     @Override
@@ -40,7 +49,11 @@ public class TimeWindow extends DLWindow {
 
     @Override
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
+        if (!isFocused()) {
+            GuiUtils.setTint(DLColor.fromInt(0xFFAAAAAA));
+        }
         DLTextureSheet.DRAGONLIB_UI.getSprite(DLTextureSheet.SPRITE_NAME_WINDOW_ROUNDED).render(graphics, 0, 0, width(), height());
+        GuiUtils.resetTint();
 
         GuiUtils.renderItem(graphics, new ItemStack(Blocks.LECTERN.asItem()), width() - 20, 5);
 

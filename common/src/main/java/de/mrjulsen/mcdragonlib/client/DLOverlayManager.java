@@ -49,6 +49,7 @@ public final class DLOverlayManager {
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.KEY_PRESSED_POST.register((mc, screen, keyCode, scanCode, modifiers) -> {
             if (!initialized()) return EventResult.pass();
+            System.out.println("HALLO SALZ");
             boolean result = root.keyPressed(keyCode, scanCode, modifiers);
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });

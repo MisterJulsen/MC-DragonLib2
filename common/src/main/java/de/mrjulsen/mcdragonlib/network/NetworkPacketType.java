@@ -14,6 +14,7 @@ import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
+import io.netty.handler.timeout.TimeoutException;
 import org.jetbrains.annotations.Nullable;
 
 import de.mrjulsen.mcdragonlib.data.DLStatus;
@@ -444,7 +445,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future.thenAccept(responseCallback).exceptionally(ex -> {
-                DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
+                if (ex instanceof TimeoutException) {
+                    DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                } else {
+                    DLNetworkManager.LOGGER.error("Error while waiting for response. [ChannelID: " + getChannelId() + ", Name: " + getName() + "]" , ex);
+                }
                 errorCallback.run();
                 return null;
             }).orTimeout(60, TimeUnit.SECONDS);
@@ -561,7 +566,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     .orTimeout(timeout, TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
-                        DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                            if (ex instanceof TimeoutException) {
+                                DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                            } else {
+                                DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
+                            }
                             errorCallback.run();
                             return null;
                     }
