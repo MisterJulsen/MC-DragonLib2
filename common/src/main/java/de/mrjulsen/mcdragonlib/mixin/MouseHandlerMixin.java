@@ -40,6 +40,16 @@ public abstract class MouseHandlerMixin {
         }
     }
 
+
+    @Inject(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z", shift = Shift.BEFORE), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
+    private void dragonlib$onScroll(long windowPointer, double xOffset, double yOffset, CallbackInfo ci, double yScroll, double mX, double mY) {
+        if (Minecraft.getInstance().screen instanceof DLScreen<?> dlScreen) {
+            dlScreen.onScroll(mX, mY, xScrollOffset, yScroll);
+            dlScreen.afterMouseAction();
+            ci.cancel();
+        }
+    }
+
     @Redirect(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"))
     private boolean dragonlib$onScroll(Screen screen, double mouseX, double mouseY, double delta) {
         if (screen instanceof DLScreen dlScreen) {

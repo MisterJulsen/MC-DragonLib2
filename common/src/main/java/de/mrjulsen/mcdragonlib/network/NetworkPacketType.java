@@ -65,7 +65,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.responseFactory = responseFactory;
 
         this.shouldUseOldNetworkSystem = new Cache<>(() -> {
-            boolean result =  DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-beta-3.0.20").map(r -> {
+            boolean result = DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-beta-3.0.20").map(r -> {
                 if (ModCommonConfig.DEBUG_NETWORKING.get()) {
                     DLNetworkManager.LOGGER.info("Check Network System Version: " + r);
                 }
@@ -101,7 +101,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     try {
                         return task.get();
                     } catch (Exception e) {
-                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                         return errorFactory.apply(e);
                     }
                 },
@@ -121,7 +121,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                                 exception = ex;
                             }
                         }
-                        DLNetworkManager.LOGGER.error("Could not serialize response. Please check the response data factory.", exception);
+                        DLNetworkManager.LOGGER.error("Could not serialize response. Please check the response data factory. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", exception);
                         nbt = NetworkPacketData.DEFAULT_INSTANCE.apply(DLStatus.error(exception)).serializeNbt();
                     }
                     response.accept(nbt);
@@ -135,12 +135,12 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     try {
                         task.run();
                     } catch (Exception e) {
-                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                         onError.accept(e);
                     }
                 },
                 (e) -> {
-                    DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                    DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                     onError.accept(e);
                 });
     }

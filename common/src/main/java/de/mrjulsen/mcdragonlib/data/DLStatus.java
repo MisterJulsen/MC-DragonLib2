@@ -8,6 +8,8 @@ public record DLStatus(byte flag, int code, String message) {
     private static final String NBT_CODE = "Code";
     private static final String NBT_MESSAGE = "Message";
 
+    public static final String EMPTY_MSG = "";
+
     public static final byte CODE_UNKNOWN = -0x1;
 
     public static final byte FLAG_OK = 0x0;
@@ -32,12 +34,15 @@ public record DLStatus(byte flag, int code, String message) {
         CompoundTag nbt = new CompoundTag();
         nbt.putByte(NBT_FLAG, flag);
         nbt.putInt(NBT_CODE, code);
-        nbt.putString(NBT_MESSAGE, message);
+        nbt.putString(NBT_MESSAGE, message == null ? "" : message);
         return nbt;
     }
 
     public static DLStatus fromNbt(CompoundTag nbt) {
-        return new DLStatus(nbt.getByte(NBT_FLAG), nbt.getInt(NBT_CODE), nbt.getString(NBT_MESSAGE));
+        return new DLStatus(
+            nbt.contains(NBT_FLAG) ? nbt.getByte(NBT_FLAG) : 0x0,
+            nbt.contains(NBT_CODE) ? nbt.getInt(NBT_CODE) : CODE_UNKNOWN,
+            nbt.contains(NBT_MESSAGE) ? nbt.getString(NBT_MESSAGE) : EMPTY_MSG);
     }
 
     public boolean isDone() {
