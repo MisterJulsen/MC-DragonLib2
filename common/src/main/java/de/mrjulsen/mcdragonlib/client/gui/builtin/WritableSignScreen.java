@@ -57,7 +57,7 @@ public class WritableSignScreen extends Screen {
         this.config = config;
         this.blockState = state;
         this.sign = pSign;
-        
+
         this.messages = messages;
         this.lineCount = this.messages.length;
 
@@ -72,17 +72,18 @@ public class WritableSignScreen extends Screen {
     }
 
     protected void init() {
-        this.btnDone = Button.builder(CommonComponents.GUI_DONE, (p_169820_) -> {
+        Button btn = Button.builder(CommonComponents.GUI_DONE, (b) -> {
             this.onDone();
-        }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build();
+        }).size(200, 20).pos(this.width / 2 - 100, this.height / 4 + 120).build();
+        this.btnDone = addRenderableWidget(btn);
 
         this.signTextField = new TextFieldHelper(() -> {
             return this.messages[this.selectedLine].text;
         }, (text) -> {
             this.messages[this.selectedLine].text = text;
             this.sign.setText(text, selectedLine);
-        }, TextFieldHelper.createClipboardGetter(this.minecraft), TextFieldHelper.createClipboardSetter(this.minecraft), (text) -> {
-            return text == null || this.minecraft.font.width(text) <= config.lineData[this.selectedLine].maxLineWidth() * config.scale();
+        }, TextFieldHelper.createClipboardGetter(Minecraft.getInstance()), TextFieldHelper.createClipboardSetter(Minecraft.getInstance()), (text) -> {
+            return text == null || Minecraft.getInstance().font.width(text) <= config.lineData[this.selectedLine].maxLineWidth() * config.scale();
         });
     }
 
@@ -100,7 +101,7 @@ public class WritableSignScreen extends Screen {
 
     protected void onDone() {
         DragonLib.UPDATE_SIGN_TEXT.send(NetworkDirection.toServer(), new WritableSignPacketData(this.sign.getBlockPos(), Arrays.stream(messages).map(x -> x.text).toArray(String[]::new)));
-        this.minecraft.setScreen(null);
+        Minecraft.getInstance().setScreen(null);
     }
 
     public boolean charTyped(char pCodePoint, int pModifiers) {
@@ -127,7 +128,7 @@ public class WritableSignScreen extends Screen {
     }
 
     protected void renderSignBackground(GuiGraphics graphics) {
-        MultiBufferSource.BufferSource bufferSource = this.minecraft.renderBuffers().bufferSource();
+        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         PoseStack poseStack = graphics.pose();
         graphics.pose().translate((float)this.width / 2.0F + config.scale / 2 + config.xCenterOffset * config.scale, config.y + config.scale / 2, 100);
         poseStack.scale(-config.scale, -config.scale, -1);
@@ -145,7 +146,7 @@ public class WritableSignScreen extends Screen {
         for (int line = 0; line < this.messages.length; ++line) {
             pGuiGraphics.pose().pushPose();
             ConfiguredLine configuredLine = this.messages[line];
-            
+
             Vector3f vector3f = config.screenTextScale(font, config.scale(), configuredLine);
             pGuiGraphics.pose().translate((float)this.width / 2.0F + configuredLine.data.xOffset() * config.scale(), config.y + configuredLine.data.yOffset() * config.scale - (int)(WritableSignScreen.DEFAULT_LINE_HEIGHT / 2 * config.lineData()[0].lineHeightScale()) + config.getLineHeightsUntil(line) + config.getLineOffset(line, vector3f.y), 105);
             pGuiGraphics.pose().scale(vector3f.x(), vector3f.y(), vector3f.z());
@@ -198,6 +199,11 @@ public class WritableSignScreen extends Screen {
         }
 
     }
+
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderTransparentBackground(guiGraphics);
+    }
+
     public void renderSign(GuiGraphics graphics) {
         graphics.pose().setIdentity();
         graphics.pose().pushPose();
@@ -211,7 +217,6 @@ public class WritableSignScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
         Lighting.setupForFlatItems();
-        this.renderBackground(graphics, pMouseX, pMouseY, pPartialTick);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 40, 16777215);
         this.renderSign(graphics);
         Lighting.setupFor3DItems();
@@ -224,33 +229,33 @@ public class WritableSignScreen extends Screen {
         public int getLineHeightsUntil(int index) {
             return (int)IntStream.range(0, index).mapToLong(x -> (int)(lineData()[x].lineHeightScale() * WritableSignScreen.DEFAULT_LINE_HEIGHT)).sum();
         }
-    
+
         public int getLineOffset(int index, float currentScaleY) {
             float halfLineHeight = halfLineHeight(index);
             return (int)(halfLineHeight - (WritableSignScreen.DEFAULT_LINE_HEIGHT * 0.5F * currentScaleY));
         }
-        
+
         public float lineHeight(int index) {
             return lineData()[index].lineHeightScale() * WritableSignScreen.DEFAULT_LINE_HEIGHT;
         }
-    
+
         public float halfLineHeight(int index) {
             return lineData()[index].lineHeightScale() * WritableSignScreen.DEFAULT_LINE_HEIGHT * 0.5F;
         }
-    
+
         public float getHalfLineHeightScales(int index, float currentScaleY) {
             return halfLineHeight(index) * currentScaleY;
         }
-    
+
         public Vector3f screenTextScale(Font font, float scale, ConfiguredLine line) {
-            float scaleX = (float)MathUtils.getScale(font.width(line.text), line.data.maxLineWidth() * scale, line.data.minScale().x, line.data.maxScale().x);            
-            float scaleY = (float)MathUtils.getScale(font.width(line.text), line.data.maxLineWidth() * scale, line.data.minScale().y, line.data.maxScale().y);            
+            float scaleX = (float)MathUtils.getScale(font.width(line.text), line.data.maxLineWidth() * scale, line.data.minScale().x, line.data.maxScale().x);
+            float scaleY = (float)MathUtils.getScale(font.width(line.text), line.data.maxLineWidth() * scale, line.data.minScale().y, line.data.maxScale().y);
             return new Vector3f(scaleX, scaleY, 1);
         }
 
         public Vector3f berTextScale(String text, Font font, float scale, ConfiguredLineData data) {
-            float scaleX = (float)MathUtils.getScale(font.width(text) * scale, data.maxLineWidth(), data.minScale().x, data.maxScale().x);            
-            float scaleY = (float)MathUtils.getScale(font.width(text) * scale, data.maxLineWidth(), data.minScale().y, data.maxScale().y);            
+            float scaleX = (float)MathUtils.getScale(font.width(text) * scale, data.maxLineWidth(), data.minScale().x, data.maxScale().x);
+            float scaleY = (float)MathUtils.getScale(font.width(text) * scale, data.maxLineWidth(), data.minScale().y, data.maxScale().y);
             return new Vector3f(scaleX, scaleY, 1);
         }
     }
