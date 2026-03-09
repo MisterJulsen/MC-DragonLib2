@@ -10,6 +10,7 @@ import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.DynamicBakedModel;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.loaders.MultipartObjLoader;
+import de.mrjulsen.mcdragonlib.neoforge.client.model.loaders.ObjLoader;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
@@ -27,7 +28,7 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void registerGeometryLoaders(ModelEvent.RegisterGeometryLoaders event) {
-        event.register(DLUtils.resourceLocation(DragonLib.MODID, "multipart_obj"), MultipartObjLoader.INSTANCE);
+        event.register(DLUtils.resourceLocation(DragonLib.MODID, "multipart_obj"), ObjLoader.INSTANCE);
         event.register(DLUtils.resourceLocation(DragonLib.MODID, "advanced_json"), DLModelExtensionLoader.INSTANCE);
     }
 

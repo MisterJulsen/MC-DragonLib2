@@ -137,6 +137,7 @@ public class DragonLib {
         if (Platform.getEnv() == EnvType.CLIENT) {
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
+                NetworkThreadPool.init();
                 /*                
                 MenuScreens.register(ModMenuTypes.PLAYER_INVENTORY.get(), (PlayerInventoryContainerMenu.Base menu, Inventory inventory, Component title) -> {
                     DLScreenWrapper<PlayerInventoryContainerMenu.Base> wrapper = new DLScreenWrapper<>(menu, DLPlayerInventoryWindow::new);
@@ -147,7 +148,6 @@ public class DragonLib {
             DLOverlayManager.init();
 
             ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
-                NetworkThreadPool.init();
             });
 
             ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {

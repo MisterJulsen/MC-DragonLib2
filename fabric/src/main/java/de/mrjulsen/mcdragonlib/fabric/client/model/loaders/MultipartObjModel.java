@@ -243,9 +243,16 @@ public class MultipartObjModel implements IUnbakedGeometry<MultipartObjModel>, U
 			quadBaker.pos(i, position.x(), position.y(), position.z());
 			int spriteColor = encodeQuadColor(tintedColor);
 			quadBaker.color(spriteColor, spriteColor, spriteColor, spriteColor);
+			/*
 			quadBaker.uv(i,
 					texture.getU(texCoord.x * 16),
 					texture.getV((flipV ? 1 - texCoord.y : texCoord.y) * 16)
+			);
+
+			 */
+			quadBaker.uv(i,
+					texture.getU(texCoord.x),
+					texture.getV(flipV ? 1 - texCoord.y : texCoord.y)
 			);
 			quadBaker.lightmap(i, uv2);
 			quadBaker.normal(i, normal);

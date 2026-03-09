@@ -38,6 +38,6 @@ public enum ECachingPriority implements StringRepresentable {
     }
 
     public boolean shouldCache() {
-        return getIndex() >= LOWEST.getIndex() + ModCommonConfig.CACHING.get().getIndex();
+        return getIndex() >= LOWEST.getIndex() + (ModCommonConfig.SPEC.isLoaded() ? ModCommonConfig.CACHING.get().getIndex() : ECachingPriority.NORMAL.getIndex());
     }
 }

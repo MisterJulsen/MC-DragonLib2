@@ -2,12 +2,15 @@ package de.mrjulsen.mcdragonlib.internal;
 
 import com.mojang.serialization.MapCodec;
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.block.DLWritableSignBlockEntity;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.builtin.WritableSignScreen;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -58,7 +61,7 @@ public class DragonLibBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide) {
-            DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
 
             /*

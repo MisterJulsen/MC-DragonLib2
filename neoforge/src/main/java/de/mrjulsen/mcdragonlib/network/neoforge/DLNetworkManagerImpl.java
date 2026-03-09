@@ -9,6 +9,7 @@ import dev.architectury.platform.hooks.EventBusesHooks;
 import dev.architectury.utils.Env;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,6 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -35,7 +37,8 @@ public class DLNetworkManagerImpl {
             bus.<RegisterPayloadHandlersEvent>addListener(event -> {
                 event.registrar(type.id().getNamespace()).optional().playBidirectional(type, codec, (payload, ctx) -> {
                     RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(payload.payload()), ctx.player().registryAccess());
-                    DLNetworkManager.receiveData(channelId, buf, side, context(ctx.player(), ctx.player().getServer(), false));
+                    Player player = ctx.player();
+                    DLNetworkManager.receiveData(channelId, buf, side, context(player, ctx, false));
                     buf.release();
                 });
 
@@ -58,7 +61,7 @@ public class DLNetworkManagerImpl {
         });
     }
 
-    static NetworkPacketContext context(Player player, BlockableEventLoop<?> taskQueue, boolean client) {
+    static NetworkPacketContext context(Player player, IPayloadContext taskQueue, boolean client) {
         return new NetworkPacketContext() {
             @Override
             public Player getPlayer() {
@@ -67,13 +70,13 @@ public class DLNetworkManagerImpl {
 
             @Override
             public void queue(Runnable runnable) {
-                taskQueue.execute(runnable);
+                taskQueue.enqueueWork(runnable);
             }
 
             @Override
             public <O> O queueResult(Supplier<O> supplier) {
                 CompletableFuture<O> future = new CompletableFuture<>();
-                taskQueue.execute(() -> {
+                taskQueue.enqueueWork(() -> {
                     try {
                         future.complete(supplier.get());
                     } catch (Throwable t) {
