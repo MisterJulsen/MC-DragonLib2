@@ -442,17 +442,21 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
          * @param responseCallback consumer invoked when a response arrives
          * @param errorCallback runnable invoked if the request times out or fails
          */
-        public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
+        public void send(N sender, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
-            future.thenAccept(responseCallback).exceptionally(ex -> {
-                if (ex instanceof TimeoutException) {
-                    DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
-                } else {
-                    DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
-                }
-                errorCallback.run();
-                return null;
-            }).orTimeout(60, TimeUnit.SECONDS);
+            future
+                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .thenAccept(responseCallback)
+                    .exceptionally(ex -> {
+                                if (ex instanceof TimeoutException) {
+                                    DLNetworkManager.LOGGER.error("Timeout while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                                } else {
+                                    DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
+                                }
+                                errorCallback.run();
+                                return null;
+                            }
+                    );
             send(sender, future);
         }
         
@@ -567,7 +571,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
                             if (ex instanceof TimeoutException) {
-                                DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
+                                DLNetworkManager.LOGGER.error("Timeout while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]: " + ex.getMessage());
                             } else {
                                 DLNetworkManager.LOGGER.error("Error while waiting for response [ChannelID: " + getChannelId() + ", Name: " + getName() + "]", ex);
                             }

@@ -17,6 +17,7 @@ public class NetworkTest {
 
         public TestData(DLStatus status) {
             super(status);
+            txt = "";
         }
         
         public TestData(DLStatus status, String txt) {
@@ -47,11 +48,13 @@ public class NetworkTest {
     public static final NetworkPacketType.SendAndReceive<NetworkDirection.C2S, TestData, TestData> SEND_AND_RECEIVE = NETWORK.registerSendAndReceivePacket("test_msg", NetworkDirection.C2S,
             (data, ctx) -> {
                 DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
+
                 try {
                     Thread.sleep(100000);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+
                 }
+                int i = 1 / 0;
                 return new TestData(data.getStatus(), data.txt);
             }, TestData::new, TestData::new);
 

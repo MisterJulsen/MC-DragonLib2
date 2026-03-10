@@ -2,10 +2,14 @@ package de.mrjulsen.mcdragonlib.network;
 
 import de.mrjulsen.mcdragonlib.data.INBTSerializable;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
+import net.minecraft.FieldsAreNonnullByDefault;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Function;
 
+@FieldsAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public abstract class NetworkPacketData implements INBTSerializable {
 
     static final Function<DLStatus, NetworkPacketData> DEFAULT_INSTANCE = (status) -> new NetworkPacketData(status) {

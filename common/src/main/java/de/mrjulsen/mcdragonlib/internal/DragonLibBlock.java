@@ -50,7 +50,15 @@ public class DragonLibBlock extends BaseEntityBlock {
 
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (pLevel.isClientSide) {
-            DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
+                if (response.getStatus().isError()) {
+                    System.out.println("ERROR: " + response.getStatus().message());
+                }
+                System.out.println("RESPONSE: " + response.txt);
+            }, () -> {
+                System.out.println("ERROR callback");
+            });
+            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;
         } else {
