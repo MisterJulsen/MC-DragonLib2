@@ -2,10 +2,14 @@ package de.mrjulsen.mcdragonlib.network;
 
 import de.mrjulsen.mcdragonlib.data.INBTSerializable;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
+import net.minecraft.FieldsAreNonnullByDefault;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Function;
 
+@FieldsAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public abstract class NetworkPacketData implements INBTSerializable {
 
     static final Function<DLStatus, NetworkPacketData> DEFAULT_INSTANCE = (status) -> new NetworkPacketData(status) {
@@ -15,7 +19,7 @@ public abstract class NetworkPacketData implements INBTSerializable {
         @Override
         protected void read(CompoundTag nbt) {}
     };
-    
+
     private static final String NBT_STATUS = "Status";
     private static final String NBT_DATA = "Data";
 
@@ -28,7 +32,7 @@ public abstract class NetworkPacketData implements INBTSerializable {
     public final DLStatus getStatus() {
         return status;
     }
-    
+
     final void setStatus(DLStatus status) {
         this.status = status;
     }
@@ -66,6 +70,6 @@ public abstract class NetworkPacketData implements INBTSerializable {
 
         @Override
         protected void read(CompoundTag nbt) {
-        }        
+        }
     }
 }

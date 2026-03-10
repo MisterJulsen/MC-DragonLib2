@@ -66,10 +66,15 @@ public class DragonLibBlock extends BaseEntityBlock {
 
             /*
             NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
-                DragonLib.LOGGER.info("Response: " + response.txt);
-            }, () -> {});
-
+                if (response.getStatus().isError()) {
+                    System.out.println("ERROR: " + response.getStatus().message());
+                }
+                System.out.println("RESPONSE: " + response.txt);
+            }, () -> {
+                System.out.println("ERROR callback");
+            });
              */
+
             //NetworkTest.SEND.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"));
             return InteractionResult.SUCCESS;
         } else {

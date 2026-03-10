@@ -14,7 +14,7 @@ public class NetworkTest {
 
     public static class TestData extends NetworkPacketData {
 
-        String txt;
+        String txt = "";
 
         public TestData(DLStatus status) {
             super(status);
@@ -50,16 +50,15 @@ public class NetworkTest {
 
     public static final NetworkPacketType.SendAndReceive<NetworkDirection.C2S, TestData, TestData> SEND_AND_RECEIVE = NETWORK.registerSendAndReceivePacket("test_msg", NetworkDirection.C2S,
             (data, ctx) -> {
-                return ctx.queueResult(() -> {
-                    DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    DLNetworkManager.LOGGER.info("Send back response: OK, " + data.txt);
-                    return new TestData(data.getStatus(), "OK, " +  data.txt);
-                });
+                DLNetworkManager.LOGGER.info("Text message is: " + data.txt);
+
+                try {
+                    Thread.sleep(100000);
+                } catch (InterruptedException e) {
+
+                }
+                int i = 1 / 0;
+                return new TestData(data.getStatus(), data.txt);
             }, TestData::new, TestData::new);
 
     public static void init() {
