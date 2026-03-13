@@ -66,10 +66,22 @@ public final class NetworkThreadPool {
 
     private static void shutdownExecutor(ExecutorService service, String name) {
         try {
-            service.shutdown();
+            // shutdownNow() is intentionally used here instead of shutdown().
+            //
+            // The TIMEOUT_SCHEDULER may still have pending watchdog tasks sitting in its
+            // delay queue (scheduled e.g. 30s into the future) even after all actual work
+            // is done. Calling shutdown() would cause awaitTermination() to block until
+            // every such delayed task has been executed — effectively waiting the full
+            // timeout duration on disconnect.
+            //
+            // shutdownNow() interrupts the scheduler thread immediately, causing
+            // DelayedWorkQueue.take() to unblock at once. Pending watchdog tasks are
+            // discarded, which is safe: by shutdown time all worker futures are already
+            // done, so any watchdog that fires would only hit the `taskFuture.isDone()`
+            // early-exit branch anyway.
+            service.shutdownNow();
             if (!service.awaitTermination(ModCommonConfig.NETWORK_THREAD_TIMEOUT.get(), TimeUnit.SECONDS)) {
-                DLNetworkManager.LOGGER.warn("{} did not terminate in time, forcing shutdown.", name);
-                service.shutdownNow();
+                DLNetworkManager.LOGGER.warn("{} did not terminate in time after shutdownNow.", name);
             }
         } catch (InterruptedException e) {
             DLNetworkManager.LOGGER.error("Interrupted while waiting for {} shutdown.", name, e);
