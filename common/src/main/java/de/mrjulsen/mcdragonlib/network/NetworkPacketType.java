@@ -15,7 +15,6 @@ import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
 import io.netty.handler.timeout.TimeoutException;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.Nullable;
 
 import de.mrjulsen.mcdragonlib.data.DLStatus;
@@ -65,18 +64,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         this.sendFactory = sendFactory;
         this.responseFactory = responseFactory;
 
-        this.shouldUseOldNetworkSystem = new Cache<>(() -> {
-            boolean result =  DependencyVersionChecker.checkDependencies(channelId.getNamespace().replace("wiresapi", "pantographsandwires"), DragonLib.MODID, "1.20.1-3.0.20-beta").map(r -> {
-                if (ModCommonConfig.DEBUG_NETWORKING.get()) {
-                    DLNetworkManager.LOGGER.info("Check Network System Version: " + r);
-                }
-                return r.relation() == DependencyVersionChecker.VersionRelation.IS_OLDER;
-            }).orElse(false);
-            if (result) {
-                DLNetworkManager.LOGGER.warn(channelId.getNamespace() + " was built with an older version of DragonLib's networking system. For compatibility, it uses the old system.");
-            }
-            return result;
-        });
+        this.shouldUseOldNetworkSystem = new Cache<>(() -> false);
     }
 
     /**
@@ -102,7 +90,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     try {
                         return task.get();
                     } catch (Exception e) {
-                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                         return errorFactory.apply(e);
                     }
                 },
@@ -122,7 +110,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                                 exception = ex;
                             }
                         }
-                        DLNetworkManager.LOGGER.error("Could not serialize response. Please check the response data factory.", exception);
+                        DLNetworkManager.LOGGER.error("Could not serialize response. Please check the response data factory. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", exception);
                         nbt = NetworkPacketData.DEFAULT_INSTANCE.apply(DLStatus.error(exception)).serializeNbt();
                     }
                     response.accept(nbt);
@@ -136,16 +124,16 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     try {
                         task.run();
                     } catch (Exception e) {
-                        DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                        DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                         onError.accept(e);
                     }
                 },
                 (e) -> {
-                    DLNetworkManager.LOGGER.error("Could not handle network task.", e);
+                    DLNetworkManager.LOGGER.error("Could not handle network task. [ChannelID: " + type.getChannelId() + ", Name: " + type.getName() + "]", e);
                     onError.accept(e);
                 });
     }
-    
+
     /**
      * Called when a request is received for this packet type.
      *
@@ -216,7 +204,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
     public final PacketHeaderInfo getInfo(CommunicationType communication, long requestId) {
         return new PacketHeaderInfo(getType(), communication, requestId, getName());
     }
-    
+
     /**
      * Internal dispatcher that invokes either request or response handling based on the {@link CommunicationType}.
      *
@@ -280,7 +268,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         instance.deserializeNbt(nbt);
         receiveRequest(info, context, instance);
     }
-    
+
 
     /**
      * Sends a RESPONSE for a received request header using the opposite direction of this packet type.
@@ -351,7 +339,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
         @Override
         void receiveResponse(PacketHeaderInfo info, NetworkPacketContext context, Empty in) {}
-        
+
         /**
          * Sends the provided data as a request from the given sender.
          *
@@ -366,7 +354,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
 
-    
+
     /**
      * Packet type used for receive-request semantics where a request invokes server-side logic
      * and a response is expected by the caller.
@@ -399,7 +387,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Receive Packets", List.of(
-                new DLStatistics.Stat(group, "Result Callbacks", callbacks.size())
+                    new DLStatistics.Stat(group, "Result Callbacks", callbacks.size())
             ));
             return stats;
         }
@@ -434,8 +422,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                 ((CompletableFuture<O>)callbacks.remove(info.requestId())).complete(in);
             }
         }
-        
-        
+
         /**
          * Sends a request and provides callbacks for success and error.
          *
@@ -443,10 +430,10 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
          * @param responseCallback consumer invoked when a response arrives
          * @param errorCallback runnable invoked if the request times out or fails
          */
-        public void send(N sender, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
+        public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future
-                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .orTimeout(ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
                                 if (ex instanceof TimeoutException) {
@@ -460,7 +447,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     );
             send(sender, future);
         }
-        
+
         /**
          * Sends a request and registers the provided {@link CompletableFuture} to be completed on response.
          *
@@ -472,11 +459,11 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             callbacks.put(requestId, responseCallback);
             sendInternal(requestId, sender, new CompoundTag());
         }
-    } 
+    }
 
 
 
-    
+
     /**
      * Packet type supporting send-and-receive (request/response) semantics where an input payload is sent
      * and a typed output is expected.
@@ -499,7 +486,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             super(channelId, PacketType.SEND_AND_RECEIVE, direction, name, inputFactory, outputFactory);
             this.handler = handler;
         }
-        
+
         /**
          * Returns debug statistics about active callbacks for monitoring purposes.
          *
@@ -508,7 +495,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Send and Receive Packets", List.of(
-                new DLStatistics.Stat(group, "Result Callbacks", callbacks.size())
+                    new DLStatistics.Stat(group, "Result Callbacks", callbacks.size())
             ));
             return stats;
         }
@@ -553,22 +540,9 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
          * @param errorCallback invoked if the request times out or fails
          */
         public void send(N sender, I data, Consumer<O> responseCallback, Runnable errorCallback) {
-            send(sender, data, ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), responseCallback, errorCallback);
-        }
-        
-        /**
-         * Sends a request with the given input payload and registers success/error handlers.
-         *
-         * @param sender network direction used to send
-         * @param data input payload to serialize and send
-         * @param timeout The time in seconds before the system stops waiting for a response and returns an error
-         * @param responseCallback invoked when response arrives
-         * @param errorCallback invoked if the request times out or fails
-         */
-        public void send(N sender, I data, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future
-                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .orTimeout(ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
                                 if (ex instanceof TimeoutException) {
@@ -582,7 +556,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
                     );
             send(sender, data, future);
         }
-        
+
         /**
          * Sends a request with the given input payload and registers a {@link CompletableFuture}
          * that will be completed when the response arrives.
@@ -600,7 +574,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
 
 
 
-    
+
     /**
      * Packet type used for streaming scenarios where multiple segments may be exchanged for a single request id.
      *
@@ -650,7 +624,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             super(channelId, PacketType.STREAM, direction, name, inputFactory, outputFactory);
             this.receiverFactory = receiverFactory;
         }
-        
+
         /**
          * Returns debug statistics about active callbacks for monitoring purposes.
          *
@@ -659,9 +633,9 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
         public static DLStatistics debug_getStats() {
             DLStatistics.Group group = new DLStatistics.Group("callbacks", "Callbacks");
             DLStatistics stats = new DLStatistics("Network Stream Packets", List.of(
-                new DLStatistics.Stat(group, "Result Callbacks", callbacks.size()),
-                new DLStatistics.Stat(group, "Input Data Providers", inputCache.size()),
-                new DLStatistics.Stat(group, "Output Data Providers", outputCache.size())
+                    new DLStatistics.Stat(group, "Result Callbacks", callbacks.size()),
+                    new DLStatistics.Stat(group, "Input Data Providers", inputCache.size()),
+                    new DLStatistics.Stat(group, "Output Data Providers", outputCache.size())
             ));
             return stats;
         }
