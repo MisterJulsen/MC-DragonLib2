@@ -66,10 +66,9 @@ public final class NetworkThreadPool {
 
     private static void shutdownExecutor(ExecutorService service, String name) {
         try {
-            service.shutdown();
+            service.shutdownNow();
             if (!service.awaitTermination(ModCommonConfig.NETWORK_THREAD_TIMEOUT.get(), TimeUnit.SECONDS)) {
-                DLNetworkManager.LOGGER.warn("{} did not terminate in time, forcing shutdown.", name);
-                service.shutdownNow();
+                DLNetworkManager.LOGGER.warn("{} did not terminate in time after shutdownNow.", name);
             }
         } catch (InterruptedException e) {
             DLNetworkManager.LOGGER.error("Interrupted while waiting for {} shutdown.", name, e);
@@ -94,11 +93,6 @@ public final class NetworkThreadPool {
         return s;
     }
 
-    /**
-     * Schedules a timeout watchdog for the given future.
-     * If the future is not done after {@code timeoutSeconds}, it will be cancelled and
-     * {@code onTimeout} is called with a descriptive {@link TimeoutException}.
-     */
     private static void scheduleTimeout(Future<?> taskFuture, int timeoutSeconds, NetworkPacketType<?, ?, ?> type, Consumer<TimeoutException> onTimeout) {
         scheduler().schedule(() -> {
             if (taskFuture.isDone()) return;
@@ -122,7 +116,6 @@ public final class NetworkThreadPool {
         }, timeoutSeconds, TimeUnit.SECONDS);
     }
 
-    /** Safely applies an error factory, catching and logging any exception it throws. */
     private static <T> T safeErrorFactory(Function<Throwable, T> errorFactory, Throwable cause, NetworkPacketType<?, ?, ?> type) {
         try {
             return errorFactory.apply(cause);
@@ -132,7 +125,6 @@ public final class NetworkThreadPool {
         }
     }
 
-    /** Safely calls a responder/consumer, catching and logging any exception it throws. */
     private static <T> void safeRespond(Consumer<T> responder, T value, NetworkPacketType<?, ?, ?> type) {
         try {
             responder.accept(value);
