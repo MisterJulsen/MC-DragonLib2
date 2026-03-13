@@ -75,6 +75,7 @@ public class WritableSignScreen extends Screen {
         this.btnDone = Button.builder(CommonComponents.GUI_DONE, (p_169820_) -> {
             this.onDone();
         }).bounds(this.width / 2 - 100, this.height / 4 + 120, 200, 20).build();
+        addRenderableWidget(btnDone);
 
         this.signTextField = new TextFieldHelper(() -> {
             return this.messages[this.selectedLine].text;
