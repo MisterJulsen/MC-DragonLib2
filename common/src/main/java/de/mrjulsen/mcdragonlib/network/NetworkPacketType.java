@@ -434,7 +434,6 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
             }
         }
         
-        
         /**
          * Sends a request and provides callbacks for success and error.
          *
@@ -442,10 +441,10 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
          * @param responseCallback consumer invoked when a response arrives
          * @param errorCallback runnable invoked if the request times out or fails
          */
-        public void send(N sender, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
+        public void send(N sender, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future
-                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .orTimeout(ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
                                 if (ex instanceof TimeoutException) {
@@ -552,22 +551,9 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
          * @param errorCallback invoked if the request times out or fails
          */
         public void send(N sender, I data, Consumer<O> responseCallback, Runnable errorCallback) {
-            send(sender, data, ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), responseCallback, errorCallback);
-        }
-        
-        /**
-         * Sends a request with the given input payload and registers success/error handlers.
-         *
-         * @param sender network direction used to send
-         * @param data input payload to serialize and send
-         * @param timeout The time in seconds before the system stops waiting for a response and returns an error
-         * @param responseCallback invoked when response arrives
-         * @param errorCallback invoked if the request times out or fails
-         */
-        public void send(N sender, I data, int timeout, Consumer<O> responseCallback, Runnable errorCallback) {
             CompletableFuture<O> future = new CompletableFuture<>();
             future
-                    .orTimeout(timeout, TimeUnit.SECONDS)
+                    .orTimeout(ModCommonConfig.NETWORK_RESPONSE_TIMEOUT.get(), TimeUnit.SECONDS)
                     .thenAccept(responseCallback)
                     .exceptionally(ex -> {
                             if (ex instanceof TimeoutException) {
