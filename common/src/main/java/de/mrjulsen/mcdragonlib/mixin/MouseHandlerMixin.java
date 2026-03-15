@@ -1,10 +1,11 @@
 package de.mrjulsen.mcdragonlib.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -22,14 +23,17 @@ import net.minecraft.client.gui.screens.Screen;
 public abstract class MouseHandlerMixin {
 
     @Unique
-    private double xScrollOffset;
-    
+    private double dragonlib$xScrollOffset;
+
     @Inject(method = "onScroll", at = @At(value = "HEAD"))
     private void dragonlib$onScroll(long windowPointer, double xOffset, double yOffset, CallbackInfo ci) {
         if (windowPointer == Minecraft.getInstance().getWindow().getWindow()) {
-            boolean discreteMouseScroll = (Boolean)Minecraft.getInstance().options.discreteMouseScroll().get();
-            double sensitiviy = (Double)Minecraft.getInstance().options.mouseWheelSensitivity().get();
-            xScrollOffset = (discreteMouseScroll ? Math.signum(xOffset) : xOffset) * sensitiviy;
+            boolean discreteMouseScroll = Minecraft.getInstance().options.discreteMouseScroll().get();
+            double sensitiviy = Minecraft.getInstance().options.mouseWheelSensitivity().get();
+            dragonlib$xScrollOffset = (discreteMouseScroll ? Math.signum(xOffset) : xOffset) * sensitiviy;
+            if (Minecraft.getInstance().screen instanceof DLScreen<?> dlScreen) {
+                dlScreen.xScrollDelta = dragonlib$xScrollOffset;
+            }
         }
     }
     
@@ -40,21 +44,12 @@ public abstract class MouseHandlerMixin {
         }
     }
 
-
-    @Inject(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z", shift = Shift.BEFORE), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
-    private void dragonlib$onScroll(long windowPointer, double xOffset, double yOffset, CallbackInfo ci, double yScroll, double mX, double mY) {
-        if (Minecraft.getInstance().screen instanceof DLScreen<?> dlScreen) {
-            dlScreen.onScroll(mX, mY, xScrollOffset, yScroll);
-            dlScreen.afterMouseAction();
-            ci.cancel();
+    @WrapOperation(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"))
+    private boolean dragonlib$scrollOverlay(Screen screen, double mouseX, double mouseY, double delta, Operation<Boolean> original) {
+        boolean result = original.call(screen, mouseX, mouseY, delta);
+        if (!result) {
+            DLOverlayManager.mouseScrolled(mouseX, mouseY, dragonlib$xScrollOffset, delta);
         }
-    }
-
-    @Redirect(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseScrolled(DDD)Z"))
-    private boolean dragonlib$onScroll(Screen screen, double mouseX, double mouseY, double delta) {
-        if (screen instanceof DLScreen dlScreen) {
-            return dlScreen.onScroll(mouseX, mouseY, xScrollOffset, delta);
-        }
-        return screen.mouseScrolled(mouseX, mouseY, delta) ? false : DLOverlayManager.mouseScrolled(mouseX, mouseY, xScrollOffset, delta);
+        return result;
     }
 }
