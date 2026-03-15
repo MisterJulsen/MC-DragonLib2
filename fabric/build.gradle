@@ -36,6 +36,9 @@ dependencies {
     
     //modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixin_extras_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-fabric:${rootProject.mixin_extras_version}"))
+
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 }
