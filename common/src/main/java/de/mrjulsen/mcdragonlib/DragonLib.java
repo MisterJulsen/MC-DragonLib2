@@ -235,7 +235,7 @@ public class DragonLib {
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
             lines.add(String.format("Minecraft %s %s %s%s%s",
-                Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : ""),
+                Platform.isNeoForge() ? "NeoForge" : (Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : "")),
                 (Platform.getEnvironment() == Env.CLIENT ? "Client" : (Platform.getEnvironment() == Env.SERVER ? "Server" : "?")),
                 Platform.getMinecraftVersion(),
                 getModloaderVersion(),
