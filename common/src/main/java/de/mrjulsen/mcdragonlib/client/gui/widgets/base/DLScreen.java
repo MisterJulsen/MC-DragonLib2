@@ -15,6 +15,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public class DLScreen<M extends AbstractContainerMenu> extends Screen implements MenuAccess<M> {
 
+    public double xScrollDelta = 0;
+
     private final DLWindowManager root;
     private final M menu;
     
@@ -73,8 +75,9 @@ public class DLScreen<M extends AbstractContainerMenu> extends Screen implements
         return root.mouseReleased(mouseX, mouseY, button) || super.mouseReleased(mouseX, mouseY, button);
     }
 
-    public boolean onScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return root.mouseScrolled(mouseX, mouseY, scrollX, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollY);
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+        return root.mouseScrolled(mouseX, mouseY, xScrollDelta, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     @Override
