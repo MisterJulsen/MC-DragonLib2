@@ -56,7 +56,7 @@ public class DragonLib {
 
     public static final String MODID = "dragonlib";
 	public static final String MOD_NAME = "DragonLib";
-    public static final String MRJULSEN_DISCORD = "https://server.mrjulsen.net";
+    public static final String MRJULSEN_DISCORD = "https://discord.mrjulsen.net";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
     
     public static final Random RANDOM = new Random();
@@ -243,7 +243,7 @@ public class DragonLib {
             );
             lines.add("");
             lines.add(String.format("Discord: %s", MRJULSEN_DISCORD));
-            lines.add(String.format("GitHub: %s", mod.getHomepage().orElse("unknown")));
+            lines.add(String.format("Documentation: %s", mod.getHomepage().orElse("unknown")));
             lines.add(String.format("Bug Reports: %s", mod.getIssueTracker().orElse("unknown")));
             lines.add(border);
 
