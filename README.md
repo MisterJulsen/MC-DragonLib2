@@ -1,4 +1,4 @@
-# Minecraft DragonLib 2
+# DragonLib
 <p align="center">
   <img src="https://i.imgur.com/neOFoxn.png" alt="Logo">
 </p>
@@ -9,7 +9,7 @@
   <a href="https://www.curseforge.com/minecraft/mc-mods/dragonlib"><img src="https://i.imgur.com/XZYlGVF.png" alt="Modrinth"></a>
 </p>
 
-DragonLib is a small and simple Multiloader Minecraft Library Mod which uses architectury and adds useful tools for all my mods. This mod adds nothing special on its own. New functionality may be added at any time when needed by my mods.
+**DragonLib** is a multiloader Minecraft library created by MrJulsen and built on top of [Architectury API](https://github.com/architectury/architectury-api). It offers many useful tools, abstraction layers, and its own systems to simplify modding in Minecraft between different modloaders and versions.
 
 If you are developer and find the features useful, you can use it if you want. However, I cannot guarantee that everything will work as expected and will be supported in newer versions! Below there is a small tutorial on how to add this library as a dependency to your Forge Mod.
 
