@@ -45,10 +45,8 @@ public class TimeSystemDatapackLoader extends SimpleJsonResourceReloadListener {
             JsonElement json = objects.get(key);
             if (json == null) {
                 system = null;
-                DragonLib.LOGGER.info("NOT FOUND");
             } else {
                 system = DatapackTimeSystem.fromJson(json.getAsJsonObject());
-                DragonLib.LOGGER.info("LOADED");
             }
         } catch (Exception e) {
             DragonLib.LOGGER.error("Failed to load time_system.json from datapack", e);
