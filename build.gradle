@@ -1,8 +1,8 @@
 plugins {
-    id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false    
-    id "net.mrjulsen.mod-build-tools" version "1.0.13"
+    id 'com.gradleup.shadow' version '9.0.0' apply false
+    id "net.mrjulsen.mod-build-tools" version "1.0.15"
     id "maven-publish"
 }
 
@@ -12,7 +12,7 @@ architectury {
 
 allprojects {
     group = rootProject.maven_group
-    //version = "$rootProject.minecraft_version${rootProject.release_channel != "release" ? "-$rootProject.release_channel" : ""}-$rootProject.mod_version"
+    version = "$rootProject.minecraft_version${rootProject.release_channel != "release" ? "-$rootProject.release_channel" : ""}-$rootProject.mod_version"
 }
 
 subprojects {
@@ -31,7 +31,6 @@ subprojects {
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
         maven { url = "https://maven.parchmentmc.org" } // ParchmentMC
         maven { url = "https://maven.terraformersmc.com/" } // ModMenu
-
 
         maven { url = "https://cursemaven.com" // Time Control
             content {
@@ -82,6 +81,7 @@ subprojects {
     java {
         withSourcesJar()
         withJavadocJar()
+
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -91,45 +91,29 @@ subprojects {
     }
 
     publishing {
-        repositories {
-            maven {
-                name = "myRepo"
-                url = uri("https://mrjulsen.net/maven/")
-                credentials {
-                    username = "mrjulsa"
-                    password = "itAfS43kBY8qx11N"
-                }
-            }
-        }
         publications {
             mavenJava(MavenPublication) {
-                artifactId = rootProject.archives_name + "-" + project.name
+                artifactId = base.archivesName.get()
                 from components.java
             }
         }
     }
-
-    java {
-        withSourcesJar()
-        withJavadocJar()
-    }
 }
 
-    
 modBuildTools {
     publish {
         localRepoDir = "${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
         publishCommon = false
     }
     javadoc {
-        title = "DragonLib API ${release_channel}-${mod_version}"
+        title = "DragonLib ${release_channel}-${mod_version}"
         tags = [
-            "apiNote:a:API Note:",
-            "implNote:a:Impl Note:",
-            "implSpec:a:Impl Spec:",
-            "related:a:Related:",
-            "example:a:Examples:",
-            "side:a:Valid on side:"
+                "apiNote:a:API Note:",
+                "implNote:a:Impl Note:",
+                "implSpec:a:Impl Spec:",
+                "related:a:Related:",
+                "example:a:Examples:",
+                "side:a:Valid on side:"
         ]
     }
 }
