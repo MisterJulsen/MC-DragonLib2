@@ -143,7 +143,7 @@ public abstract class DLWindow extends DLGuiComponent {
 
     public static <T extends DLWindow> T openWindow(WindowBuilder<T> builder) {
         AtomicReference<T> window = new AtomicReference<>(null);
-        DLScreen<?> wrapper = new DLScreen<>(null, (mgr) -> {
+        DLScreen<?> wrapper = new DLScreen<>((mgr) -> {
             T win = builder.build(mgr);
             window.set(win);
             return win;
