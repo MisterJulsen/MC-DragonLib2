@@ -13,18 +13,25 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-public class DLScreen<M extends AbstractContainerMenu> extends Screen implements MenuAccess<M> {
+public class DLScreen<M extends AbstractContainerMenu> extends Screen {
 
     public double xScrollDelta = 0;
 
     private final DLWindowManager root;
-    private final M menu;
-    
+
+    @Deprecated(forRemoval = true)
     public <T extends DLWindow> DLScreen(@Nullable M menu, WindowBuilder<T> window) {
         super(TextUtils.empty());
         final Screen previousScreen = Minecraft.getInstance().screen;
-        this.menu = menu;
-        this.root = new DLWindowManager(menu, window, width, height, (mgr) -> {
+        this.root = new DLWindowManager(null, window, width, height, (mgr) -> {
+            Minecraft.getInstance().setScreen(mgr.shouldShowPreviousScreenOnClose() ? previousScreen : null);
+        });
+    }
+
+    public <T extends DLWindow> DLScreen(WindowBuilder<T> window) {
+        super(TextUtils.empty());
+        final Screen previousScreen = Minecraft.getInstance().screen;
+        this.root = new DLWindowManager(null, window, width, height, (mgr) -> {
             Minecraft.getInstance().setScreen(mgr.shouldShowPreviousScreenOnClose() ? previousScreen : null);
         });
     }
@@ -33,8 +40,9 @@ public class DLScreen<M extends AbstractContainerMenu> extends Screen implements
         return root;
     }
 
+    @Deprecated(forRemoval = true)
     public boolean supportsMenus() {
-        return menu != null;
+        return false;
     }
 
     @Override
@@ -119,8 +127,8 @@ public class DLScreen<M extends AbstractContainerMenu> extends Screen implements
         return root.isPauseScreen();
     }
 
-    @Override
+    @Deprecated(forRemoval = true)
     public M getMenu() {
-        return menu;
+        return null;
     }
 }
