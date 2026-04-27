@@ -16,6 +16,7 @@ import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.time.datapack.TimeSystemDatapackLoader;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
+import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
@@ -66,7 +67,7 @@ public class DragonLib {
 	/** One block pixel */ public static final float BLOCK_PIXEL = 1.0F / 16.0F;
 
     public static final ResourceLocation DRAGONLIB_UI = DLUtils.resourceLocation(MODID, "textures/gui/ui.png");
-    public static final ResourceLocation VANILLA_WIDGETS = DLUtils.resourceLocation("minecraft:textures/gui/widgets.png"); 
+    public static final ResourceLocation VANILLA_WIDGETS = DLUtils.resourceLocation("minecraft", "textures/gui/widgets.png");
 
     public static final DLColor VANILLA_UI_FONT_COLOR = DLColor.fromInt(0xFF404040);
     public static final DLColor VANILLA_BUTTON_ACTIVE_FONT_COLOR = DLColor.WHITE;
@@ -115,8 +116,6 @@ public class DragonLib {
 
     private static boolean initialized = false;
     
-    public static ShaderInstance EXAMPLE_SHADER;
-    
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
@@ -135,6 +134,8 @@ public class DragonLib {
         
 
         if (Platform.getEnv() == EnvType.CLIENT) {
+            DLOverlayManager.init();
+
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
                 /*                
@@ -144,13 +145,12 @@ public class DragonLib {
                 });
                 */
             });
-            DLOverlayManager.init();
 
-            ClientLifecycleEvent.CLIENT_STARTED.register((mc) -> {
+            ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((mc) -> {
                 NetworkThreadPool.init();
             });
 
-            ClientLifecycleEvent.CLIENT_STOPPING.register((mc) -> {
+            ClientPlayerEvent.CLIENT_PLAYER_QUIT.register((mc) -> {
                 NetworkThreadPool.shutdown();
             });
 
@@ -167,15 +167,15 @@ public class DragonLib {
             NetworkThreadPool.init();
         });
 
-        LifecycleEvent.SERVER_STOPPED.register((server) -> {
-            DragonLib.currentServer = null;
-        });
-
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
             NetworkThreadPool.shutdown();
-        }); 
+        });
+
+        LifecycleEvent.SERVER_STOPPED.register((server) -> {
+            DragonLib.currentServer = null;
+        });
 
         CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) -> {
             DebugCommand.register(dispatcher, selection);
@@ -208,7 +208,7 @@ public class DragonLib {
      * @author MrJulsen
      * @see 🐉
      */
-    private static final void printDraconicWelcomeMessage() {
+    private static void printDraconicWelcomeMessage() {
         String[] dragonTypes = {
             "Dragon",
             "Fire Dragon",
@@ -256,7 +256,7 @@ public class DragonLib {
         }, dragonTypes[RANDOM.nextInt(dragonTypes.length)]).start();
     }
 
-    private static final String centerStringInArea(String text, int width) {
+    private static String centerStringInArea(String text, int width) {
         if (text.isBlank()) {
             return text;
         }
@@ -269,9 +269,9 @@ public class DragonLib {
         return sb.toString();
     }
 
-    private static final String lineOf(char c, int width) {
+    private static String lineOf(char c, int width) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < width; i++) sb.append(c);
+        sb.append(String.valueOf(c).repeat(Math.max(0, width)));
         return sb.toString();
     }
 
