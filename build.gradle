@@ -1,5 +1,5 @@
 plugins {
-    id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '9.0.0' apply false
     id "net.mrjulsen.mod-build-tools" version "1.0.15"
@@ -72,7 +72,7 @@ subprojects {
             "architectury_api_version": rootProject.architectury_api_version,
             "maven_group": rootProject.maven_group,
         ]
-        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/mods.toml', "dragonlib.mixins.json", 'architectury.common.json']) {
+        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/neoforge.mods.toml', "dragonlib.mixins.json", 'architectury.common.json']) {
             expand expandProps
         }
         inputs.properties(expandProps)
@@ -82,12 +82,12 @@ subprojects {
     java {
         withSourcesJar()
         withJavadocJar()
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.release = 17
+        it.options.release = 21
     }
 
     publishing {
