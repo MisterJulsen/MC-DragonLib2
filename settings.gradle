@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'dragonlib'
+rootProject.name = 'DragonLib 2'
 
 include 'common'
 include 'fabric'

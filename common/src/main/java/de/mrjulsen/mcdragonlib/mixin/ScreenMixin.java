@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 public class ScreenMixin {
 
     @Inject(method = "render", at = @At(value = "HEAD"), cancellable = true)
-    public void onRender(CallbackInfo ci) {
+    public void dragonlib$render(CallbackInfo ci) {
         if (this instanceof IDragonLibWidget) {
             ci.cancel();
         }

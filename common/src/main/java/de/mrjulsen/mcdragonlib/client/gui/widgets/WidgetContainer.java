@@ -322,7 +322,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     public void set_y(int y) {
         int dy = y - y();
         this.y = y;
-        for (GuiEventListener listener : children()) {
+        for (Widget listener : renderables) {
             if (listener instanceof IDragonLibWidget wgt) {
                 wgt.set_y(wgt.y() + dy);
             } else if (listener instanceof AbstractWidget wgt) {
@@ -335,7 +335,7 @@ public abstract class WidgetContainer extends AbstractContainerEventHandler impl
     public void set_x(int x) {
         int dx = x - x();
         this.x = x;
-        for (GuiEventListener listener : children()) {
+        for (Widget listener : renderables) {
             if (listener instanceof IDragonLibWidget wgt) {
                 wgt.set_x(wgt.x() + dx);
             } else if (listener instanceof AbstractWidget wgt) {

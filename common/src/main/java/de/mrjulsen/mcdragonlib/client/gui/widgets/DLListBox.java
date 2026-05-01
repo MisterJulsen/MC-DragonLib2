@@ -34,7 +34,7 @@ public class DLListBox<T> extends DLWidgetContainer implements Collection<DLList
         this.scrollBar = addRenderableWidget(new DLVerticalScrollBar(getX() + getWidth() - 9, getY() + 1, 8, getHeight() - 2, GuiAreaDefinition.of(this)));
         this.container = addRenderableWidget(new DLListBoxContainer<>(getX() + 1, getY() + 1, getWidth() - 10, getHeight() - 2));
         scrollBar.setScreenSize(getHeight());
-        scrollBar.updateMaxScroll(0);
+        scrollBar.setMaxScroll(0);
         scrollBar.setStepSize(8);
         scrollBar.setAutoScrollerSize(true);
         scrollBar.withOnValueChanged((bar) -> {
@@ -120,7 +120,7 @@ public class DLListBox<T> extends DLWidgetContainer implements Collection<DLList
     public DLListBoxItem<T> add(DLListBoxItemBuilder<T> builder) {        
         DLListBoxItem<T> item = container.addRenderableWidget(builder.build(this));
         DLUtils.doIfNotNull(onItemsChanged, x -> x.accept(this));
-        scrollBar.updateMaxScroll(itemHeight * size() + 2);
+        scrollBar.setMaxScroll(itemHeight * size() + 2);
         return item;
     }
 
@@ -138,7 +138,7 @@ public class DLListBox<T> extends DLWidgetContainer implements Collection<DLList
         if (o instanceof DLListBoxItem l) {
             container.removeWidget(l);
             DLUtils.doIfNotNull(onItemsChanged, x -> x.accept(this));
-            scrollBar.updateMaxScroll(itemHeight * size() + 2);
+            scrollBar.setMaxScroll(itemHeight * size() + 2);
             return true;
         }
         return false;
@@ -178,7 +178,7 @@ public class DLListBox<T> extends DLWidgetContainer implements Collection<DLList
     public void clear() {
         getItems().forEach(x -> remove(x));
         DLUtils.doIfNotNull(onItemsChanged, x -> x.accept(this));
-        scrollBar.updateMaxScroll(itemHeight * size() + 2);
+        scrollBar.setMaxScroll(itemHeight * size() + 2);
     }
 
     public void checkSelection(DLListBoxItem<T> selected) {

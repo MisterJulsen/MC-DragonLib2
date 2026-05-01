@@ -33,9 +33,10 @@ public class NetworkManagerBase {
     }
 
 
-    private static record NetworkCallback(long creationTime, BiConsumer<CompoundTag, Long> callback) {}
-    private static final Map<UUID, NetworkCallback> networkCallbacks = new HashMap<>();
+    @Deprecated(forRemoval = true) private static record NetworkCallback(long creationTime, BiConsumer<CompoundTag, Long> callback) {}
+    @Deprecated(forRemoval = true) private static final Map<UUID, NetworkCallback> networkCallbacks = new HashMap<>();
 
+    @Deprecated(forRemoval = true)
     public <T extends AbstractIdentifiableRequestPacket<T>>void sendAndAwait(T requestPacket, BiConsumer<CompoundTag, Long> callback) {
         UUID id;
         do {
@@ -47,16 +48,19 @@ public class NetworkManagerBase {
         CHANNEL.sendToServer(requestPacket);
     }
 
+    @Deprecated(forRemoval = true)
     public static void executeCallback(UUID id, CompoundTag nbt, long time) {
         if (networkCallbacks.containsKey(id)) {
             networkCallbacks.remove(id).callback().accept(nbt, time);
         }
     }
 
+    @Deprecated(forRemoval = true)
     public void clearCallbacks() {
         networkCallbacks.clear();
     }
 
+    @Deprecated(forRemoval = true)
     public static void callbackListenerTick() {
         networkCallbacks.entrySet().removeIf(t -> t.getValue().creationTime() < System.currentTimeMillis() - NETWORK_CALLBACK_TIMEOUT);
     }

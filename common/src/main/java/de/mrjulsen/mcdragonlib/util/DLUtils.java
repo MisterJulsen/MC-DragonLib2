@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.Optional;
 
@@ -37,7 +38,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class DLUtils {
 
-    public static String getUUID(String playername) {
+    public static UUID getPlayerUUID(String playername) {
         try {
             URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + playername);
             Scanner scan = new Scanner(url.openStream());
@@ -46,14 +47,14 @@ public final class DLUtils {
                 str += scan.nextLine();
             scan.close();
             JsonObject player = new Gson().fromJson(str, JsonObject.class);
-            return player.get("id").getAsString();
+            return UUID.fromString(player.get("id").getAsString());
         } catch (Exception e) {
-            DragonLib.LOGGER.warn("Could not get uuid for player with username " + playername, e);
-            return "null";
+            DragonLib.LOGGER.warn("Could not get UUID for player with username " + playername, e);
+            return new UUID(0, 0);
         }
     }
 
-    public static String getPlayerName(String uuid) {
+    public static String getPlayerName(UUID uuid) {
         try {
             URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
             Scanner scan = new Scanner(url.openStream());
@@ -65,9 +66,19 @@ public final class DLUtils {
             String username = player.get("name").getAsString();
             return username;
         } catch (Exception e) {
-            DragonLib.LOGGER.warn("Could not get username for player with uuid " + uuid, e);
+            DragonLib.LOGGER.warn("Could not get username for player with UUID " + uuid, e);
             return "Unknown User";
         }
+    }
+    
+    @Deprecated(forRemoval = true)
+    public static String getUUID(String playername) {
+        return getPlayerUUID(playername).toString();
+    }
+
+    @Deprecated(forRemoval = true)
+    public static String getPlayerName(String uuid) {
+        return getPlayerName(UUID.fromString(uuid));
     }
 
     public static void giveAdvancement(ServerPlayer player, String modid, String name, String criteriaKey) {

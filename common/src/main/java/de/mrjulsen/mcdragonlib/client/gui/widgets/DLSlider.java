@@ -1,6 +1,7 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.text.DecimalFormat;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.lwjgl.glfw.GLFW;
@@ -15,6 +16,7 @@ import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -42,7 +44,8 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
     protected EAlignment textAlignment = EAlignment.CENTER;
 
     private final DecimalFormat format;
-    private final Consumer<DLSlider> onUpdateMessage;
+    private Consumer<DLSlider> onUpdateMessage;
+    private  BiConsumer<DLSlider, Double> onValueChanged;
 
     private DLContextMenu menu;
     private boolean mouseSelected;
@@ -61,6 +64,39 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
      * @param precision Only used when {@code stepSize} is 0. Limited to a maximum of 4 (inclusive).
      * @param drawString Should text be displayed on the widget
      */
+    public DLSlider(int x, int y, int width, int height, Component prefix, Component suffix, double minValue, double maxValue, double currentValue, double stepSize, int precision, boolean drawString) {
+        super(x, y, width, height, TextUtils.empty(), 0D);
+        this.prefix = prefix;
+        this.suffix = suffix;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.stepSize = Math.abs(stepSize);
+        this.value = this.snapToNearest((currentValue - minValue) / (maxValue - minValue));
+        this.drawString = drawString;
+
+        if (stepSize == 0D) {
+            precision = Math.min(precision, 4);
+            StringBuilder builder = new StringBuilder("0");
+
+            if (precision > 0) {
+                builder.append('.');
+            }
+
+            while (precision-- > 0) {                
+                builder.append('0');
+            }
+
+            this.format = new DecimalFormat(builder.toString());
+        } else if (Mth.equal(this.stepSize, Math.floor(this.stepSize))) {
+            this.format = new DecimalFormat("0");
+        } else {
+            this.format = new DecimalFormat(Double.toString(this.stepSize).replaceAll("\\d", "0"));
+        }
+
+        this.updateMessage();
+    }
+    
+    @Deprecated(forRemoval = true)
     public DLSlider(int x, int y, int width, int height, Component prefix, Component suffix, double minValue, double maxValue, double currentValue, double stepSize, int precision, boolean drawString, Consumer<DLSlider> onUpdateMessage) {
         super(x, y, width, height, TextUtils.empty(), 0D);
         this.onUpdateMessage = onUpdateMessage;
@@ -92,6 +128,18 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
         }
 
         this.updateMessage();
+    }
+
+    public void setOnUpdateMessage(Consumer<DLSlider> action) {
+        this.onUpdateMessage = action;
+    }
+
+    public void setOnValueChanged(BiConsumer<DLSlider, Double> action) {
+        this.onValueChanged = action;
+    }
+
+    public void setStepSize(int stepSize) {
+        this.stepSize = stepSize;
     }
 
     public boolean isRenderingTextShadow() {
@@ -195,7 +243,6 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
         renderMainLayer(new Graphics(poseStack), mouseX, mouseY, partialTicks);
     }
 
-    @SuppressWarnings("resource")
     public void renderMainLayer(Graphics graphics, int mouseX, int mouseY, float partialTick) {
         DynamicGuiRenderer.renderArea(graphics, x(), y(), width(), height(), getBackColor(), style, ButtonState.DISABLED);
         DynamicGuiRenderer.renderArea(graphics, new GuiAreaDefinition(this.x() + (int)(this.value * (double)(this.getWidth() - 8)), this.y(), 8, getHeight()), getBackColor(), style, isActive() ? (isFocused() || isMouseSelected() ? ButtonState.SELECTED : ButtonState.BUTTON) : ButtonState.DISABLED);
@@ -257,13 +304,14 @@ public class DLSlider extends AbstractSliderButton implements IDragonLibWidget {
                 this.setMessage(TextUtils.empty());
             }
             return;
-        }
-        
-        onUpdateMessage.accept(this);
+        }        
+        DLUtils.doIfNotNull(onUpdateMessage, x -> x.accept(this));
     }
 
     @Override
-    protected void applyValue() {}
+    protected void applyValue() {
+        DLUtils.doIfNotNull(onValueChanged, x -> x.accept(this, getValue()));
+    }
 
     @Override
     public void renderFrontLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
