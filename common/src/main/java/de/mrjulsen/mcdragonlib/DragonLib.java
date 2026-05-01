@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.commands.DebugCommand;
+import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
@@ -22,6 +24,7 @@ import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
@@ -50,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -142,13 +146,17 @@ public class DragonLib {
         });
     }
 
-    
+    private static boolean initialized = false;
     
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
-    @SuppressWarnings("resource")
+    @SuppressWarnings({ "resource", "removal" })
     public static void init() {
+        if (initialized) {
+            throw new IllegalAccessError("Prohibited to init DragonLib manually!");
+        }
+        initialized = true;
 
         DragonLibCrossPlatform.registerConfig();
 
@@ -160,6 +168,7 @@ public class DragonLib {
         registerCustom(BasicDataAccessorPacket.class);
 
         if (Platform.getEnv() == EnvType.CLIENT) {
+
             ClientTickEvent.CLIENT_POST.register((Minecraft mc) -> {
                 NetworkManagerBase.callbackListenerTick();
                 OverlayManager.tickAll();
@@ -210,7 +219,7 @@ public class DragonLib {
         }
 
         // On server tick
-        TickEvent.Server.SERVER_POST.register((server) -> {            
+        TickEvent.Server.SERVER_POST.register((server) -> {           
             ScheduledTask.runScheduledTasks();
         });
 
@@ -239,6 +248,13 @@ public class DragonLib {
             BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
         });
         */
+        if (Platform.getEnv() == EnvType.CLIENT) {
+            CompatManager.run();
+        }
+
+        CommandRegistrationEvent.EVENT.register((dispatcher, selection) -> {
+            DebugCommand.register(dispatcher, selection);
+        });
 
         // After loading
         printDraconicWelcomeMessage();
@@ -286,9 +302,19 @@ public class DragonLib {
         return ModCommonConfig.DAYTIME_SHIFT.get();
     }
 
-    public static long tps() {
-        int msPerTick = 50;
-        return (long)(1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+    /** ticks per second */
+    public static double tps() {
+        return mcTps() * ModCommonConfig.TIME_MULTIPLIER.get();
+    }
+
+    /** Minecraft's ticks per second */
+    public static double mcTps() {
+        return (double)TimeUnit.SECONDS.toMillis(1) / (double)MinecraftServer.MS_PER_TICK;
+    } 
+
+    /** ms per tick */
+    public static double mspt() {
+        return (double)MinecraftServer.MS_PER_TICK * ModCommonConfig.TIME_MULTIPLIER.get();
     }
 
     public static long ticksPerRealLifeDay() {

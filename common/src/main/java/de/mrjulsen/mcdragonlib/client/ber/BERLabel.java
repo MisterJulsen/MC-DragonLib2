@@ -74,7 +74,7 @@ public class BERLabel {
         return rawXScale;
     });
     private final Cache<Float> textWidth = new Cache<>(() -> {
-        return getFontUtils().font.width(getText()) * textData.get().scale();
+        return getText().getString().isEmpty() ? 0 : getFontUtils().font.width(getText()) * textData.get().scale();
     });
     private final Map<Integer, CharData> charDataCache = new HashMap<>();
 
@@ -323,12 +323,12 @@ public class BERLabel {
         }
     }
 
-    public void render(BERGraphics<?> graphics) {
+    public void render(RenderGraphics graphics) {
         render(graphics, graphics.packedLight());
     }
 
     @SuppressWarnings("resource")
-    public void render(BERGraphics<?> graphics, int light) {
+    public void render(RenderGraphics graphics, int light) {
 
         getFontUtils().reset();
         float scaledMaxWidth = (!widthLimited ? scaledTextWidth.get() : getMaxWidth()) / textData.get().scale();
@@ -379,7 +379,7 @@ public class BERLabel {
                 GlyphInfo info = fontUtils.fontSet.getGlyphInfo(c);
                 float glyphWidth = info.getAdvance(text.getStyle().isBold());
                 BakedGlyphAccessor glyph = fontUtils.getGlyphAccessor(c);
-                float glyphUVDiff = glyph.getU1() - glyph.getU0();
+                float glyphUVDiff = glyph.dragonlib$getU1() - glyph.dragonlib$getU0();
                 return new CharData(c, info, glyphWidth, glyph, glyphUVDiff);
             });
             float oldX = newX;
@@ -391,7 +391,7 @@ public class BERLabel {
                 float sub = charData.glyphUVDiff() * scale;
 
                 fontUtils.pushUV(charCode);
-                charData.glyph().setU0(charData.glyph().getU0() + sub);
+                charData.glyph().dragonlib$setU0(charData.glyph().dragonlib$getU0() + sub);
 
                 poseStack.pushPose();
                 float invScale = 1.0f - scale;
@@ -411,7 +411,7 @@ public class BERLabel {
                 float sub = charData.glyphUVDiff() * scale;
 
                 fontUtils.pushUV(charCode);
-                charData.glyph().setU1(charData.glyph().getU1() - sub);
+                charData.glyph().dragonlib$setU1(charData.glyph().dragonlib$getU1() - sub);
                 poseStack.pushPose();
                 float invScale = 1.0f - scale;
                 poseStack.scale(invScale, 1, 1);

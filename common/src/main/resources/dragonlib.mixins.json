@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "de.mrjulsen.mcdragonlib.mixin",
+  "package": "${maven_group}.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
@@ -9,7 +9,8 @@
     "AbstractWidgetAccessor",
     "AbstractContainerScreenMixin",
     "ScreenMixin",
-    "TextureManagerMixin"
+    "TextureManagerMixin",
+    "ItemRendererMixin"
   ],
   "mixins": [
   ],

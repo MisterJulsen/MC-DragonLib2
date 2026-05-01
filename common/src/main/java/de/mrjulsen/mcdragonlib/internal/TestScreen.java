@@ -78,19 +78,12 @@ public class TestScreen extends DLScreen {
         split.setRenderStyle(AreaStyle.DRAGONLIB);
         split.setBackColor(DragonLib.ERROR_BUTTON_COLOR);
 
-        addRenderableWidget(new DLDropDownButton(50, 170, 100, 20, TextUtils.text("Button 4"),
-        new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
-            DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
-            builder2.add(new ContextMenuItemData(TextUtils.text("Test"), Sprite.empty(), true, (b) -> {}, null));
-            builder2.addSeparator();
-            builder2.add(new ContextMenuItemData(TextUtils.text("Close"), Sprite.empty(), true, (b) -> {}, null));
-            return builder2;
-        })));
+        
         addEditBox(50, 110, 100, 20, "", TextUtils.text("öl"), true, (v) -> {}, (e, b) -> {}, null);
         AtomicReference<TestContainer> container = new AtomicReference<>();
         DLVerticalScrollBar scrollBar = addRenderableWidget(new DLVerticalScrollBar(350, 50, 90, new GuiAreaDefinition(250, 50, 100, 100)));
         scrollBar.setScreenSize(90);
-        scrollBar.updateMaxScroll(20 * 20);
+        scrollBar.setMaxScroll(20 * 20);
         scrollBar.setStepSize(8);
         scrollBar.setAutoScrollerSize(true);
         scrollBar.withOnValueChanged((bar) -> {
@@ -101,6 +94,17 @@ public class TestScreen extends DLScreen {
         scrollBar.setFontColor(DragonLib.LIGHT_BUTTON_COLOR);
         container.set(addRenderableWidget(new TestContainer(225, 70, 100, 90)));
         container.get().setWidgetLayerIndex(1);
+
+        addRenderableWidget(new DLDropDownButton(50, 170, 100, 20, TextUtils.text("Button 4"),
+        new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
+            DLContextMenuItem.Builder builder2 = new DLContextMenuItem.Builder();
+            builder2.add(new ContextMenuItemData(TextUtils.text("Scroll To..."), Sprite.empty(), true, (b) -> {
+                scrollBar.setScrollValue(55);
+            }, null));
+            builder2.addSeparator();
+            builder2.add(new ContextMenuItemData(TextUtils.text("Close"), Sprite.empty(), true, (b) -> {}, null));
+            return builder2;
+        })));
 
         setAllowedLayer(0);
 
