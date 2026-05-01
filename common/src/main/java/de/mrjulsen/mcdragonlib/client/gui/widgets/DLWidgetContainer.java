@@ -172,22 +172,22 @@ public abstract class DLWidgetContainer extends AbstractContainerEventHandler im
         return children;
     }
 
-    protected <T extends GuiEventListener & Renderable> T addRenderableWidget(T guiEventListener) {
+    public <T extends GuiEventListener & Renderable> T addRenderableWidget(T guiEventListener) {
         this.addRenderableOnly((Renderable)guiEventListener);
         return this.addWidget(guiEventListener);
     }
 
-    protected <T extends Renderable> T addRenderableOnly(T widget) {
+    public <T extends Renderable> T addRenderableOnly(T widget) {
         this.renderables.add(widget);
         return widget;
     }
 
-    protected <T extends GuiEventListener> T addWidget(T guiEventListener) {
+    public <T extends GuiEventListener> T addWidget(T guiEventListener) {
         this.children.add(guiEventListener);
         return guiEventListener;
     }
 
-    protected void removeWidget(GuiEventListener guiEventListener) {
+    public void removeWidget(GuiEventListener guiEventListener) {
         if (guiEventListener instanceof Renderable) {
             this.renderables.remove((Renderable)guiEventListener);
         }
@@ -195,7 +195,7 @@ public abstract class DLWidgetContainer extends AbstractContainerEventHandler im
         this.children.remove(guiEventListener);
     }
 
-    protected void clearWidgets() {
+    public void clearWidgets() {
         this.renderables.clear();
         this.children.clear();
     }
@@ -327,7 +327,7 @@ public abstract class DLWidgetContainer extends AbstractContainerEventHandler im
     public void set_y(int y) {
         int dy = y - y();
         this.y = y;
-        for (GuiEventListener listener : children()) {
+        for (Renderable listener : renderables) {
             if (listener instanceof IDragonLibWidget wgt) {
                 wgt.set_y(wgt.y() + dy);
             } else if (listener instanceof AbstractWidget wgt) {
@@ -340,7 +340,7 @@ public abstract class DLWidgetContainer extends AbstractContainerEventHandler im
     public void set_x(int x) {
         int dx = x - x();
         this.x = x;
-        for (GuiEventListener listener : children()) {
+        for (Renderable listener : renderables) {
             if (listener instanceof IDragonLibWidget wgt) {
                 wgt.set_x(wgt.x() + dx);
             } else if (listener instanceof AbstractWidget wgt) {

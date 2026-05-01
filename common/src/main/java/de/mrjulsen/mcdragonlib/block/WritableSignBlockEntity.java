@@ -23,8 +23,8 @@ public abstract class WritableSignBlockEntity extends SyncedBlockEntity {
             this.lines = new String[this.getRenderConfig().lineData().length];
             Arrays.fill(lines, "");
         }
-    }
-
+    }   
+    
     public void setText(String text, int line) {
         if (line < 0 || line > this.getRenderConfig().lineData().length)
             return;

@@ -175,9 +175,34 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
         return getChildAtImpl((int)mouseX, (int)mouseY);
     }
 
+    // Change visibility
     @Override
-    protected <W extends GuiEventListener & NarratableEntry> W addWidget(W guiEventListener) {
+    public <W extends GuiEventListener & Renderable & NarratableEntry> W addRenderableWidget(W widget) {
+        return super.addRenderableWidget(widget);
+    }
+
+    // Change visibility
+    @Override
+    public <W extends Renderable> W addRenderableOnly(W widget) {
+        return super.addRenderableOnly(widget);
+    }
+
+    // Change visibility
+    @Override
+    public <W extends GuiEventListener & NarratableEntry> W addWidget(W guiEventListener) {
         return super.addWidget(guiEventListener);
+    }
+
+    // Change visibility
+    @Override
+    public void removeWidget(GuiEventListener listener) {
+        super.removeWidget(listener);
+    }
+    
+    // Change visibility
+    @Override
+    public void clearWidgets() {
+        super.clearWidgets();
     }
 
     protected DLTooltip addTooltip(DLTooltip tooltip) {
@@ -222,7 +247,7 @@ public class DLContainerScreen<T extends AbstractContainerMenu> extends Abstract
         widget.setX(x);
         widget.setY(y);
         widget.setWidth(width);
-        ((AbstractWidgetAccessor)widget).setHeight(height);
+        ((AbstractWidgetAccessor)widget).dragonlib$setHeight(height);
         
 		return addRenderableWidget(widget);
     }

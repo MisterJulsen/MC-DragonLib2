@@ -69,7 +69,37 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         super.init();
         tooltips.clear();
     }
-    
+
+    // Change visibility
+    @Override
+    public <T extends GuiEventListener & Renderable & NarratableEntry> T addRenderableWidget(T widget) {
+        return super.addRenderableWidget(widget);
+    }
+
+    // Change visibility
+    @Override
+    public <T extends Renderable> T addRenderableOnly(T widget) {
+        return super.addRenderableOnly(widget);
+    }
+
+    // Change visibility
+    @Override
+    public <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
+        return super.addWidget(guiEventListener);
+    }
+
+    // Change visibility
+    @Override
+    public void removeWidget(GuiEventListener listener) {
+        super.removeWidget(listener);
+    }
+
+    // Change visibility
+    @Override
+    public void clearWidgets() {
+        super.clearWidgets();
+    }
+
     @Override
     public void removed() {
         super.removed();
@@ -183,11 +213,6 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         return getChildAtImpl((int)mouseX, (int)mouseY);
     }
 
-    @Override
-    protected <T extends GuiEventListener & NarratableEntry> T addWidget(T guiEventListener) {
-        return super.addWidget(guiEventListener);
-    }
-
     protected DLTooltip addTooltip(DLTooltip tooltip) {
         this.tooltips.add(tooltip);
         return tooltip;
@@ -230,7 +255,7 @@ public abstract class DLScreen extends Screen implements IDragonLibContainer<DLS
         widget.setX(x);
         widget.setY(y);
         widget.setWidth(width);
-        ((AbstractWidgetAccessor)widget).setHeight(height);
+        ((AbstractWidgetAccessor)widget).dragonlib$setHeight(height);
         
 		return addRenderableWidget(widget);
     }

@@ -9,5 +9,5 @@ import net.minecraft.client.gui.components.AbstractWidget;
 public interface AbstractWidgetAccessor {
     
     @Accessor("height")
-    void setHeight(int height);
+    void dragonlib$setHeight(int height);
 }

@@ -59,7 +59,7 @@ public abstract class DLScrollableWidgetContainer extends DLWidgetContainer {
     @Override
     public void renderBackLayer(Graphics graphics, int mouseX, int mouseY, float partialTicks) {
         GuiUtils.enableScissor(graphics, x, y, getWidth(), getHeight());
-        renderBackLayerScrolled(graphics, mouseX, mouseY, partialTicks);
+        renderBackLayerScrolled(graphics, (int)(mouseX + xScrollOffset), (int)(mouseY + yScrollOffset), partialTicks);
         GuiUtils.disableScissor(graphics);
     }
     
