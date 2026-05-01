@@ -2,10 +2,14 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets;
 
 import java.util.function.Consumer;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.DLContextMenuItem.ContextMenuItemData;
 import de.mrjulsen.mcdragonlib.client.render.DynamicGuiRenderer.AreaStyle;
+import de.mrjulsen.mcdragonlib.client.render.Sprite;
 import de.mrjulsen.mcdragonlib.client.util.Graphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiAreaDefinition;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.MathUtils;
+import de.mrjulsen.mcdragonlib.util.TextUtils;
 
 public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> extends DLButton implements IExtendedAreaWidget { 
 
@@ -14,7 +18,7 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     public static final int MIN_SCROLLBAR_THICKNESS = 7;
     public static final int MIN_SCROLLER_SIZE = 5;
 
-    protected final GuiAreaDefinition scrollArea;
+    protected GuiAreaDefinition scrollArea;
 
     protected double scrollPercentage;
     protected double scroll;
@@ -30,10 +34,40 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     // Events
     public Consumer<T> onValueChanged;
 
+    protected DLContextMenu menu = new DLContextMenu(() -> GuiAreaDefinition.of(this), () -> {
+        DLContextMenuItem.Builder builder = new DLContextMenuItem.Builder();
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.here"), Sprite.empty(), true, (b) -> {
+            scrollToMouse(getMouseScrollDirection(b.x(), b.y()));
+        }, null));
+        builder.addSeparator();
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.top"), Sprite.empty(), getScrollValue() > 0, (b) -> {
+            scrollToTop();
+        }, null));
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.bottom"), Sprite.empty(), getScrollValue() < getMaxScroll(), (b) -> {
+            scrollToBottom();
+        }, null));
+        builder.addSeparator();
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.page_up"), Sprite.empty(), getScrollValue() > 0, (b) -> {
+            setScrollValue(getScrollValue() - getScreenSize());
+        }, null));
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.page_down"), Sprite.empty(), getScrollValue() < getMaxScroll(), (b) -> {
+            setScrollValue(getScrollValue() + getScreenSize());
+        }, null));
+        builder.addSeparator();
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.step_up"), Sprite.empty(), getScrollValue() > 0, (b) -> {
+            setScrollValue(getScrollValue() - stepSize);
+        }, null));
+        builder.add(new ContextMenuItemData(TextUtils.translate("gui.dragonlib.scrollbar.step_down"), Sprite.empty(), getScrollValue() < getMaxScroll(), (b) -> {
+            setScrollValue(getScrollValue() + stepSize);
+        }, null));
+        return builder;
+    });
+
     public DLAbstractScrollBar(int x, int y, int w, int h, GuiAreaDefinition scrollArea) {
         super(x, y, Math.max(MIN_SCROLLBAR_THICKNESS, w), Math.max(MIN_SCROLLBAR_THICKNESS, h), null);
         this.scrollArea = scrollArea;
         setRenderStyle(AreaStyle.GRAY);
+        setMenu(menu);
     }
 
     public DLAbstractScrollBar(int x, int y, int w, int h) {
@@ -65,17 +99,28 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
         scrollerSize = Math.max(MIN_SCROLLER_SIZE, w);
         return self();
     }
-
-    public T updateMaxScroll(int max) {
+    
+    public T setMaxScroll(int max) {
         this.maxScroll = Math.max(max - maxUnitsPerPage, 0);
         if (autoScrollerSize) {
             this.scrollerSize = Math.max((int)((getScrollbarLength() - 2) / Math.max(max / (float)maxUnitsPerPage, 1.0f)), 5);
         }
+        this.setScrollValue(getScrollValue());
         return self();
+    }
+
+    @Deprecated(forRemoval = true)
+    public T updateMaxScroll(int max) {
+        return setMaxScroll(max);
     }
 
     public T withOnValueChanged(Consumer<T> event) {
         this.onValueChanged = event;
+        return self();
+    }
+
+    public T setScrollArea(GuiAreaDefinition area) {
+        this.scrollArea = area;
         return self();
     }
 
@@ -93,6 +138,10 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
 
     public int getScreenSize() {
         return maxUnitsPerPage;
+    }
+
+    public GuiAreaDefinition getScrollArea() {
+        return scrollArea;
     }
 
 
@@ -158,6 +207,22 @@ public abstract class DLAbstractScrollBar<T extends DLAbstractScrollBar<T>> exte
     public boolean canScroll() {
         return maxScroll > 0;
     }
+
+    public void setScrollValue(double scroll) {
+        this.scroll = MathUtils.clamp(scroll, 0, this.maxScroll);
+        this.scrollPercentage = 1D / this.maxScroll * this.scroll;
+        DLUtils.doIfNotNull(onValueChanged, x -> x.accept(self()));
+    }
+
+    public void scrollToTop() {
+        setScrollValue(0);
+    }
+
+    public void scrollToBottom() {
+        setScrollValue(maxScroll);
+    }
+
+
 
     /**
      * @return The correct mouse parameter for the direction of the scrollbar.

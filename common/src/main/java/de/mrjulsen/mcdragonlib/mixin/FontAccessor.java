@@ -13,9 +13,9 @@ import net.minecraft.resources.ResourceLocation;
 public interface FontAccessor {
     
     @Invoker("getFontSet")
-    public FontSet invokeGetFontSet(ResourceLocation pFontLocation);
+    public FontSet dragonlib$invokeGetFontSet(ResourceLocation pFontLocation);
     
     @Accessor("splitter")
-    StringSplitter getSplitter();
+    StringSplitter dragonlib$getSplitter();
 }
 
