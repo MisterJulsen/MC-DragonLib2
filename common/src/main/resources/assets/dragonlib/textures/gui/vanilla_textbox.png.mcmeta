@@ -1,0 +1,31 @@
+{
+    "dragonlib-gui": {
+        "texture_size": [ 256, 256 ],
+        "sprites": {
+            "disabled": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "focused": {
+                "type": "nine_slice",
+                "uv": [ 0, 20 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            }
+        }
+    }
+}

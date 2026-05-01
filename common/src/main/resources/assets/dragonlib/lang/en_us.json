@@ -56,6 +56,23 @@
     "gui.dragonlib.menu.select_all": "Select all",
     "gui.dragonlib.menu.decrement": "Decrement",
     "gui.dragonlib.menu.increment": "Increment",
+    
+    "gui.dragonlib.scrollbar.here": "Scroll here",
+    "gui.dragonlib.scrollbar.top": "Top",
+    "gui.dragonlib.scrollbar.bottom": "Down",
+    "gui.dragonlib.scrollbar.page_up": "Page up",
+    "gui.dragonlib.scrollbar.page_down": "Page down",
+    "gui.dragonlib.scrollbar.step_up": "Scroll up",
+    "gui.dragonlib.scrollbar.step_down": "Scroll down",
+    "gui.dragonlib.scrollbar.left": "Left",
+    "gui.dragonlib.scrollbar.right": "Right",
+    "gui.dragonlib.scrollbar.page_left": "Page left",
+    "gui.dragonlib.scrollbar.page_right": "Page right",
+    "gui.dragonlib.scrollbar.step_left": "Scroll left",
+    "gui.dragonlib.scrollbar.step_right": "Scroll right",
+    
+    "compat.dragonlib.click_to_open_modpage": "Click to open mod page",
+    "compat.dragonlib.sodium_warn": "You are using %s. To avoid visual glitches with colored blocks, please also install %s.",
 
     "block.dragonlib.dragon": "Dragon"
 }

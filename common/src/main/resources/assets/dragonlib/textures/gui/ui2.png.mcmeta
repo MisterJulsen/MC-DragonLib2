@@ -1,0 +1,176 @@
+{
+    "dragonlib-gui": {
+        "texture_size": [ 256, 256 ],
+        "sprites": {
+            "button_gray_disabled": {
+                "type": "nine_slice",
+                "uv": [ 20, 5 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_gray_normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 5 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_gray_selected": {
+                "type": "nine_slice",
+                "uv": [ 5, 5 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_gray_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 10, 5 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_gray_down": {
+                "type": "nine_slice",
+                "uv": [ 15, 5 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "button_brown_disabled": {
+                "type": "nine_slice",
+                "uv": [ 20, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_brown_normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_brown_selected": {
+                "type": "nine_slice",
+                "uv": [ 5, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_brown_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 10, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_brown_down": {
+                "type": "nine_slice",
+                "uv": [ 15, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "button_red_disabled": {
+                "type": "nine_slice",
+                "uv": [ 20, 10 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_red_normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 10 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_red_selected": {
+                "type": "nine_slice",
+                "uv": [ 5, 10 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_red_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 10, 10 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "button_red_down": {
+                "type": "nine_slice",
+                "uv": [ 15, 10 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "scrollbar_background": {
+                "type": "nine_slice",
+                "uv": [ 30, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "scroller_vertical_normal": {
+                "type": "nine_slice",
+                "uv": [ 50, 0 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_vertical_disabled": {
+                "type": "nine_slice",
+                "uv": [ 56, 0 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_vertical_selected": {
+                "type": "nine_slice",
+                "uv": [ 50, 0 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_vertical_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 50, 0 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "scroller_horizontal_normal": {
+                "type": "nine_slice",
+                "uv": [ 50, 6 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_horizontal_disabled": {
+                "type": "nine_slice",
+                "uv": [ 56, 6 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_horizontal_selected": {
+                "type": "nine_slice",
+                "uv": [ 50, 6 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+            "scroller_horizontal_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 50, 6 ],
+                "size": [ 6, 6 ],
+                "border": [ 2, 2, 2, 2 ] 
+            },
+
+            "window_rounded": {
+                "type": "nine_slice",
+                "uv": [ 0, 15 ],
+                "size": [ 10, 10 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "window_rectangular": {
+                "type": "nine_slice",
+                "uv": [ 10, 15 ],
+                "size": [ 10, 10 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+
+            "slot": {
+                "type": "nine_slice",
+                "uv": [ 30, 0 ],
+                "size": [ 5, 5 ],
+                "border": [ 2, 2, 2, 2 ] 
+            }
+        }
+    }
+}

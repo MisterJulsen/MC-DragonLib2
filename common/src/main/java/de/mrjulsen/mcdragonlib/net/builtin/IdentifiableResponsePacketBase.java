@@ -9,6 +9,7 @@ import dev.architectury.networking.NetworkManager.PacketContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
+@Deprecated(forRemoval = true)
 public class IdentifiableResponsePacketBase implements IPacketBase<IdentifiableResponsePacketBase> {
 
     protected UUID id;

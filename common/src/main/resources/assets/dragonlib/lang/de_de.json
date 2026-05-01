@@ -56,6 +56,17 @@
     "gui.dragonlib.menu.select_all": "Alles auswählen",
     "gui.dragonlib.menu.decrement": "Reduzieren",
     "gui.dragonlib.menu.increment": "Erhöhen",
+    
+    "gui.dragonlib.scrollbar.here": "Hierher scrollen",
+    "gui.dragonlib.scrollbar.top": "Oberer Rand",
+    "gui.dragonlib.scrollbar.bottom": "Unterer Rand",
+    "gui.dragonlib.scrollbar.page_up": "Seite nach oben",
+    "gui.dragonlib.scrollbar.page_down": "Seite nach unten",
+    "gui.dragonlib.scrollbar.step_up": "Nach oben scrollen",
+    "gui.dragonlib.scrollbar.step_down": "Nach unten scrollen",
+    
+    "compat.dragonlib.click_to_open_modpage": "Klicke, um Modseite zu öffnen.",
+    "compat.dragonlib.sodium_warn": "Du nutzt %s. Um Grafikfehler zu vermeiden, installiere bitte auch %s.",
 
     "block.dragonlib.dragon": "Drache"
 }

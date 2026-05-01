@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 
 import de.mrjulsen.mcdragonlib.client.OverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.DLOverlayScreen;
+import de.mrjulsen.mcdragonlib.commands.DebugCommand;
+import de.mrjulsen.mcdragonlib.compat.CompatManager;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
 import de.mrjulsen.mcdragonlib.internal.DragonLibBlock;
@@ -22,6 +24,7 @@ import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
@@ -29,12 +32,14 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
+import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -49,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -141,13 +147,18 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         });
     }
 
-    
+    private static boolean initialized = false;
     
     /**
      * DO NOT CALL THIS METHOD FROM OTHER MODS!
      */
-    @SuppressWarnings("resource")
+    @SuppressWarnings({ "removal" })
     public static void init() {
+        if (initialized) {
+            // You shall not pass!
+            throw new IllegalAccessError("Prohibited to init DragonLib manually!");
+        }
+        initialized = true;
 
         DragonLibCrossPlatform.registerConfig();
 
@@ -209,7 +220,7 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         }
 
         // On server tick
-        TickEvent.Server.SERVER_POST.register((server) -> {            
+        TickEvent.Server.SERVER_POST.register((server) -> {           
             ScheduledTask.runScheduledTasks();
         });
 
@@ -230,14 +241,15 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-        });  
+        }); 
         
-        
-        /*
-        ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
-            BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
+        if (Platform.getEnv() == EnvType.CLIENT) {
+            CompatManager.run();
+        }
+
+        CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) -> {
+            DebugCommand.register(dispatcher, selection);
         });
-        */
 
         // After loading
         printDraconicWelcomeMessage();
@@ -285,9 +297,19 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         return ModCommonConfig.DAYTIME_SHIFT.get();
     }
 
-    public static long tps() {
-        int msPerTick = 50;
-        return (long)(1000D / ((double)msPerTick * ModCommonConfig.TIME_MULTIPLIER.get()));
+    /** ticks per second */
+    public static double tps() {
+        return mcTps() * ModCommonConfig.TIME_MULTIPLIER.get();
+    }
+
+    /** Minecraft's ticks per second */
+    public static double mcTps() {
+        return (double)TimeUnit.SECONDS.toMillis(1) / (double)MinecraftServer.MS_PER_TICK;
+    } 
+
+    /** ms per tick */
+    public static double mspt() {
+        return (double)MinecraftServer.MS_PER_TICK * ModCommonConfig.TIME_MULTIPLIER.get();
     }
 
     public static long ticksPerRealLifeDay() {
@@ -307,7 +329,24 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
      * @see 🐉
      */
     private static final void printDraconicWelcomeMessage() {
-        String[] dragonTypes = {"Dragon", "Fire Dragon", "Ice Dragon", "Lightning Dragon", "Mountain Dragon", "Poison Dragon", "Drake", "Wyvern", "MrJulsen", "Toothless", "Drogon", "Smaug", "Ender Dragon", "Do you think dragons exist?"};
+        String[] dragonTypes = {
+            "Dragon",
+            "Fire Dragon",
+            "Ice Dragon",
+            "Lightning Dragon",
+            "Mountain Dragon",
+            "Poison Dragon",
+            "Drake",
+            "Wyvern",
+            "MrJulsen",
+            "Toothless",
+            "Drogon",
+            "Smaug",
+            "Ender Dragon",
+            "Do you think dragons exist?",
+            "Here be Dragons!"
+        };
+        LOGGER.info("Starting the setup of DragonLib...");
         new Thread(() -> {
             Mod mod = Platform.getMod(MODID);
             List<String> lines = new ArrayList<>();
@@ -315,7 +354,13 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
             String border = "+++ 🐉 +++";
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
-            lines.add(String.format("Minecraft %s%s%s", Platform.isForge() ? "Forge " : (Platform.isFabric() ? "Fabric " : ""), Platform.getMinecraftVersion(), Platform.isDevelopmentEnvironment() ? " (Dev)" : ""));
+            lines.add(String.format("Minecraft %s %s %s%s%s",
+                Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : ""),
+                (Platform.getEnvironment() == Env.CLIENT ? "Client" : (Platform.getEnvironment() == Env.SERVER ? "Server" : "?")),
+                Platform.getMinecraftVersion(),
+                getModloaderVersion(),
+                Platform.isDevelopmentEnvironment() ? " (Dev)" : "")
+            );
             lines.add("");
             lines.add(String.format("Discord: %s", MRJULSEN_DISCORD));
             lines.add(String.format("GitHub: %s", mod.getHomepage().orElse("unknown")));
@@ -348,5 +393,14 @@ public static final Supplier<RegistrarManager> MANAGER = Suppliers.memoize(() ->
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < width; i++) sb.append(c);
         return sb.toString();
+    }
+
+    private static String getModloaderVersion() {
+        if (Platform.isForge()) {
+            return Platform.getOptionalMod("forge").map(x -> "-" + x.getVersion()).orElse("");
+        } else if (Platform.isFabric()) {
+            return Platform.getOptionalMod("fabric").map(x -> "-" + x.getVersion()).orElse("");
+        }
+        return "";
     }
 }

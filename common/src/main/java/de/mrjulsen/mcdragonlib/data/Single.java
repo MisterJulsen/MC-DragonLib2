@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.data;
 
 import java.util.Objects;
 
+@Deprecated
 public class Single<A> {
     protected A value1;
 
@@ -39,6 +40,7 @@ public class Single<A> {
         return String.format("(%s)", getFirst());
     }
 
+    @Deprecated
     public static class MutableSingle<A> extends Single<A> {
 
         public MutableSingle(A value1) {
@@ -51,4 +53,3 @@ public class Single<A> {
         }     
     }
 }
-

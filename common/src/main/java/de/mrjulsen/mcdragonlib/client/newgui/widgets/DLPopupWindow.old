@@ -1,0 +1,1660 @@
+package de.mrjulsen.mcdragonlib.client.newgui.widgets;
+
+import com.google.common.collect.Lists;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.DLGuiComponent;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.base.Graphics;
+import de.mrjulsen.mcdragonlib.client.newgui.widgets.util.CursorType;
+import de.mrjulsen.mcdragonlib.core.EAlignment;
+import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+@Environment(EnvType.CLIENT)
+public class DLTextBox extends DLGuiComponent {
+
+    // Constants
+    protected static final int CURSOR_INSERT_WIDTH = 1;
+    protected static final int CURSOR_INSERT_COLOR = 0xFFD0D0D0;
+    protected static final int TEXT_COLOR = 0xFFE0E0E0;
+    protected static final int PLACEHOLDER_TEXT_COLOR = 0xFF707070;
+    protected static final int BORDER_COLOR_FOCUSED = 0xFFFFFFFF;
+    protected static final int BORDER_COLOR = 0xFFA0A0A0;
+    protected static final int BACKGROUND_COLOR = 0xFF000000;
+    protected static final int DEFAULT_SINGLE_PADDING = 4; // Used if individual not set
+    protected static final int LINE_NUMBER_PADDING = 4;
+    protected static final int MAX_UNDO_HISTORY = 50;
+    protected static final long MULTI_CLICK_TIME_DELTA = 300;
+    // Core fields
+    protected final Font font;
+    protected final List<StringView> displayLines = Lists.newArrayList();
+    protected final Stack<EditAction> undoStack = new Stack<>();
+    protected final Stack<EditAction> redoStack = new Stack<>();
+    // Configuration fields
+    protected int maxExtraLinesBelow = 0;
+    protected int maxExtraSpacesRight = 1; // Bestimmt, wie viele zusätzliche Leerzeichenbreiten rechts über den Text hinaus gescrollt werden kann
+    protected int lineNumberBarColor = 0xFFA0A0A0;
+    protected int evenLineColor = 0;
+    protected int oddLineColor = 0;
+    protected int lineHeight;
+    protected boolean tabEnabled = false;
+    protected int tabSize = 4;
+    protected EAlignment textAlignment = EAlignment.LEFT;
+    protected boolean autoScrollToBottom = false;
+    protected int findHighlightColor = 0xBF00FFFF;
+    protected int suggestionPlaceholderColor = 0xFF808080;
+    // Individual Padding
+    protected int paddingTop = DEFAULT_SINGLE_PADDING;
+    protected int paddingRight = DEFAULT_SINGLE_PADDING;
+    protected int paddingBottom = DEFAULT_SINGLE_PADDING;
+    protected int paddingLeft = DEFAULT_SINGLE_PADDING;
+    protected Component placeholder;
+    protected int frame;
+    protected String value = "";
+    protected int cursorPosition;
+    protected int selectionEnd;
+    protected int characterLimit = Integer.MAX_VALUE;
+    protected Consumer<String> valueListener = (string) -> {
+    };
+    protected int textFieldWidth; // Visible width for text content, excludes padding & line numbers
+    protected boolean multilineEnabled = true;
+    protected boolean lineWrapEnabled = true;
+    protected Mask mask = null;
+    protected boolean undecorated = false;
+    protected boolean showLineNumbers = false;
+    protected int lineNumberGutterWidth = 0;
+    protected long lastClickTime = 0;
+    protected int clickCount = 0;
+    protected double lastClickX = -1;
+    protected double lastClickY = -1;
+    protected boolean wasDragging = false;
+    protected double verticalScrollAmount = 0;
+    protected double horizontalScrollAmount = 0;
+    // Search related fields
+    protected List<StringView> currentFindResults = new ArrayList<>();
+    protected String currentSearchQuery = "";
+    protected boolean currentSearchCaseSensitive = false;
+    protected boolean currentSearchWholeWord = false;
+    protected int currentFindIndex = -1;
+    // Suggestion related fields
+    protected Consumer<WordEvent> onWordChangedListener = event -> {
+    };
+    protected String suggestionPreviewText = null;
+    protected StringView suggestionPreviewSourceView = null;
+    protected String lastWordAtCursorForEvent = "";
+    protected StringView lastWordViewAtCursorForEvent = StringView.EMPTY;
+    protected Runnable cursorListener = () -> {
+        fireWordChangedEventIfNeeded();
+    };
+    // AutoScroll Refinement
+    protected boolean userHasScrolledAwayFromBottom = false;
+
+
+    public DLTextBox(int x, int y, int width, int height, Component placeholder) {
+        super(x, y, width, height);
+        this.font = Minecraft.getInstance().font;
+        this.lineHeight = this.font.lineHeight;
+        this.placeholder = placeholder;
+        this.updateTextFieldWidthAndReflow();
+        this.cursorPosition = 0;
+        this.selectionEnd = 0;
+
+    }
+
+    public DLTextBox(int x, int y, int width, int height) {
+        this(x, y, width, height, Component.translatable("gui.textbox.placeholder"));
+    }
+
+    @Override
+    public CursorType getCursor() {
+        return CursorType.IBEAM;
+    }
+
+    // --- Configuration Setters ---
+    public void setPadding(int padding) {
+        this.setPadding(padding, padding, padding, padding);
+    }
+
+    public void setPadding(int top, int right, int bottom, int left) {
+        this.paddingTop = Math.max(0, top);
+        this.paddingRight = Math.max(0, right);
+        this.paddingBottom = Math.max(0, bottom);
+        this.paddingLeft = Math.max(0, left);
+        this.updateTextFieldWidthAndReflow();
+    }
+
+
+    public void setUndecorated(boolean undecorated) {
+        this.undecorated = undecorated;
+        this.updateTextFieldWidthAndReflow();
+    }
+
+    public void setShowLineNumbers(boolean showLineNumbers) {
+        this.showLineNumbers = showLineNumbers;
+        this.updateTextFieldWidthAndReflow();
+    }
+
+    protected void updateTextFieldWidthAndReflow() {
+        updateTextFieldWidth();
+        reflowDisplayLines();
+        scrollToCursor();
+    }
+
+    protected void updateTextFieldWidth() {
+        calculateLineNumberGutterWidth();
+        if (this.undecorated) {
+            this.textFieldWidth = Math.max(1, this.width - this.lineNumberGutterWidth);
+        } else {
+            this.textFieldWidth = Math.max(1, this.width - (this.paddingLeft + this.paddingRight) - this.lineNumberGutterWidth);
+        }
+    }
+
+    protected void calculateLineNumberGutterWidth() {
+        if (this.showLineNumbers && !this.undecorated) {
+            int maxLineNum = Math.max(1, this.displayLines.isEmpty() ? getValueLineCount() : this.displayLines.size());
+            String maxLineNumStr = Integer.toString(maxLineNum);
+            this.lineNumberGutterWidth = this.font.width(maxLineNumStr) + LINE_NUMBER_PADDING * 2;
+        } else {
+            this.lineNumberGutterWidth = 0;
+        }
+    }
+
+    protected int getValueLineCount() {
+        if (this.value.isEmpty()) return 1;
+        int lines = 1;
+        for (int i = 0; i < this.value.length(); i++) {
+            if (this.value.charAt(i) == '\n') lines++;
+        }
+        return lines;
+    }
+
+    public boolean isMultilineEnabled() {
+        return multilineEnabled;
+    }
+
+    public void setMultilineEnabled(boolean multilineEnabled) {
+        this.multilineEnabled = multilineEnabled;
+        if (!multilineEnabled && this.value.contains("\n")) {
+            setValue(this.value.replace("\n", " ").replace("\r", ""));
+        } else {
+            this.reflowDisplayLines();
+        }
+        this.scrollToCursor();
+    }
+
+    public boolean isLineWrapEnabled() {
+        return lineWrapEnabled;
+    }
+
+    public void setLineWrapEnabled(boolean lineWrapEnabled) {
+        this.lineWrapEnabled = lineWrapEnabled;
+        if (lineWrapEnabled) this.horizontalScrollAmount = 0;
+        this.reflowDisplayLines();
+        this.scrollToCursor();
+    }
+
+    public Mask getMask() {
+        return mask;
+    }
+
+    public void setMask(Mask mask) {
+        this.mask = mask;
+        this.reflowDisplayLines();
+        this.scrollToCursor();
+    }
+
+    public void setPlaceholder(Component placeholder) {
+        this.placeholder = placeholder;
+    }
+
+    // --- Undo/Redo ---
+    protected void pushUndoState(String text, int cursor, int selection, boolean force) {
+        if (undoStack.isEmpty() || force || !undoStack.peek().text().equals(text) || undoStack.peek().cursorPosition() != cursor || undoStack.peek().selectionEnd() != selection) {
+            if (undoStack.size() >= MAX_UNDO_HISTORY) undoStack.remove(0);
+            undoStack.push(new EditAction(text, cursor, selection));
+            redoStack.clear();
+        }
+    }
+
+    protected void pushUndoState() {
+        pushUndoState(this.value, this.cursorPosition, this.selectionEnd, false);
+    }
+
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            EditAction lastAction = undoStack.pop();
+            redoStack.push(new EditAction(this.value, this.cursorPosition, this.selectionEnd));
+            this.value = lastAction.text();
+            this.cursorPosition = Mth.clamp(lastAction.cursorPosition(), 0, this.value.length());
+            this.selectionEnd = Mth.clamp(lastAction.selectionEnd(), 0, this.value.length());
+            this.onValueChange(false, isScrolledToBottom());
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            EditAction nextAction = redoStack.pop();
+            undoStack.push(new EditAction(this.value, this.cursorPosition, this.selectionEnd));
+            if (undoStack.size() > MAX_UNDO_HISTORY) undoStack.remove(0);
+            this.value = nextAction.text();
+            this.cursorPosition = Mth.clamp(nextAction.cursorPosition(), 0, this.value.length());
+            this.selectionEnd = Mth.clamp(nextAction.selectionEnd(), 0, this.value.length());
+            this.onValueChange(false, isScrolledToBottom());
+        }
+    }
+
+    // --- Core Text Manipulation ---
+    public int getCharacterLimit() {
+        return this.characterLimit;
+    }
+
+    public void setCharacterLimit(int characterLimit) {
+        if (characterLimit < 0) throw new IllegalArgumentException("Character limit cannot be negative");
+        this.characterLimit = characterLimit;
+        String truncatedValue = this.truncateFullText(this.value);
+        if (!truncatedValue.equals(this.value)) {
+            this.value = truncatedValue;
+            this.cursorPosition = Mth.clamp(this.cursorPosition, 0, this.value.length());
+            this.selectionEnd = this.cursorPosition;
+            this.onValueChange();
+        }
+    }
+
+    public boolean hasCharacterLimit() {
+        return this.characterLimit != Integer.MAX_VALUE;
+    }
+
+    public void setValueListener(Consumer<String> valueListener) {
+        this.valueListener = Objects.requireNonNull(valueListener);
+    }
+
+    public void setCursorListener(Runnable cursorListener) {
+        this.cursorListener = () -> {
+            Objects.requireNonNull(cursorListener).run();
+            fireWordChangedEventIfNeeded();
+        };
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public void setValue(String fullText) {
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        String newText = this.truncateFullText(Objects.requireNonNull(fullText));
+        if (!this.value.equals(newText)) {
+            pushUndoState();
+            this.value = newText;
+            this.cursorPosition = this.value.length();
+            this.selectionEnd = this.cursorPosition;
+            this.onValueChange(true, capturedWasScrolledToBottomPrior);
+        } else {
+            this.cursorPosition = Mth.clamp(this.cursorPosition, 0, this.value.length());
+            this.selectionEnd = this.cursorPosition;
+            this.onValueChange(true, capturedWasScrolledToBottomPrior);
+        }
+    }
+
+    public void insertText(String textToInsert) {
+        String filteredText = SharedConstants.filterText(textToInsert, true);
+        if (!this.multilineEnabled) filteredText = filteredText.replace("\n", "").replace("\r", "");
+        if (filteredText.isEmpty() && !hasSelection()) return;
+
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        pushUndoState();
+
+        String insertion = this.truncateInsertionText(filteredText);
+        StringView currentSelection = this.getSelectedRange();
+        StringBuilder newValueBuilder = new StringBuilder(this.value);
+        newValueBuilder.replace(currentSelection.beginIndex(), currentSelection.endIndex(), insertion);
+        this.value = newValueBuilder.toString();
+        this.cursorPosition = currentSelection.beginIndex() + insertion.length();
+        this.selectionEnd = this.cursorPosition;
+        this.onValueChange(true, capturedWasScrolledToBottomPrior);
+    }
+
+    public void deleteText(int characterOffset) {
+        if (this.value.isEmpty() && !hasSelection()) return;
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        pushUndoState();
+        if (hasSelection()) {
+            insertText("");
+        } else {
+            if (characterOffset == 0) return;
+            int deleteFrom = (characterOffset < 0) ? Math.max(0, this.cursorPosition + characterOffset) : this.cursorPosition;
+            int deleteTo = (characterOffset < 0) ? this.cursorPosition : Math.min(this.value.length(), this.cursorPosition + characterOffset);
+            if (deleteFrom != deleteTo) {
+                StringBuilder newValueBuilder = new StringBuilder(this.value);
+                newValueBuilder.delete(deleteFrom, deleteTo);
+                this.value = newValueBuilder.toString();
+                this.cursorPosition = deleteFrom;
+            }
+            this.selectionEnd = this.cursorPosition;
+            this.onValueChange(true, capturedWasScrolledToBottomPrior);
+        }
+    }
+
+    public int getCursorPosition() {
+        return this.cursorPosition;
+    }
+
+    public void setCursorPosition(int position) {
+        seekCursor(Whence.ABSOLUTE, position);
+        if (!Screen.hasShiftDown()) {
+            this.selectionEnd = this.cursorPosition;
+        }
+    }
+
+    public boolean hasSelection() {
+        return this.selectionEnd != this.cursorPosition;
+    }
+
+    public StringView getSelectedRange() {
+        return new StringView(Math.min(this.selectionEnd, this.cursorPosition), Math.max(this.selectionEnd, this.cursorPosition));
+    }
+
+    public String getSelectedText() {
+        StringView selection = getSelectedRange();
+        return this.value.substring(selection.beginIndex(), selection.endIndex());
+    }
+
+    public int getLineCount() {
+        return this.displayLines.size();
+    }
+
+    public int getLineAtCursor() {
+        if (this.displayLines.isEmpty()) return 0;
+        for (int i = 0; i < this.displayLines.size(); ++i) {
+            StringView lineView = this.displayLines.get(i);
+            if (this.cursorPosition >= lineView.beginIndex() && this.cursorPosition <= lineView.endIndex()) {
+                if (this.cursorPosition == lineView.endIndex() && i < this.displayLines.size() - 1 &&
+                        this.cursorPosition == this.displayLines.get(i + 1).beginIndex()) {
+                    if (lineView.length() > 0 || i == 0) return i;
+                }
+                return i;
+            }
+        }
+        return Math.max(0, this.displayLines.size() - 1);
+    }
+
+    public StringView getLineView(int lineNumber) {
+        if (this.displayLines.isEmpty()) return StringView.EMPTY;
+        return this.displayLines.get(Mth.clamp(lineNumber, 0, this.displayLines.size() - 1));
+    }
+
+    public void seekCursor(Whence whence, int position) {
+        int oldCursor = this.cursorPosition;
+        switch (whence) {
+            case ABSOLUTE -> this.cursorPosition = position;
+            case RELATIVE -> this.cursorPosition += position;
+            case END -> this.cursorPosition = this.value.length() + position;
+        }
+        this.cursorPosition = Mth.clamp(this.cursorPosition, 0, this.value.length());
+        if (oldCursor != this.cursorPosition) {
+            this.cursorListener.run();
+            this.scrollToCursor();
+        }
+    }
+
+    public void seekCursorLine(int lineOffset) {
+        if (lineOffset == 0 || this.displayLines.isEmpty()) return;
+        int currentLineIndex = this.getLineAtCursor();
+        StringView currentLineView = this.getLineView(currentLineIndex);
+
+        String textBeforeCursorInLine = this.value.substring(currentLineView.beginIndex(), this.cursorPosition);
+        String maskedTextBeforeCursor = getMaskedValue(textBeforeCursorInLine);
+        int cursorVisualXOffsetOnLine = this.font.width(maskedTextBeforeCursor);
+
+        String currentLineFullText = this.value.substring(currentLineView.beginIndex(), currentLineView.endIndex());
+        String maskedCurrentLineFullText = getMaskedValue(currentLineFullText);
+        int currentLineFullWidth = this.font.width(maskedCurrentLineFullText);
+        int currentLineVisualStartX = 0;
+        if (this.textAlignment == EAlignment.CENTER)
+            currentLineVisualStartX = (this.textFieldWidth - currentLineFullWidth) / 2;
+        else if (this.textAlignment == EAlignment.RIGHT)
+            currentLineVisualStartX = this.textFieldWidth - currentLineFullWidth;
+
+        int cursorAbsoluteVisualX = currentLineVisualStartX + cursorVisualXOffsetOnLine;
+
+
+        int targetLineIndex = Mth.clamp(currentLineIndex + lineOffset, 0, this.displayLines.size() - 1);
+        if (targetLineIndex == currentLineIndex) {
+            if (lineOffset < 0 && currentLineIndex == 0) seekCursor(Whence.ABSOLUTE, 0);
+            else if (lineOffset > 0 && currentLineIndex == this.displayLines.size() - 1)
+                seekCursor(Whence.ABSOLUTE, this.value.length());
+            if (!Screen.hasShiftDown()) this.selectionEnd = this.cursorPosition;
+            return;
+        }
+
+        StringView targetLineView = this.getLineView(targetLineIndex);
+        String targetLineText = this.value.substring(targetLineView.beginIndex(), targetLineView.endIndex());
+        String maskedTargetLineText = getMaskedValue(targetLineText);
+        int targetLineFullWidth = this.font.width(maskedTargetLineText);
+        int targetLineVisualStartX = 0;
+        if (this.textAlignment == EAlignment.CENTER)
+            targetLineVisualStartX = (this.textFieldWidth - targetLineFullWidth) / 2;
+        else if (this.textAlignment == EAlignment.RIGHT)
+            targetLineVisualStartX = this.textFieldWidth - targetLineFullWidth;
+
+        int targetXForSubstr = cursorAbsoluteVisualX - targetLineVisualStartX;
+
+        int targetCharIndexInLine = this.font.plainSubstrByWidth(maskedTargetLineText, targetXForSubstr).length();
+        seekCursor(Whence.ABSOLUTE, targetLineView.beginIndex() + targetCharIndexInLine);
+        if (!Screen.hasShiftDown()) this.selectionEnd = this.cursorPosition;
+    }
+
+    protected void seekCursorToPointInternal(double mouseX, double mouseY) {
+        if (this.displayLines.isEmpty()) {
+            this.cursorPosition = 0;
+            this.cursorListener.run();
+            this.scrollToCursor();
+            return;
+        }
+
+        double localY = mouseY - (this.getY() + effectiveTopPadding()) + this.verticalScrollAmount;
+        int lineIndex = Mth.floor(localY / this.getLineHeightWithSpacing());
+        lineIndex = Mth.clamp(lineIndex, 0, this.displayLines.size() - 1);
+
+        StringView targetLineView = this.getLineView(lineIndex);
+        String lineText = this.value.substring(targetLineView.beginIndex(), targetLineView.endIndex());
+        String maskedLineText = getMaskedValue(lineText);
+        int actualTextWidth = this.font.width(maskedLineText);
+
+        int lineVisualStartOffsetX = 0;
+        if (this.textAlignment == EAlignment.CENTER)
+            lineVisualStartOffsetX = (this.textFieldWidth - actualTextWidth) / 2;
+        else if (this.textAlignment == EAlignment.RIGHT) lineVisualStartOffsetX = this.textFieldWidth - actualTextWidth;
+
+        double adjustedMouseX = mouseX - (this.getX() + effectiveLeftPadding() + this.lineNumberGutterWidth);
+        double localXForSplitter = adjustedMouseX - lineVisualStartOffsetX + this.horizontalScrollAmount;
+
+        int charIndexInLine = this.font.getSplitter().plainIndexAtWidth(maskedLineText, Mth.floor(localXForSplitter), Style.EMPTY);
+
+        int oldCursor = this.cursorPosition;
+        this.cursorPosition = Mth.clamp(targetLineView.beginIndex() + charIndexInLine, 0, this.value.length());
+
+        if (oldCursor != this.cursorPosition) {
+            this.cursorListener.run();
+            this.scrollToCursor();
+        }
+    }
+
+
+    protected StringView getWordAtCursor(int currentCursorPos) {
+        if (this.value.isEmpty() || currentCursorPos < 0 || currentCursorPos > this.value.length())
+            return StringView.EMPTY;
+        int pos = currentCursorPos;
+        if (pos >= this.value.length()) pos = this.value.length() - 1;
+        if (pos < 0) return StringView.EMPTY;
+
+        while (pos >= 0 && Character.isWhitespace(this.value.charAt(pos))) {
+            if (currentCursorPos > pos) {
+                int tempPos = currentCursorPos;
+                while (tempPos < value.length() && Character.isWhitespace(value.charAt(tempPos))) tempPos++;
+                if (tempPos < value.length()) {
+                    pos = tempPos;
+                    break;
+                }
+            }
+            pos--;
+        }
+        if (pos < 0) return StringView.EMPTY;
+
+        boolean isLetterOrDigit = Character.isLetterOrDigit(this.value.charAt(pos));
+        int wordStart = pos;
+        while (wordStart > 0 && !Character.isWhitespace(this.value.charAt(wordStart - 1)) && (Character.isLetterOrDigit(this.value.charAt(wordStart - 1)) == isLetterOrDigit)) {
+            wordStart--;
+        }
+        int wordEnd = pos;
+        while (wordEnd < this.value.length() - 1 && !Character.isWhitespace(this.value.charAt(wordEnd + 1)) && (Character.isLetterOrDigit(this.value.charAt(wordEnd + 1)) == isLetterOrDigit)) {
+            wordEnd++;
+        }
+        return new StringView(wordStart, wordEnd + 1);
+    }
+
+    protected StringView getPreviousWordBoundary(int currentCursorPos) {
+        if (this.value.isEmpty() || currentCursorPos == 0) return new StringView(0, 0);
+        int pos = currentCursorPos;
+        while (pos > 0 && Character.isWhitespace(this.value.charAt(pos - 1))) pos--;
+        if (pos == 0) return new StringView(0, 0);
+        boolean initialCharIsLetterOrDigit = Character.isLetterOrDigit(this.value.charAt(pos - 1));
+        while (pos > 0 && !Character.isWhitespace(this.value.charAt(pos - 1)) && (Character.isLetterOrDigit(this.value.charAt(pos - 1)) == initialCharIsLetterOrDigit)) {
+            pos--;
+        }
+        return new StringView(pos, currentCursorPos);
+    }
+
+    protected StringView getNextWordBoundary(int currentCursorPos) {
+        if (this.value.isEmpty() || currentCursorPos == this.value.length())
+            return new StringView(this.value.length(), this.value.length());
+        int pos = currentCursorPos;
+        while (pos < this.value.length() && Character.isWhitespace(this.value.charAt(pos))) pos++;
+        if (pos == this.value.length()) return new StringView(this.value.length(), this.value.length());
+        boolean initialCharIsLetterOrDigit = Character.isLetterOrDigit(this.value.charAt(pos));
+        while (pos < this.value.length() && !Character.isWhitespace(this.value.charAt(pos)) && (Character.isLetterOrDigit(this.value.charAt(pos)) == initialCharIsLetterOrDigit)) {
+            pos++;
+        }
+        return new StringView(currentCursorPos, pos);
+    }
+
+    protected void onValueChange() {
+        onValueChange(true, isScrolledToBottom());
+    }
+
+    protected void onValueChange(boolean addToUndo, boolean capturedWasScrolledToBottomPrior) {
+        if (addToUndo) pushUndoState();
+
+        updateTextFieldWidth();
+        reflowDisplayLines();
+
+        if (this.autoScrollToBottom && !this.userHasScrolledAwayFromBottom && capturedWasScrolledToBottomPrior) {
+            scrollToBottom();
+        } else {
+            scrollToCursor();
+            if (isScrolledToBottom()) {
+                this.userHasScrolledAwayFromBottom = false;
+            }
+        }
+
+        this.valueListener.accept(this.value);
+        this.cursorListener.run();
+
+        if (addToUndo) this.clearHighlights();
+    }
+
+    protected void reflowDisplayLines() {
+        this.displayLines.clear();
+        String textToDisplay = this.value;
+
+        if (textToDisplay.isEmpty()) {
+            this.displayLines.add(StringView.EMPTY);
+        } else {
+            int splitWidth = this.lineWrapEnabled ? this.textFieldWidth : Integer.MAX_VALUE;
+            if (splitWidth <= 0) splitWidth = 1;
+
+            this.font.getSplitter().splitLines(textToDisplay, splitWidth, Style.EMPTY, false, (style, beginIndex, endIndex) -> {
+                this.displayLines.add(new StringView(beginIndex, endIndex));
+            });
+
+            if (this.multilineEnabled && textToDisplay.endsWith("\n")) {
+                if (this.displayLines.isEmpty() || this.displayLines.get(this.displayLines.size() - 1).endIndex() < textToDisplay.length()) {
+                    this.displayLines.add(new StringView(textToDisplay.length(), textToDisplay.length()));
+                }
+            }
+            if (this.displayLines.isEmpty()) {
+                this.displayLines.add(new StringView(0, textToDisplay.length()));
+            }
+        }
+        calculateLineNumberGutterWidth();
+        if (this.undecorated) {
+            this.textFieldWidth = Math.max(1, this.width - this.lineNumberGutterWidth);
+        } else {
+            this.textFieldWidth = Math.max(1, this.width - (this.paddingLeft + this.paddingRight) - this.lineNumberGutterWidth);
+        }
+
+
+        this.setVerticalScrollAmount(this.verticalScrollAmount);
+        if (this.lineWrapEnabled) this.horizontalScrollAmount = 0;
+        else this.setHorizontalScrollAmount(this.horizontalScrollAmount);
+    }
+
+    protected String truncateFullText(String txt) {
+        return (this.hasCharacterLimit() && txt.length() > this.characterLimit) ? txt.substring(0, this.characterLimit) : txt;
+    }
+
+    protected String truncateInsertionText(String txt) {
+        if (this.hasCharacterLimit()) {
+            int selLen = hasSelection() ? getSelectedRange().length() : 0;
+            int avail = this.characterLimit - (this.value.length() - selLen);
+            if (txt.length() > avail) return txt.substring(0, Math.max(0, avail));
+        }
+        return txt;
+    }
+
+    // --- Event Handling ---
+    @Override
+    public void onMouseDown(double mouseX, double mouseY, int button) {
+        if (!this.visible) return;
+        if (button == 0) {
+            setFocused(this.isMouseOver(mouseX, mouseY));
+            if (!this.isFocused()) return;
+
+            this.wasDragging = false;
+            long currentTime = System.currentTimeMillis();
+
+            if (this.showLineNumbers && !this.undecorated &&
+                    mouseX >= this.getX() + effectiveLeftPadding() &&
+                    mouseX < this.getX() + effectiveLeftPadding() + this.lineNumberGutterWidth) {
+                if (mouseY >= this.getY() + effectiveTopPadding() && mouseY < this.getY() + this.height - effectiveBottomPadding()) {
+                    int lineIndex = getLineAtMouse(mouseY);
+                    if (lineIndex >= 0 && lineIndex < this.displayLines.size()) {
+                        StringView lineView = this.getLineView(lineIndex);
+                        this.selectionEnd = lineView.beginIndex();
+                        this.cursorPosition = lineView.endIndex();
+                        if (this.value.length() > lineView.endIndex() && lineView.endIndex() > lineView.beginIndex() && this.value.charAt(lineView.endIndex() - 1) == '\n' && this.multilineEnabled) {
+                            this.cursorPosition = Math.max(lineView.beginIndex(), lineView.endIndex() - 1);
+                        }
+                        this.clickCount = 0;
+                        this.cursorListener.run();
+                        this.scrollToCursor();
+                        return;
+                    }
+                }
+            }
+
+            if (this.isMouseOverTextArea(mouseX, mouseY)) {
+                if (currentTime - this.lastClickTime < MULTI_CLICK_TIME_DELTA && Math.abs(mouseX - this.lastClickX) < 5 && Math.abs(mouseY - this.lastClickY) < 5)
+                    this.clickCount++;
+                else this.clickCount = 1;
+                this.lastClickTime = currentTime;
+                this.lastClickX = mouseX;
+                this.lastClickY = mouseY;
+
+                seekCursorToPointInternal(mouseX, mouseY);
+
+                if (Screen.hasShiftDown()) {
+                    // Shift is down, extend selection. selectionEnd (anchor) is preserved.
+                } else {
+                    if (this.clickCount >= 3) {
+                        int lineIndex = getLineAtMouse(mouseY);
+                        StringView lineView = getLineView(lineIndex);
+                        this.selectionEnd = lineView.beginIndex();
+                        this.cursorPosition = lineView.endIndex();
+                        if (this.value.length() > lineView.endIndex() && lineView.endIndex() > lineView.beginIndex() && this.value.charAt(lineView.endIndex() - 1) == '\n' && this.multilineEnabled) {
+                            this.cursorPosition = Math.max(lineView.beginIndex(), lineView.endIndex() - 1);
+                        }
+                        this.clickCount = 0;
+                    } else if (this.clickCount == 2) {
+                        StringView wordView = getWordAtCursor(this.cursorPosition);
+                        this.selectionEnd = wordView.beginIndex();
+                        this.cursorPosition = wordView.endIndex();
+                    } else {
+                        this.selectionEnd = this.cursorPosition;
+                    }
+                }
+            }
+        }
+    }
+
+    protected int getLineAtMouse(double mouseY) {
+        if (this.displayLines.isEmpty()) return 0;
+        double localY = mouseY - (this.getY() + effectiveTopPadding()) + this.verticalScrollAmount;
+        int lineIndex = Mth.floor(localY / this.getLineHeightWithSpacing());
+        return Mth.clamp(lineIndex, 0, this.displayLines.size() - 1);
+    }
+
+    @Override
+    public void onMouseUp(double mouseX, double mouseY, int button, boolean isMouseInBounds) {
+        this.wasDragging = false;
+    }
+
+    @Override
+    public void onMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!this.visible || !this.isFocused() || button != 0) return;
+
+        boolean dragStartedInContent = this.isMouseOverTextArea(this.lastClickX, this.lastClickY) ||
+                (this.showLineNumbers && !this.undecorated &&
+                        this.lastClickX >= this.getX() + effectiveLeftPadding() &&
+                        this.lastClickX < this.getX() + effectiveLeftPadding() + this.lineNumberGutterWidth &&
+                        this.lastClickY >= this.getY() + effectiveTopPadding() && this.lastClickY < this.getY() + this.height - effectiveBottomPadding());
+
+
+        if (this.wasDragging || dragStartedInContent) {
+            this.wasDragging = true;
+            seekCursorToPointInternal(mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public void onScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (!this.visible || !this.isFocused() || !this.isMouseOver(mouseX, mouseY)) return;
+
+        double oldScrollAmount = this.verticalScrollAmount;
+        this.setVerticalScrollAmount(this.verticalScrollAmount - scrollY * this.scrollRate());
+
+        if (this.verticalScrollAmount < oldScrollAmount && !isScrolledToBottom()) {
+            this.userHasScrolledAwayFromBottom = true;
+        } else if (isScrolledToBottom()) {
+            this.userHasScrolledAwayFromBottom = false;
+        }
+    }
+
+    @Override
+    public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+        if (!this.isFocused()) return false;
+        boolean ctrlDown = Screen.hasControlDown();
+        boolean shiftDown = Screen.hasShiftDown();
+        boolean consumed = false;
+
+        if (ctrlDown) {
+            switch (keyCode) {
+                case GLFW.GLFW_KEY_Z:
+                    undo();
+                    consumed = true;
+                    break;
+                case GLFW.GLFW_KEY_Y:
+                    redo();
+                    consumed = true;
+                    break;
+                case GLFW.GLFW_KEY_A:
+                    this.selectionEnd = 0;
+                    this.cursorPosition = this.value.length();
+                    this.cursorListener.run();
+                    this.scrollToCursor();
+                    consumed = true;
+                    break;
+                case GLFW.GLFW_KEY_C:
+                case GLFW.GLFW_KEY_INSERT:
+                    if (hasSelection()) Minecraft.getInstance().keyboardHandler.setClipboard(getSelectedText());
+                    consumed = true;
+                    break;
+                case GLFW.GLFW_KEY_X:
+                    if (hasSelection()) {
+                        pushUndoState();
+                        Minecraft.getInstance().keyboardHandler.setClipboard(getSelectedText());
+                        insertText("");
+                    }
+                    consumed = true;
+                    break;
+                case GLFW.GLFW_KEY_V:
+                    insertText(Minecraft.getInstance().keyboardHandler.getClipboard());
+                    consumed = true;
+                    break;
+            }
+        }
+        if (shiftDown && keyCode == GLFW.GLFW_KEY_INSERT) {
+            insertText(Minecraft.getInstance().keyboardHandler.getClipboard());
+            consumed = true;
+        }
+        if (shiftDown && keyCode == GLFW.GLFW_KEY_DELETE) {
+            if (hasSelection()) {
+                pushUndoState();
+                Minecraft.getInstance().keyboardHandler.setClipboard(getSelectedText());
+                insertText("");
+            }
+            consumed = true;
+        }
+        if (consumed) return true;
+
+        int oldCursorPos = this.cursorPosition;
+        int oldSelectionEnd = this.selectionEnd;
+
+        switch (keyCode) {
+            case GLFW.GLFW_KEY_TAB:
+                if (this.tabEnabled) {
+                    if (this.suggestionPreviewText != null && this.suggestionPreviewSourceView != null) {
+                        this.replaceTextInRange(this.suggestionPreviewSourceView, this.suggestionPreviewText);
+                        this.clearSuggestionPreview();
+                    } else {
+                        handleTabKeyPress();
+                    }
+                    consumed = true;
+                }
+                break;
+            case GLFW.GLFW_KEY_ENTER:
+            case GLFW.GLFW_KEY_KP_ENTER:
+                if (this.multilineEnabled) {
+                    insertText("\n");
+                    consumed = true;
+                }
+                break;
+            case GLFW.GLFW_KEY_BACKSPACE:
+                if (ctrlDown) {
+                    StringView w = getPreviousWordBoundary(this.cursorPosition);
+                    this.selectionEnd = w.beginIndex();
+                }
+                deleteText(-1);
+                consumed = true;
+                break;
+            case GLFW.GLFW_KEY_DELETE:
+                if (ctrlDown) {
+                    StringView w = getNextWordBoundary(this.cursorPosition);
+                    this.selectionEnd = w.endIndex();
+                }
+                deleteText(1);
+                consumed = true;
+                break;
+            case GLFW.GLFW_KEY_LEFT:
+                if (ctrlDown) seekCursor(Whence.ABSOLUTE, getPreviousWordBoundary(this.cursorPosition).beginIndex());
+                else seekCursor(Whence.RELATIVE, -1);
+                if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                else this.selectionEnd = oldSelectionEnd;
+                consumed = true;
+                break;
+            case GLFW.GLFW_KEY_RIGHT:
+                if (ctrlDown) seekCursor(Whence.ABSOLUTE, getNextWordBoundary(this.cursorPosition).endIndex());
+                else seekCursor(Whence.RELATIVE, 1);
+                if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                else this.selectionEnd = oldSelectionEnd;
+                consumed = true;
+                break;
+            case GLFW.GLFW_KEY_UP:
+                if (this.multilineEnabled) {
+                    seekCursorLine(-1);
+                    if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                    else this.selectionEnd = oldSelectionEnd;
+                    consumed = true;
+                }
+                break;
+            case GLFW.GLFW_KEY_DOWN:
+                if (this.multilineEnabled) {
+                    seekCursorLine(1);
+                    if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                    else this.selectionEnd = oldSelectionEnd;
+                    consumed = true;
+                }
+                break;
+            case GLFW.GLFW_KEY_HOME:
+                if (ctrlDown) seekCursor(Whence.ABSOLUTE, 0);
+                else seekCursor(Whence.ABSOLUTE, getLineView(getLineAtCursor()).beginIndex());
+                if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                else this.selectionEnd = oldSelectionEnd;
+                consumed = true;
+                break;
+            case GLFW.GLFW_KEY_END:
+                if (ctrlDown) seekCursor(Whence.ABSOLUTE, this.value.length());
+                else {
+                    StringView line = getLineView(getLineAtCursor());
+                    int targetPos = line.endIndex();
+                    if (multilineEnabled && targetPos > line.beginIndex() && targetPos <= value.length() && value.charAt(targetPos - 1) == '\n' && targetPos < value.length()) {
+                        targetPos = Math.max(line.beginIndex(), targetPos - 1);
+                    }
+                    seekCursor(Whence.ABSOLUTE, targetPos);
+                }
+                if (!shiftDown) this.selectionEnd = this.cursorPosition;
+                else this.selectionEnd = oldSelectionEnd;
+                consumed = true;
+                break;
+        }
+
+        if (consumed) {
+            if (keyCode != GLFW.GLFW_KEY_TAB || (this.suggestionPreviewText == null)) {
+                if (oldCursorPos != this.cursorPosition || (keyCode == GLFW.GLFW_KEY_BACKSPACE || keyCode == GLFW.GLFW_KEY_DELETE)) {
+                    clearSuggestionPreview();
+                }
+            }
+        }
+        return consumed;
+    }
+
+    protected void handleTabKeyPress() {
+        StringView currentLineView = getLineView(getLineAtCursor());
+        int cursorPosInLine = this.cursorPosition - currentLineView.beginIndex();
+        int currentColumn = 0;
+        String textBeforeCursorOnLine = this.value.substring(currentLineView.beginIndex(), this.cursorPosition);
+        for (char c : textBeforeCursorOnLine.toCharArray()) {
+            currentColumn++;
+        }
+        int spacesToInsert = this.tabSize - (currentColumn % this.tabSize);
+        if (spacesToInsert == 0 && this.tabSize > 0) spacesToInsert = this.tabSize;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < spacesToInsert; i++) sb.append(' ');
+        insertText(sb.toString());
+    }
+
+    @Override
+    public boolean onCharTyped(char codePoint, int modifiers) {
+        if (!this.isFocused() || !SharedConstants.isAllowedChatCharacter(codePoint)) return false;
+        if (codePoint == '\t' && this.tabEnabled) return false;
+        if (codePoint == '\n' && !this.multilineEnabled) return false;
+
+        insertText(Character.toString(codePoint));
+        clearSuggestionPreview();
+        return true;
+    }
+
+    // --- Rendering ---
+    @Override
+    public void renderMainLayer(Graphics g, int mX, int mY) {
+        renderWidget(g.graphics(), mX, mY, g.partialTick());
+    }
+
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        if (!this.visible) return;
+        if (!this.undecorated) this.renderBackground(guiGraphics);
+
+        int scissorX, scissorY, scissorWidth, scissorHeight;
+        if (this.undecorated) {
+            scissorX = this.getX() + (this.showLineNumbers ? this.lineNumberGutterWidth : 0);
+            scissorY = this.getY();
+            scissorWidth = this.width - (this.showLineNumbers ? this.lineNumberGutterWidth : 0);
+            scissorHeight = this.height;
+        } else {
+            scissorX = this.getX() + this.paddingLeft + this.lineNumberGutterWidth;
+            scissorY = this.getY() + this.paddingTop;
+            scissorWidth = this.width - (this.paddingLeft + this.paddingRight) - this.lineNumberGutterWidth;
+            scissorHeight = this.height - (this.paddingTop + this.paddingBottom);
+        }
+        scissorWidth = Math.max(0, scissorWidth);
+        scissorHeight = Math.max(0, scissorHeight);
+
+
+        if (this.showLineNumbers && !this.undecorated) renderLineNumbers(guiGraphics);
+
+        if (scissorWidth <= 0 || scissorHeight <= 0) return;
+
+        guiGraphics.enableScissor(scissorX, scissorY, scissorX + scissorWidth, scissorY + scissorHeight);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(-this.horizontalScrollAmount, -this.verticalScrollAmount, 0.0);
+        this.renderContents(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.pose().popPose();
+        guiGraphics.disableScissor();
+
+        if (!this.undecorated) this.renderDecorations(guiGraphics);
+    }
+
+    protected void renderLineNumbers(GuiGraphics guiGraphics) {
+        if (!this.showLineNumbers || this.undecorated || this.lineNumberGutterWidth == 0) return;
+        int gutterX = this.getX();
+        int viewTopY = this.getY() + this.paddingTop;
+        int viewBottomY = this.getY() + this.height - this.paddingBottom;
+        int textContentAbsoluteStartY = this.getY() + this.paddingTop;
+        int lineTextYOffset = (getLineHeightWithSpacing() - this.font.lineHeight) / 2;
+
+        for (int i = 0; i < this.displayLines.size(); ++i) {
+            int lineVisualTopY_noScroll = textContentAbsoluteStartY + (i * this.getLineHeightWithSpacing());
+            int lineVisualTopY_withScroll = lineVisualTopY_noScroll - (int) this.verticalScrollAmount;
+            int numberDrawY = lineVisualTopY_withScroll + lineTextYOffset;
+
+            if (lineVisualTopY_withScroll + getLineHeightWithSpacing() > viewTopY && lineVisualTopY_withScroll < viewBottomY) {
+                String lineNumberStr = Integer.toString(i + 1);
+                int numberWidth = this.font.width(lineNumberStr);
+                guiGraphics.drawString(this.font, TextUtils.text(lineNumberStr).withStyle(ChatFormatting.ITALIC),
+                        gutterX + this.lineNumberGutterWidth - numberWidth - LINE_NUMBER_PADDING,
+                        numberDrawY, 0xFFA0A0A0);
+            }
+        }
+    }
+
+    protected void renderDecorations(GuiGraphics guiGraphics) {
+        if (this.hasCharacterLimit()) {
+            int len = this.value.length();
+            Component txt = Component.translatable("gui.multiLineEditBox.character_limit", len, this.characterLimit);
+            int color = (len > this.characterLimit) ? 0xFFFF5555 : 0xFFAAAAAA;
+            guiGraphics.drawString(this.font, txt, this.getX(), this.getY() + this.height + this.paddingBottom / 2 + 2, color);
+        }
+    }
+
+    protected int effectiveTopPadding() {
+        return this.undecorated ? 0 : this.paddingTop;
+    }
+
+    protected int effectiveBottomPadding() {
+        return this.undecorated ? 0 : this.paddingBottom;
+    }
+
+    protected int effectiveLeftPadding() {
+        return this.undecorated ? 0 : this.paddingLeft;
+    }
+
+    protected int effectiveRightPadding() {
+        return this.undecorated ? 0 : this.paddingRight;
+    }
+
+
+    protected double getVerticalScrollAmount() {
+        return this.verticalScrollAmount;
+    }
+
+    protected void setVerticalScrollAmount(double amount) {
+        if (!this.multilineEnabled) {
+            this.verticalScrollAmount = 0;
+            return;
+        }
+        int visHeight = this.height - (effectiveTopPadding() + effectiveBottomPadding());
+        if (this.undecorated) visHeight = this.height;
+
+        if (visHeight <= 0) {
+            this.verticalScrollAmount = 0;
+            return;
+        }
+        double maxV = Math.max(0, getContentHeightWithSpacing() - visHeight) + maxExtraLinesBelow * this.getLineHeightWithSpacing();
+        this.verticalScrollAmount = Mth.clamp(amount, 0.0, maxV);
+    }
+
+    protected double getHorizontalScrollAmount() {
+        return this.horizontalScrollAmount;
+    }
+
+    /**
+     * Sets the horizontal scroll amount, clamping it based on text alignment and content width.
+     * For LEFT alignment, scrollAmount is >= 0.
+     * For RIGHT alignment, scrollAmount is <= 0.
+     * For CENTER alignment, scrollAmount can be positive or negative.
+     *
+     * @param amount The desired horizontal scroll amount.
+     */
+    protected void setHorizontalScrollAmount(double amount) {
+        if (this.lineWrapEnabled) {
+            this.horizontalScrollAmount = 0; // Kein horizontales Scrollen bei Zeilenumbruch
+            return;
+        }
+
+        double minH_content = 0; // Minimale Scroll-Position basierend auf Inhalt vs. Textfeldbreite
+        double maxH_content = 0; // Maximale Scroll-Position basierend auf Inhalt vs. Textfeldbreite
+        // Nimmt an, dass maxExtraSpacesRight die Anzahl der *Leerzeichenbreiten* ist, um die zusätzlich gescrollt werden kann
+        int extraScrollPixels = this.maxExtraSpacesRight * this.font.width(" ");
+
+        if (!this.displayLines.isEmpty()) {
+            int widestLineWidth = 0;
+            // Finde die breiteste Zeile im Text
+            for (StringView lineView : this.displayLines) {
+                String lineText = this.value.substring(lineView.beginIndex(), lineView.endIndex());
+                widestLineWidth = Math.max(widestLineWidth, this.font.width(getMaskedValue(lineText)));
+            }
+
+            // Wenn die breiteste Zeile breiter als das Textfeld ist, muss gescrollt werden können
+            if (widestLineWidth > this.textFieldWidth) {
+                if (this.textAlignment == EAlignment.LEFT) {
+                    // Inhalt ragt nach rechts hinaus
+                    // minH_content = 0 (nicht weiter nach rechts scrollen als die Ausgangsposition)
+                    // maxH_content = Differenz (wie viel ragt es rechts hinaus)
+                    minH_content = 0;
+                    maxH_content = widestLineWidth - this.textFieldWidth;
+                } else if (this.textAlignment == EAlignment.RIGHT) {
+                    // Inhalt ragt nach links hinaus
+                    // minH_content = Differenz (wie viel ragt es links hinaus, negativ oder null)
+                    // maxH_content = 0 (nicht weiter nach links scrollen als die Ausgangsposition)
+                    minH_content = this.textFieldWidth - widestLineWidth;
+                    maxH_content = 0;
+                } else { // EAlignment.CENTER
+                    // Inhalt ragt auf beiden Seiten hinaus
+                    double overflow = widestLineWidth - this.textFieldWidth;
+                    minH_content = -overflow / 2; // Wie viel links hinausragt
+                    maxH_content = overflow / 2;  // Wie viel rechts hinausragt
+                }
+            }
+            // Wenn widestLineWidth <= this.textFieldWidth, bleiben minH_content und maxH_content 0.
+            // Das bedeutet, dass basierend auf dem Inhalt allein kein Scrollen nötig ist.
+        }
+
+        // Wende zusätzlichen Scroll-Platz an (maxExtraSpacesRight)
+        double finalMinH = minH_content;
+        double finalMaxH = maxH_content;
+
+        if (this.textAlignment == EAlignment.LEFT) {
+            // Erlaube, weiter nach links zu scrollen (mehr vom rechten Inhalt sichtbar machen)
+            finalMaxH += extraScrollPixels;
+        } else if (this.textAlignment == EAlignment.RIGHT) {
+            // Erlaube, weiter nach rechts zu scrollen (mehr vom linken Inhalt sichtbar machen)
+            finalMinH -= extraScrollPixels;
+        } else { // EAlignment.CENTER
+            // Erlaube in beide Richtungen zusätzlichen Scroll-Platz
+            finalMinH -= extraScrollPixels; // Weiter nach rechts scrollen
+            finalMaxH += extraScrollPixels; // Weiter nach links scrollen
+        }
+        // Für CENTER: Wenn der Inhalt passt, ist min/max_content 0.
+        // finalMinH wird zu -extraScrollPixels, finalMaxH zu +extraScrollPixels.
+        // Dies erlaubt leichtes Scrollen, auch wenn der Inhalt eigentlich passt.
+        // Wenn der Inhalt überläuft, wird der zusätzliche Platz zum Überlauf addiert.
+
+        this.horizontalScrollAmount = Mth.clamp(amount, finalMinH, finalMaxH);
+    }
+
+
+    protected int getContentHeightWithSpacing() {
+        return this.displayLines.size() * getLineHeightWithSpacing();
+    }
+
+    protected void renderBackground(GuiGraphics guiGraphics) {
+        int borderColor = this.isFocused() ? BORDER_COLOR_FOCUSED : BORDER_COLOR;
+        guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, borderColor);
+        guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + this.width - 1, this.getY() + this.height - 1, BACKGROUND_COLOR);
+        if (this.showLineNumbers && this.lineNumberGutterWidth > 0) {
+            guiGraphics.fill(this.getX() + 1, this.getY() + 1,
+                    this.getX() + this.lineNumberGutterWidth + 1, this.getY() + this.height - 1,
+                    lineNumberBarColor);
+        }
+    }
+
+    @Override
+    public void tick() {
+        this.frame++;
+    }
+
+    protected String getMaskedValue(String original) {
+        return (this.mask != null) ? this.mask.mask(original) : original;
+    }
+
+    protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        int contentDrawStartX_within_pose = this.getX() + effectiveLeftPadding() + this.lineNumberGutterWidth;
+        int contentDrawStartYBase_within_pose = this.getY() + effectiveTopPadding();
+        if (this.undecorated) {
+            contentDrawStartX_within_pose = this.getX() + (this.showLineNumbers ? this.lineNumberGutterWidth : 0);
+            contentDrawStartYBase_within_pose = this.getY();
+        }
+
+
+        int lineTextYOffset = (getLineHeightWithSpacing() - this.font.lineHeight) / 2;
+
+        if (!multilineEnabled) {
+            int availableHeight = this.undecorated ? this.height : this.height - (this.paddingTop + this.paddingBottom);
+            contentDrawStartYBase_within_pose = (this.undecorated ? this.getY() : this.getY() + this.paddingTop) + (availableHeight - getLineHeightWithSpacing()) / 2;
+        }
+
+        if (this.value.isEmpty() && !this.isFocused() && this.placeholder != null) {
+            int placeholderWidth = this.font.width(this.placeholder);
+            int placeholderX = contentDrawStartX_within_pose;
+            if (this.textAlignment == EAlignment.CENTER)
+                placeholderX = contentDrawStartX_within_pose + (this.textFieldWidth - placeholderWidth) / 2;
+            else if (this.textAlignment == EAlignment.RIGHT)
+                placeholderX = contentDrawStartX_within_pose + this.textFieldWidth - placeholderWidth;
+            guiGraphics.drawString(this.font, this.placeholder, placeholderX, contentDrawStartYBase_within_pose + lineTextYOffset, PLACEHOLDER_TEXT_COLOR);
+            return;
+        }
+
+        boolean showCursor = this.isFocused() && (this.frame / 6) % 2 == 0;
+        int viewTopY = this.undecorated ? this.getY() : this.getY() + this.paddingTop;
+        int viewBottomY = this.undecorated ? this.getY() + this.height : this.getY() + this.height - this.paddingBottom;
+
+
+        for (int i = 0; i < this.displayLines.size(); ++i) {
+            StringView lineView = this.displayLines.get(i);
+            String lineText = this.value.substring(lineView.beginIndex(), lineView.endIndex());
+            String displayedLineText = getMaskedValue(lineText);
+
+            int currentLineDrawY_within_pose = contentDrawStartYBase_within_pose + (i * this.getLineHeightWithSpacing());
+
+            int lineEffectiveScreenTopY = currentLineDrawY_within_pose - (int) this.verticalScrollAmount;
+            if (!this.undecorated)
+                lineEffectiveScreenTopY += this.getY() + this.paddingTop - contentDrawStartYBase_within_pose;
+            else lineEffectiveScreenTopY += this.getY() - contentDrawStartYBase_within_pose;
+
+
+            if (this.evenLineColor != 0 && (i % 2 != 0)) {
+                guiGraphics.fill(contentDrawStartX_within_pose, currentLineDrawY_within_pose, contentDrawStartX_within_pose + this.textFieldWidth, currentLineDrawY_within_pose + getLineHeightWithSpacing(), this.evenLineColor);
+            } else if (this.oddLineColor != 0 && (i % 2 == 0)) {
+                guiGraphics.fill(contentDrawStartX_within_pose, currentLineDrawY_within_pose, contentDrawStartX_within_pose + this.textFieldWidth, currentLineDrawY_within_pose + getLineHeightWithSpacing(), this.oddLineColor);
+            }
+
+            int actualTextWidth = this.font.width(displayedLineText);
+            int textRenderX_within_pose = contentDrawStartX_within_pose;
+            if (this.textAlignment == EAlignment.CENTER)
+                textRenderX_within_pose = contentDrawStartX_within_pose + (this.textFieldWidth - actualTextWidth) / 2;
+            else if (this.textAlignment == EAlignment.RIGHT)
+                textRenderX_within_pose = contentDrawStartX_within_pose + this.textFieldWidth - actualTextWidth;
+
+            guiGraphics.drawString(this.font, displayedLineText, textRenderX_within_pose, currentLineDrawY_within_pose + lineTextYOffset, TEXT_COLOR);
+
+            if (this.suggestionPreviewText != null && this.suggestionPreviewSourceView != null &&
+                    this.cursorPosition >= this.suggestionPreviewSourceView.beginIndex() && this.cursorPosition <= this.suggestionPreviewSourceView.endIndex() &&
+                    lineView.beginIndex() <= this.suggestionPreviewSourceView.beginIndex() && lineView.endIndex() >= this.suggestionPreviewSourceView.endIndex()) {
+                String wordSoFar = this.value.substring(this.suggestionPreviewSourceView.beginIndex(), this.cursorPosition);
+                String previewPart = this.suggestionPreviewText.toLowerCase().startsWith(wordSoFar.toLowerCase()) ? this.suggestionPreviewText.substring(wordSoFar.length()) : this.suggestionPreviewText;
+                if (!previewPart.isEmpty()) {
+                    String maskedTextBeforeCursorOnLine = getMaskedValue(this.value.substring(lineView.beginIndex(), this.cursorPosition));
+                    int previewRenderXOffset = this.font.width(maskedTextBeforeCursorOnLine);
+                    int suggestionActualRenderX = textRenderX_within_pose + previewRenderXOffset;
+                    guiGraphics.drawString(this.font, previewPart, suggestionActualRenderX, currentLineDrawY_within_pose + lineTextYOffset, this.suggestionPlaceholderColor);
+                }
+            }
+
+            if (showCursor && this.cursorPosition >= lineView.beginIndex() && this.cursorPosition <= lineView.endIndex()) {
+                if (!(lineEffectiveScreenTopY + getLineHeightWithSpacing() <= viewTopY || lineEffectiveScreenTopY >= viewBottomY)) {
+                    String textBeforeCursorInLine = lineText.substring(0, this.cursorPosition - lineView.beginIndex());
+                    String maskedTextBeforeCursor = getMaskedValue(textBeforeCursorInLine);
+                    int cursorVisualXOffsetOnLine = this.font.width(maskedTextBeforeCursor);
+                    int cursorRenderX_within_pose = textRenderX_within_pose + cursorVisualXOffsetOnLine;
+                    guiGraphics.fill(RenderType.guiTextHighlight(), cursorRenderX_within_pose, currentLineDrawY_within_pose + lineTextYOffset, cursorRenderX_within_pose + CURSOR_INSERT_WIDTH + 3, currentLineDrawY_within_pose + lineTextYOffset + this.font.lineHeight, CURSOR_INSERT_COLOR);
+                }
+            }
+        }
+
+        List<StringView> highlightsToRender = new ArrayList<>();
+        if (hasSelection()) highlightsToRender.add(getSelectedRange());
+        if (!this.currentFindResults.isEmpty()) highlightsToRender.addAll(this.currentFindResults);
+
+        for (StringView highlightRange : highlightsToRender) {
+            boolean isFindResult = this.currentFindResults.contains(highlightRange) && !highlightRange.equals(getSelectedRange());
+            int highlightFillColor = isFindResult ? this.findHighlightColor : 0x600000FF;
+
+            for (int i = 0; i < this.displayLines.size(); ++i) {
+                StringView lineView = this.displayLines.get(i);
+                int currentLineDrawY_within_pose = contentDrawStartYBase_within_pose + (i * this.getLineHeightWithSpacing());
+                int lineEffectiveScreenTopY = currentLineDrawY_within_pose - (int) this.verticalScrollAmount;
+                if (!this.undecorated)
+                    lineEffectiveScreenTopY += this.getY() + this.paddingTop - contentDrawStartYBase_within_pose;
+                else lineEffectiveScreenTopY += this.getY() - contentDrawStartYBase_within_pose;
+
+                if (lineEffectiveScreenTopY + getLineHeightWithSpacing() <= viewTopY || lineEffectiveScreenTopY >= viewBottomY)
+                    continue;
+
+                int highlightStartInText = Math.max(lineView.beginIndex(), highlightRange.beginIndex());
+                int highlightEndInText = Math.min(lineView.endIndex(), highlightRange.endIndex());
+
+                if (highlightStartInText < highlightEndInText) {
+                    String lineFullText = this.value.substring(lineView.beginIndex(), lineView.endIndex());
+                    String maskedLineFullText = getMaskedValue(lineFullText);
+                    int lineFullTextWidth = this.font.width(maskedLineFullText);
+
+                    int lineActualStartX_within_pose = contentDrawStartX_within_pose;
+                    if (this.textAlignment == EAlignment.CENTER)
+                        lineActualStartX_within_pose = contentDrawStartX_within_pose + (this.textFieldWidth - lineFullTextWidth) / 2;
+                    else if (this.textAlignment == EAlignment.RIGHT)
+                        lineActualStartX_within_pose = contentDrawStartX_within_pose + this.textFieldWidth - lineFullTextWidth;
+
+
+                    String textBeforeHighlightOnLine = this.value.substring(lineView.beginIndex(), highlightStartInText);
+                    String textOfHighlightOnLine = this.value.substring(highlightStartInText, highlightEndInText);
+                    String maskedTextBeforeHighlight = getMaskedValue(textBeforeHighlightOnLine);
+                    String maskedHighlightedText = getMaskedValue(textOfHighlightOnLine);
+                    int highlightVisualXStartOffset = this.font.width(maskedTextBeforeHighlight);
+                    int highlightVisualWidth = this.font.width(maskedHighlightedText);
+
+                    int highlightRenderXStart = lineActualStartX_within_pose + highlightVisualXStartOffset;
+                    int highlightRenderXEnd = highlightRenderXStart + highlightVisualWidth;
+
+                    renderGenericHighlight(guiGraphics, highlightRenderXStart, currentLineDrawY_within_pose + lineTextYOffset, highlightRenderXEnd, currentLineDrawY_within_pose + lineTextYOffset + this.font.lineHeight, highlightFillColor);
+                }
+            }
+        }
+    }
+
+    protected void renderGenericHighlight(GuiGraphics g, int minX, int minY, int maxX, int maxY, int color) {
+        g.fill(RenderType.guiTextHighlight(), minX, minY, maxX, maxY, color);
+    }
+
+    protected double scrollRate() {
+        return (double) this.getLineHeightWithSpacing();
+    }
+
+    protected void scrollToCursor() {
+        if (this.displayLines.isEmpty()) {
+            this.setVerticalScrollAmount(0);
+            this.setHorizontalScrollAmount(0);
+            return;
+        }
+        int cursorLineIndex = this.getLineAtCursor();
+        int cursorLineContentY = cursorLineIndex * this.getLineHeightWithSpacing();
+        int cursorLineBottomContentY = cursorLineContentY + this.getLineHeightWithSpacing();
+
+        int visibleHeight = this.height - (effectiveTopPadding() + effectiveBottomPadding());
+        if (this.undecorated) visibleHeight = this.height;
+
+
+        if (visibleHeight > 0) {
+            double currentVScroll = this.verticalScrollAmount;
+            if (cursorLineContentY < currentVScroll) this.setVerticalScrollAmount(cursorLineContentY);
+            else if (cursorLineBottomContentY > currentVScroll + visibleHeight)
+                this.setVerticalScrollAmount(cursorLineBottomContentY - visibleHeight);
+        } else this.setVerticalScrollAmount(0);
+
+        if (!this.lineWrapEnabled) {
+            StringView currentLineView = getLineView(cursorLineIndex);
+            int clampedCursorPos = Mth.clamp(this.cursorPosition, currentLineView.beginIndex(), currentLineView.endIndex());
+            String textBeforeCursorInLine = this.value.substring(currentLineView.beginIndex(), clampedCursorPos);
+            String maskedTextBeforeCursor = getMaskedValue(textBeforeCursorInLine);
+            int cursorVisualXOffsetOnLine = this.font.width(maskedTextBeforeCursor);
+
+            String currentLineFullText = this.value.substring(currentLineView.beginIndex(), currentLineView.endIndex());
+            String maskedCurrentLineFullText = getMaskedValue(currentLineFullText);
+            int currentLineFullWidth = this.font.width(maskedCurrentLineFullText);
+
+            int lineVisualStartX_fromContentAreaStart = 0;
+            if (this.textAlignment == EAlignment.CENTER)
+                lineVisualStartX_fromContentAreaStart = (this.textFieldWidth - currentLineFullWidth) / 2;
+            else if (this.textAlignment == EAlignment.RIGHT)
+                lineVisualStartX_fromContentAreaStart = this.textFieldWidth - currentLineFullWidth;
+
+            int effectiveCursorX = lineVisualStartX_fromContentAreaStart + cursorVisualXOffsetOnLine;
+
+            double currentHScroll = this.horizontalScrollAmount;
+            if (effectiveCursorX < currentHScroll) {
+                this.setHorizontalScrollAmount(effectiveCursorX);
+            } else if (effectiveCursorX >= currentHScroll + this.textFieldWidth - CURSOR_INSERT_WIDTH - 2) {
+                this.setHorizontalScrollAmount(effectiveCursorX - this.textFieldWidth + CURSOR_INSERT_WIDTH + 2);
+            }
+            this.setHorizontalScrollAmount(this.horizontalScrollAmount); // Erneut aufrufen, um sicherzustellen, dass es innerhalb der Grenzen bleibt, falls sich die Grenzen geändert haben
+        } else this.setHorizontalScrollAmount(0);
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        if (this.isFocused() != focused) {
+            super.setFocused(focused);
+            if (focused) this.frame = 0;
+            else {
+                this.clickCount = 0;
+                clearSuggestionPreview();
+            }
+        }
+    }
+
+    protected boolean isMouseOverTextArea(double mouseX, double mouseY) {
+        if (this.undecorated) {
+            return mouseX >= this.getX() + (this.showLineNumbers ? this.lineNumberGutterWidth : 0) &&
+                    mouseX < this.getX() + this.width &&
+                    mouseY >= this.getY() &&
+                    mouseY < this.getY() + this.height;
+        }
+        return mouseX >= this.getX() + this.paddingLeft + this.lineNumberGutterWidth &&
+                mouseX < this.getX() + this.width - this.paddingRight &&
+                mouseY >= this.getY() + this.paddingTop &&
+                mouseY < this.getY() + this.height - this.paddingBottom;
+    }
+
+    public boolean isTabEnabled() {
+        return this.tabEnabled;
+    }
+
+    // --- New/Modified public methods ---
+    public void setTabEnabled(boolean enabled) {
+        this.tabEnabled = enabled;
+    }
+
+    public int getTabSize() {
+        return this.tabSize;
+    }
+
+    public void setTabSize(int size) {
+        this.tabSize = Math.max(1, size);
+    }
+
+    public EAlignment getTextAlignment() {
+        return this.textAlignment;
+    }
+
+    public void setTextAlignment(EAlignment alignment) {
+        if (alignment == null) this.textAlignment = EAlignment.LEFT;
+        else this.textAlignment = alignment;
+        // Ein Reflow ist nicht unbedingt nötig, aber ein scrollToCursor, um die Ansicht anzupassen
+        this.scrollToCursor();
+    }
+
+    public int getEvenLineColor() {
+        return this.evenLineColor;
+    }
+
+    public void setEvenLineColor(int color) {
+        this.evenLineColor = color;
+    }
+
+    public int getOddLineColor() {
+        return this.oddLineColor;
+    }
+
+    public void setOddLineColor(int color) {
+        this.oddLineColor = color;
+    }
+
+    public int getLineHeight() {
+        return this.lineHeight;
+    }
+
+    public void setLineHeight(int pixels) {
+        this.lineHeight = Math.max(this.font.lineHeight / 2, pixels);
+        this.updateTextFieldWidthAndReflow();
+    }
+
+    public int getLineHeightWithSpacing() {
+        return this.lineHeight;
+    }
+
+    public void appendLine(String text) {
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        String currentVal = getValue();
+        StringBuilder sb = new StringBuilder(currentVal);
+        if (this.multilineEnabled) {
+            if (!currentVal.isEmpty() && !currentVal.endsWith("\n")) sb.append("\n");
+        } else sb.setLength(0);
+        sb.append(text);
+
+        setValue(sb.toString());
+
+        if (!(this.autoScrollToBottom && !this.userHasScrolledAwayFromBottom && capturedWasScrolledToBottomPrior)) {
+            setCursorPosition(this.value.length());
+            this.selectionEnd = this.cursorPosition;
+            scrollToCursor();
+        }
+    }
+
+    protected boolean isScrolledToBottom() {
+        if (!this.multilineEnabled) return true;
+        int visHeight = this.height - (effectiveTopPadding() + effectiveBottomPadding());
+        if (this.undecorated) visHeight = this.height;
+
+        if (visHeight <= 0) return true;
+        double maxV = Math.max(0, getContentHeightWithSpacing() - visHeight) + maxExtraLinesBelow * this.getLineHeightWithSpacing();
+        return this.verticalScrollAmount >= maxV - 0.5;
+    }
+
+    protected void scrollToBottom() {
+        if (!this.multilineEnabled) return;
+        int visHeight = this.height - (effectiveTopPadding() + effectiveBottomPadding());
+        if (this.undecorated) visHeight = this.height;
+
+        if (visHeight <= 0) return;
+        double maxV = Math.max(0, getContentHeightWithSpacing() - visHeight) + maxExtraLinesBelow * this.getLineHeightWithSpacing();
+        this.setVerticalScrollAmount(maxV);
+        this.userHasScrolledAwayFromBottom = false;
+    }
+
+    public boolean isAutoScrollToBottom() {
+        return this.autoScrollToBottom;
+    }
+
+    public void setAutoScrollToBottom(boolean autoScroll) {
+        this.autoScrollToBottom = autoScroll;
+    }
+
+    public int getFindHighlightColor() {
+        return this.findHighlightColor;
+    }
+
+    public void setFindHighlightColor(int color) {
+        this.findHighlightColor = color;
+    }
+
+    // --- Search/Find/Replace Public Methods ---
+    public void goToLine(int lineNumber) {
+        if (lineNumber <= 0 || this.displayLines.isEmpty()) return;
+        int lineIndex = Mth.clamp(lineNumber - 1, 0, this.displayLines.size() - 1);
+        StringView lineView = getLineView(lineIndex);
+        setCursorPosition(lineView.beginIndex());
+        this.selectionEnd = this.cursorPosition;
+        scrollToCursor();
+    }
+
+    public void replaceTextInRange(StringView range, String replacement) {
+        if (range == null || replacement == null) return;
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        pushUndoState();
+        this.value = new StringBuilder(this.value).replace(range.beginIndex(), range.endIndex(), replacement).toString();
+        this.cursorPosition = range.beginIndex() + replacement.length();
+        this.selectionEnd = this.cursorPosition;
+        this.onValueChange(false, capturedWasScrolledToBottomPrior);
+        clearHighlights();
+    }
+
+    public void replace(String query, String replacement, boolean replaceAllOccurrences) {
+        if (query == null || query.isEmpty() || replacement == null) return;
+        boolean capturedWasScrolledToBottomPrior = isScrolledToBottom();
+        pushUndoState();
+        if (replaceAllOccurrences) {
+            String originalValue = this.value;
+            int originalCursor = this.cursorPosition;
+            Pattern pattern = Pattern.compile(Pattern.quote(query), this.currentSearchCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(this.value);
+            StringBuffer sb = new StringBuffer();
+            int lastCursorPos = -1;
+            int replacementCount = 0;
+            while (matcher.find()) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+                lastCursorPos = sb.length();
+                replacementCount++;
+            }
+            matcher.appendTail(sb);
+            if (replacementCount > 0) {
+                this.value = sb.toString();
+                if (lastCursorPos != -1) this.cursorPosition = Mth.clamp(lastCursorPos, 0, this.value.length());
+                else this.cursorPosition = Mth.clamp(originalCursor, 0, this.value.length());
+                this.selectionEnd = this.cursorPosition;
+                onValueChange(false, capturedWasScrolledToBottomPrior);
+            } else {
+                if (!undoStack.isEmpty() && undoStack.peek().text().equals(originalValue)) undoStack.pop();
+            }
+        } else {
+            if (hasSelection() && getSelectedText().equalsIgnoreCase(query)) {
+                replaceTextInRange(getSelectedRange(), replacement);
+            } else {
+                int searchStart = this.cursorPosition;
+                Pattern pattern = Pattern.compile(Pattern.quote(query), this.currentSearchCaseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(this.value);
+                if (matcher.find(searchStart))
+                    replaceTextInRange(new StringView(matcher.start(), matcher.end()), replacement);
+            }
+        }
+        clearHighlights();
+    }
+
+    public void find(String query, boolean caseSensitive, boolean wholeWord) {
+        this.currentSearchQuery = query;
+        this.currentSearchCaseSensitive = caseSensitive;
+        this.currentSearchWholeWord = wholeWord;
+        this.currentFindIndex = -1;
+        this.currentFindResults.clear();
+        if (query == null || query.isEmpty()) {
+            onValueChange();
+            return;
+        }
+        Pattern pattern;
+        String regexQuery = Pattern.quote(query);
+        int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+        if (wholeWord) pattern = Pattern.compile("\\b" + regexQuery + "\\b", flags);
+        else pattern = Pattern.compile(regexQuery, flags);
+        Matcher matcher = pattern.matcher(this.value);
+        while (matcher.find()) this.currentFindResults.add(new StringView(matcher.start(), matcher.end()));
+        if (!this.currentFindResults.isEmpty()) findNext();
+        else onValueChange();
+    }
+
+    public boolean findNext() {
+        if (this.currentFindResults.isEmpty()) return false;
+        this.currentFindIndex++;
+        if (this.currentFindIndex >= this.currentFindResults.size()) this.currentFindIndex = 0;
+        highlightCurrentFindResult();
+        return true;
+    }
+
+    public boolean findPrevious() {
+        if (this.currentFindResults.isEmpty()) return false;
+        this.currentFindIndex--;
+        if (this.currentFindIndex < 0) this.currentFindIndex = this.currentFindResults.size() - 1;
+        highlightCurrentFindResult();
+        return true;
+    }
+
+    protected void highlightCurrentFindResult() {
+        if (this.currentFindIndex >= 0 && this.currentFindIndex < this.currentFindResults.size()) {
+            StringView match = this.currentFindResults.get(this.currentFindIndex);
+            this.selectionEnd = match.beginIndex();
+            this.cursorPosition = match.endIndex();
+            this.cursorListener.run();
+            this.scrollToCursor();
+        }
+    }
+
+    public void clearHighlights() {
+        this.currentFindResults.clear();
+        this.currentSearchQuery = "";
+        this.currentFindIndex = -1;
+    }
+
+    public List<StringView> getFindResults() {
+        return Collections.unmodifiableList(this.currentFindResults);
+    }
+
+    // --- Suggestion/Autocompletion Methods ---
+    public void setOnWordChangedListener(Consumer<WordEvent> listener) {
+        this.onWordChangedListener = Objects.requireNonNull(listener);
+    }
+
+    protected StringView getWordEndingAtCursor(int cursorPos) {
+        if (value.isEmpty() || cursorPos == 0) return StringView.EMPTY;
+        int end = cursorPos;
+        while (end > 0 && Character.isWhitespace(value.charAt(end - 1))) end--;
+        if (end == 0) return StringView.EMPTY;
+        int start = end;
+        while (start > 0 && !Character.isWhitespace(value.charAt(start - 1))) start--;
+        return new StringView(start, end);
+    }
+
+    protected void fireWordChangedEventIfNeeded() {
+        if (onWordChangedListener == null) return;
+        StringView wordView = getWordEndingAtCursor(this.cursorPosition);
+        String word = "";
+        if (wordView.length() > 0 && wordView.endIndex() <= this.value.length() && wordView.beginIndex() < wordView.endIndex()) {
+            word = this.value.substring(wordView.beginIndex(), wordView.endIndex());
+        }
+        if (!word.equals(this.lastWordAtCursorForEvent) || !wordView.equals(this.lastWordViewAtCursorForEvent)) {
+            onWordChangedListener.accept(new WordEvent(word, wordView));
+            this.lastWordAtCursorForEvent = word;
+            this.lastWordViewAtCursorForEvent = wordView;
+        }
+    }
+
+    public void setSuggestionPreview(String previewText, StringView originalWordView) {
+        this.suggestionPreviewText = previewText;
+        this.suggestionPreviewSourceView = originalWordView;
+    }
+
+    public void acceptSuggestionPreview(String fullSuggestionText) {
+        if (this.suggestionPreviewSourceView != null && fullSuggestionText != null) {
+            this.replaceTextInRange(this.suggestionPreviewSourceView, fullSuggestionText);
+        }
+        clearSuggestionPreview();
+    }
+
+    public void clearSuggestionPreview() {
+        this.suggestionPreviewText = null;
+        this.suggestionPreviewSourceView = null;
+    }
+
+    public int getSuggestionPlaceholderColor() {
+        return this.suggestionPlaceholderColor;
+    }
+
+    public void setSuggestionPlaceholderColor(int color) {
+        this.suggestionPlaceholderColor = color;
+    }
+
+    public int getMaxExtraLinesBelow() {
+        return this.maxExtraLinesBelow;
+    }
+
+    // Getters/Setters for existing "Neue Konfigurationen"
+    public void setMaxExtraLinesBelow(int lines) {
+        this.maxExtraLinesBelow = Math.max(0, lines);
+    }
+
+    public int getMaxExtraSpacesRight() {
+        return this.maxExtraSpacesRight;
+    }
+
+    public void setMaxExtraSpacesRight(int spaces) {
+        this.maxExtraSpacesRight = Math.max(1, spaces);
+    }
+
+    public int getLineNumberBarColor() {
+        return this.lineNumberBarColor;
+    }
+
+    public void setLineNumberBarColor(int color) {
+        this.lineNumberBarColor = color;
+    }
+}

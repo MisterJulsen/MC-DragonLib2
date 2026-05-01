@@ -22,6 +22,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.DLButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLEditBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.DLSlider;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.IDragonLibWidget;
 import de.mrjulsen.mcdragonlib.core.ColorObject;
 import de.mrjulsen.mcdragonlib.core.EAlignment;
 import de.mrjulsen.mcdragonlib.core.ITranslatableEnum;
@@ -47,12 +48,11 @@ public class GuiUtils {
 
     public static void enableScissor(Graphics graphics, int x, int y, int w, int h) {
         int scale = (int)Minecraft.getInstance().getWindow().getGuiScale();
-        RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
-        graphics.poseStack().pushPose();
+        //RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);        
+        RenderSystem.enableScissor(x * scale, Minecraft.getInstance().getWindow().getHeight() - (y + h) * scale, w * scale, h * scale);   
     }
 
     public static void disableScissor(Graphics graphics) {
-        graphics.poseStack().popPose();
         RenderSystem.disableScissor();
     }
 
@@ -84,7 +84,7 @@ public class GuiUtils {
 
     @SuppressWarnings("resource")
     public static <W extends AbstractWidget, T extends FormattedText> boolean renderTooltipWithOffset(Screen screen, W widget, List<T> lines, int maxWidth, Graphics graphics, int mouseX, int mouseY, int xOffset, int yOffset) {
-        if (widget.isMouseOver(mouseX + xOffset, mouseY + yOffset)) {
+        if ((widget instanceof IDragonLibWidget dlw && dlw.isMouseSelected()) || (!(widget instanceof IDragonLibWidget) && widget.isMouseOver(mouseX + xOffset, mouseY + yOffset))) {
             graphics.graphics().renderTooltip(Minecraft.getInstance().font, getTooltipData(screen, lines, maxWidth), mouseX, mouseY);
             return true;
         }
@@ -104,13 +104,13 @@ public class GuiUtils {
     public static <T extends Enum<T> & ITranslatableEnum> List<FormattedCharSequence> getEnumTooltipData(String modid, Screen screen, Class<T> enumClass, int maxWidth) {
         List<FormattedCharSequence> c = new ArrayList<>();
         T enumValue = enumClass.getEnumConstants()[0];
-        c.addAll(((FontAccessor) Minecraft.getInstance().font).getSplitter()
+        c.addAll(((FontAccessor) Minecraft.getInstance().font).dragonlib$getSplitter()
                 .splitLines(TextUtils.translate(enumValue.getEnumDescriptionTranslationKey(modid)), maxWidth, Style.EMPTY)
                 .stream().map(x -> toFormattedCharSequence(x)).toList());
         c.add(TextUtils.text(" ").getVisualOrderText());
         c.addAll(Arrays.stream(enumClass.getEnumConstants()).map((tr) -> {
             return TextUtils.text(String.format("§l> %s§r§7\n%s", TextUtils.translate(tr.getValueTranslationKey(modid)).getString(), TextUtils.translate(tr.getValueInfoTranslationKey(modid)).getString()));
-        }).map((x) -> ((FontAccessor) Minecraft.getInstance().font).getSplitter().splitLines(x, maxWidth, Style.EMPTY)
+        }).map((x) -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(x, maxWidth, Style.EMPTY)
                 .stream().map(a -> toFormattedCharSequence(a)).toList()).flatMap(List::stream).collect(Collectors.toList()));
 
         return c;
@@ -133,14 +133,12 @@ public class GuiUtils {
         return getTooltipData(screen, List.of(component), maxWidth);
     }
 
-    @SuppressWarnings("resource")
     public static <T extends FormattedText> List<FormattedCharSequence> getTooltipData(Screen screen, Collection<T> components, int maxWidth) {
-        return components.stream().flatMap(a -> ((FontAccessor) Minecraft.getInstance().font).getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).map(x -> toFormattedCharSequence(x)).toList();
+        return components.stream().flatMap(a -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).map(x -> toFormattedCharSequence(x)).toList();
     }
     
-    @SuppressWarnings("resource")
     public static <T extends FormattedText> List<FormattedText> getTooltipDataFormatted(Screen screen, Collection<T> components, int maxWidth) {
-        return components.stream().flatMap(a -> ((FontAccessor) Minecraft.getInstance().font).getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).toList();
+        return components.stream().flatMap(a -> ((FontAccessor)Minecraft.getInstance().font).dragonlib$getSplitter().splitLines(a, maxWidth <= 0 ? screen.width : maxWidth, Style.EMPTY).stream()).toList();
     }
 
     public static boolean editBoxNumberFilter(String input) {
@@ -358,28 +356,9 @@ public class GuiUtils {
     }
 
     public static DLSlider createSlider(int x, int y, int width, int height, Component prefix, Component suffix, double min, double max, double step, double initialValue, boolean drawLabel, BiConsumer<DLSlider, Double> onValueChanged, Consumer<DLSlider> onUpdateMessage) {
-
-        DLSlider slider = new DLSlider(x, y, width, height, prefix, suffix, min, max, initialValue, step, 1, drawLabel, null) {
-            @Override
-            protected void updateMessage() {
-                if (onUpdateMessage == null) {
-                    if (this.drawString) {
-                        this.setMessage(TextUtils.text("").append(prefix).append(": ").append(this.getValueString()).append(suffix));
-                    } else {
-                        this.setMessage(TextUtils.empty());
-                    }
-                    return;
-                }
-                onUpdateMessage.accept(this);
-            }
-
-            @Override
-            protected void applyValue() {
-                super.applyValue();
-                onValueChanged.accept(this, this.getValue());
-            }
-        };
-
+        DLSlider slider = new DLSlider(x, y, width, height, prefix, suffix, min, max, initialValue, step, 1, drawLabel);
+        slider.setOnUpdateMessage(onUpdateMessage);
+        slider.setOnValueChanged(onValueChanged);
         return slider;
     }
 
@@ -390,5 +369,71 @@ public class GuiUtils {
 	}
 
     
+
+    
+    // einfache Linie zwischen zwei Punkten
+    public static void drawLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
+
+    // Dreieck füllen
+    public static void drawTriangle(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float x3, float y3, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(x1, y1, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x2, y2, 0).color(r, g, b, a).endVertex();
+        buffer.vertex(x3, y3, 0).color(r, g, b, a).endVertex();
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
+
+    // Kreis füllen (approximiert durch viele Dreiecke)
+    public static void drawCircle(GuiGraphics guiGraphics, float cx, float cy, float radius, int segments, int color) {
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+        buffer.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
+
+        for (int i = 0; i <= segments; i++) {
+            double angle = 2 * Math.PI * i / segments;
+            float x = cx + (float)Math.cos(angle) * radius;
+            float y = cy + (float)Math.sin(angle) * radius;
+            buffer.vertex(x, y, 0).color(r, g, b, a).endVertex();
+        }
+
+        BufferUploader.drawWithShader(buffer.end());
+
+        RenderSystem.disableBlend();
+    }
 
 }

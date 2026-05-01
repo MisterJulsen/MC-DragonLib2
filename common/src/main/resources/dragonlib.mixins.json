@@ -10,7 +10,12 @@
     "AbstractContainerScreenMixin",
     "ScreenMixin",
     "TextureManagerMixin",
-    "ScreenAccessor"
+    "ScreenAccessor",
+    "ItemRendererMixin",
+    "MinecraftMixin",
+    "StringSplitterAccessor",
+    "MouseHandlerMixin",
+    "VertexFormatAccessor"
   ],
   "mixins": [
   ],

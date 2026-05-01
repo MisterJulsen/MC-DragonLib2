@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
+@Deprecated(forRemoval = true)
 public abstract class AbstractIdentifiableRequestPacket<T extends AbstractIdentifiableRequestPacket<T>> implements IPacketBase<AbstractIdentifiableRequestPacket<T>> {
 
     public UUID id;

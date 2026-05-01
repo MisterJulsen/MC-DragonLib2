@@ -1,0 +1,82 @@
+{
+    "dragonlib-gui": {
+        "texture_size": [ 256, 256 ],
+        "sprites": {
+            "disabled": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "disabled_selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 20 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 40 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 60 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "down": {
+                "type": "nine_slice",
+                "uv": [ 0, 80 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "down_selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 100 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+
+
+            
+            "legacy_disabled": {
+                "type": "nine_slice",
+                "uv": [ 0, 0 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "legacy_disabled_selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 20 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "legacy_normal": {
+                "type": "nine_slice",
+                "uv": [ 0, 40 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "legacy_selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 120 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "legacy_down": {
+                "type": "nine_slice",
+                "uv": [ 0, 140 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            },
+            "legacy_down_selected": {
+                "type": "nine_slice",
+                "uv": [ 0, 140 ],
+                "size": [ 200, 20 ],
+                "border": [ 4, 4, 4, 4 ] 
+            }
+        }
+    }
+}
