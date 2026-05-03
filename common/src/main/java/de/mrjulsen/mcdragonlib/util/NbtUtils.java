@@ -14,6 +14,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 /**
  * Utility methods for writing and reading common geometric types to/from CompoundTag.
  *
@@ -149,5 +153,22 @@ public final class NbtUtils {
         nbt.putInt(NBT_X, pos.x);
         nbt.putInt(NBT_Z, pos.z);
         compound.put(name, nbt);
+    }
+
+    public static <K, V> void putMap(CompoundTag nbt, String key, Map<K, V> map, Function<K, String> keySerializer, Function<V, CompoundTag> valueSerializer) {
+        CompoundTag mapNbt = new CompoundTag();
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            mapNbt.put(keySerializer.apply(entry.getKey()), valueSerializer.apply(entry.getValue()));
+        }
+        nbt.put(key, mapNbt);
+    }
+
+    public static <K, V> Map<K, V> getMap(CompoundTag nbt, String key, Function<String, K> keyDeserializer, Function<CompoundTag, V> valueDeserializer) {
+        CompoundTag mapNbt = nbt.getCompound(key);
+        Map<K, V> map = new HashMap<>(mapNbt.size());
+        for (String k : mapNbt.getAllKeys()) {
+            map.put(keyDeserializer.apply(k), valueDeserializer.apply(mapNbt.getCompound(k)));
+        }
+        return map;
     }
   }
