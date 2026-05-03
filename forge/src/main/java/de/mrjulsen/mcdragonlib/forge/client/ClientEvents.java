@@ -2,18 +2,26 @@ package de.mrjulsen.mcdragonlib.forge.client;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.function.Function;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ICustomModelFactory;
 import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
+import de.mrjulsen.mcdragonlib.events.client.ModelEvents;
 import de.mrjulsen.mcdragonlib.forge.client.model.DynamicBakedModel;
 import de.mrjulsen.mcdragonlib.forge.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.forge.client.model.loaders.MultipartObjLoader;
+import de.mrjulsen.mcdragonlib.util.DLUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
@@ -37,6 +45,29 @@ public final class ClientEvents {
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> registry = event.getModels();
 
+        for (Map.Entry<ResourceLocation, BakedModel> entry : registry.entrySet()) {
+            ResourceLocation id = entry.getKey();
+            BakedModel originalModel = entry.getValue();
+            BakedModel model = ModelEvents.MODIFY_MODELS.invoker().modifyModels(originalModel, new ModelEvents.ModifyModels.Context() {
+                @Override
+                public ModelBakery getModelBakery() {
+                    return event.getModelBakery();
+                }
+                @Override
+                public ResourceLocation getModelLocation() {
+                    return id;
+                }
+                @Override
+                public UnbakedModel getUnbakedModel() {
+                    return event.getModelBakery().getModel(id);
+                }
+            });
+            if (originalModel != model) {
+                registry.put(id, model);
+            }
+        }
+
+
         Queue<ICustomModelFactory> replacements = DLBlockModelRegistry.getCustomRegisteredModels(registry);
         while (!replacements.isEmpty()) {
             ICustomModelFactory r = replacements.poll();
@@ -54,5 +85,10 @@ public final class ClientEvents {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onRegisterModels(ModelEvent.RegisterAdditional event) {
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(event::register);
     }
 }
