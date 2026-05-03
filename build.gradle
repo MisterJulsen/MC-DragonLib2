@@ -1,7 +1,7 @@
 plugins {
-    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.gradleup.shadow' version '9.0.0' apply false
+    id 'com.gradleup.shadow' version '8.3.6' apply false
     id "net.mrjulsen.mod-build-tools" version "1.0.15"
     id "maven-publish"
 }
@@ -26,8 +26,8 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url = "file://${System.getProperty('user.home')}/.m2/github/modsrepo/maven" } // Local
-        maven { url = "https://maven.mrjulsen.net" } // MrJulsen
+        maven { url = file("${System.getProperty('user.home')}/.m2/github/modsrepo/maven/") } // Local
+        maven { url = "https://maven.mrjulsen.net" } // DragonLib
         maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // Forge Config API Port
         maven { url = "https://maven.parchmentmc.org" } // ParchmentMC
         maven { url = "https://maven.terraformersmc.com/" } // ModMenu
