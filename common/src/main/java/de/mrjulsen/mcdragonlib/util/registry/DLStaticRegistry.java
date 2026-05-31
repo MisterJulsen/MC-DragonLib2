@@ -19,8 +19,12 @@ public class DLStaticRegistry<T extends IStaticRegisterable<T>> {
         return type;
     }
 
+    public boolean has(ResourceLocation id) {
+        return TYPES.containsKey(id);
+    }
+
     @SuppressWarnings("unchecked")
-    private DLStaticRegistryObject<T> get(ResourceLocation id) {
+    public DLStaticRegistryObject<T> get(ResourceLocation id) {
         return (DLStaticRegistryObject<T>)TYPES.get(id);
     }
 
