@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ModelRegistryData;
+import de.mrjulsen.mcdragonlib.events.client.ModelEvents;
 import de.mrjulsen.mcdragonlib.fabric.client.model.DynamicBakedModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,7 +17,27 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
 
     @Override
     public void onInitializeModelLoader(Context pluginContext) {
-        
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(pluginContext::addModels);
+        pluginContext.modifyModelAfterBake().register((original, ctx) -> {
+            BakedModel model = ModelEvents.MODIFY_MODELS.invoker().modifyModels(original, new ModelEvents.ModifyModels.Context() {
+                @Override
+                public ModelBakery getModelBakery() {
+                    return ctx.loader();
+                }
+
+                @Override
+                public ResourceLocation getModelLocation() {
+                    return ctx.id();
+                }
+
+                @Override
+                public UnbakedModel getUnbakedModel() {
+                    return ctx.sourceModel();
+                }
+            });
+            return model == null ? original : model;
+        });
+
         ImmutableMap<ResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
 
         pluginContext.modifyModelAfterBake().register((original, context) -> {
