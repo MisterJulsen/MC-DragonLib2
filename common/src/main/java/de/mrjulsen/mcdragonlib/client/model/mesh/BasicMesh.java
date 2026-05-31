@@ -4,14 +4,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.mrjulsen.mcdragonlib.client.model.ModelResourceLocationBuilder;
+import de.mrjulsen.mcdragonlib.client.model.ModelUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BasicMesh extends Mesh {
@@ -20,21 +25,7 @@ public class BasicMesh extends Mesh {
         super(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 
-    public static BasicMesh fromBlock(BlockState state, RandomSource random) {
-        BakedModel srcModel = Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(state);
-        BasicMesh mesh = new BasicMesh();
 
-        Direction[] directions = new Direction[Direction.values().length + 1];
-        System.arraycopy(Direction.values(), 0, directions, 0, Direction.values().length);
-        for (Direction side : directions) {
-            for (BakedQuad quad : srcModel.getQuads(state, side, random)) {
-                mesh.addFace(new Face(quad, side));
-            }
-        }
-        mesh.cleanUp(0.0001f, true, true, true);
-        return mesh;
-    }
-    
     public static BasicMesh fromBakedModel(BlockState state, BakedModel srcModel, RandomSource random) {
         BasicMesh mesh = new BasicMesh();
         Direction[] directions = new Direction[Direction.values().length + 1];
@@ -46,6 +37,15 @@ public class BasicMesh extends Mesh {
         }
         mesh.cleanUp(0.0001f, true, true, true);
         return mesh;
+    }
+
+    public static BasicMesh fromBlock(BlockState state, RandomSource random) {
+        BakedModel srcModel = Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(state);
+        return fromBakedModel(state, srcModel, random);
+    }
+
+    public static BasicMesh fromLocation(ResourceLocation modelLocation, RandomSource random) {
+        return fromBakedModel(null, ModelUtils.getModel(modelLocation), random);
     }
 
     public void combine(boolean merge, Mesh... meshes) {
