@@ -18,22 +18,25 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
     @Override
     public void onInitializeModelLoader(Context pluginContext) {
         ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(pluginContext::addModels);
-        pluginContext.modifyModelAfterBake().register((original, ctx) ->
-                ModelEvents.MODIFY_MODELS.invoker().modifyModels(original, new  ModelEvents.ModifyModels.Context() {
-                    @Override
-                    public ModelBakery getModelBakery() {
-                        return ctx.loader();
-                    }
-                    @Override
-                    public ResourceLocation getModelLocation() {
-                        return ctx.id();
-                    }
-                    @Override
-                    public UnbakedModel getUnbakedModel() {
-                        return ctx.sourceModel();
-                    }
-                })
-        );
+        pluginContext.modifyModelAfterBake().register((original, ctx) -> {
+            BakedModel model = ModelEvents.MODIFY_MODELS.invoker().modifyModels(original, new ModelEvents.ModifyModels.Context() {
+                @Override
+                public ModelBakery getModelBakery() {
+                    return ctx.loader();
+                }
+
+                @Override
+                public ResourceLocation getModelLocation() {
+                    return ctx.id();
+                }
+
+                @Override
+                public UnbakedModel getUnbakedModel() {
+                    return ctx.sourceModel();
+                }
+            });
+            return model == null ? original : model;
+        });
 
         ImmutableMap<ResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
 
