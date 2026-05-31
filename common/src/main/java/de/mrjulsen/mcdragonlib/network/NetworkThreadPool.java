@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 public final class NetworkThreadPool {
 
     private static final int DEFAULT_THREAD_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
-    private static final int QUEUE_LIMIT = 100;
+    private static final Supplier<Integer> QUEUE_LIMIT = ModCommonConfig.NETWORK_QUEUE_SIZE;
 
     private static volatile ThreadPoolExecutor EXECUTOR;
     private static volatile ScheduledExecutorService TIMEOUT_SCHEDULER;
@@ -31,7 +31,7 @@ public final class NetworkThreadPool {
                 threadCount,
                 threadCount,
                 60, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(QUEUE_LIMIT),
+                new ArrayBlockingQueue<>(QUEUE_LIMIT.get()),
                 new ThreadFactoryBuilder()
                         .setNameFormat(DragonLib.MOD_NAME + " Network Worker #%d")
                         .setDaemon(true)
