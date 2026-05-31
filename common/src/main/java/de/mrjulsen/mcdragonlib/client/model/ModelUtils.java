@@ -1,11 +1,14 @@
 package de.mrjulsen.mcdragonlib.client.model;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
@@ -551,6 +554,16 @@ public final class ModelUtils
 
     public static boolean positionsIntersect(Vector3f a, Vector3f b, float threshold) {
         return a.distanceSquared(b) <= Math.pow(threshold, 2);
+    }
+
+    @ExpectPlatform
+    public static BakedModel getModel(ResourceLocation location) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static BakedModel getModel(ModelResourceLocation location) {
+        throw new AssertionError();
     }
 
 
