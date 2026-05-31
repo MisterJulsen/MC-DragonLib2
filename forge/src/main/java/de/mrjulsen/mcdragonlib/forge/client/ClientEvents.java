@@ -42,6 +42,12 @@ public final class ClientEvents {
 
 
     @SubscribeEvent
+    public static void onRegisterModels(ModelEvent.RegisterAdditional event) {
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(event::register);
+    }
+
+
+    @SubscribeEvent
     public static void onModifyBakingResult(final ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> registry = event.getModels();
 
@@ -62,7 +68,7 @@ public final class ClientEvents {
                     return event.getModelBakery().getModel(id);
                 }
             });
-            if (originalModel != model) {
+            if (model != null && originalModel != model) {
                 registry.put(id, model);
             }
         }
@@ -85,10 +91,5 @@ public final class ClientEvents {
                 }
             }
         }
-    }
-
-    @SubscribeEvent
-    public static void onRegisterModels(ModelEvent.RegisterAdditional event) {
-        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(event::register);
     }
 }
