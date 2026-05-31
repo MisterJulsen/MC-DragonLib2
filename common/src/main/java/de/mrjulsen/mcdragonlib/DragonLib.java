@@ -235,7 +235,7 @@ public class DragonLib {
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
             lines.add(String.format("Minecraft %s %s %s%s%s",
-                Platform.isForge() ? "Forge" : (Platform.isFabric() ? "Fabric" : ""),
+                Platform.isNeoForge() ? "NeoForge" : (Platform.isFabric() ? "Fabric" : (Platform.isMinecraftForge() ? "Forge" : "")),
                 (Platform.getEnvironment() == Env.CLIENT ? "Client" : (Platform.getEnvironment() == Env.SERVER ? "Server" : "?")),
                 Platform.getMinecraftVersion(),
                 getModloaderVersion(),
@@ -276,7 +276,9 @@ public class DragonLib {
     }
 
     private static String getModloaderVersion() {
-        if (Platform.isForge()) {
+        if (Platform.isNeoForge()) {
+            return Platform.getOptionalMod("neoforge").map(x -> "-" + x.getVersion()).orElse("");
+        } else if (Platform.isMinecraftForge()) {
             return Platform.getOptionalMod("forge").map(x -> "-" + x.getVersion()).orElse("");
         } else if (Platform.isFabric()) {
             return Platform.getOptionalMod("fabric").map(x -> "-" + x.getVersion()).orElse("");
