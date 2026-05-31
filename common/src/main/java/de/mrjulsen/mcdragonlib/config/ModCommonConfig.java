@@ -40,7 +40,7 @@ public class ModCommonConfig {
         TIME_SYSTEM_CACHE_TTL = BUILDER.comment(new String[] { "in Milliseconds", "To improve performance during frequent queries of the default time system, the found time system can be cached for a certain period. Higher values may produce less accurate results because the time system is not updated immediately, for example, when a datapack is loaded. A value of 0 disables the cache. (Default: 100)", "A GAME RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
             .defineInRange("time_system.time_system_cache_ttl", 100, 0, 10000);
 
-        NETWORK_QUEUE_SIZE = BUILDER.comment(new String[] { "The size of the networking queue. (Default: 8000)" })
+        NETWORK_QUEUE_SIZE = BUILDER.comment(new String[] { "The size of the networking queue. (Default: 8000)", "A WORLD RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
                 .defineInRange("networking.queue_size", 8000, 100, 30000);
         NETWORK_RESPONSE_TIMEOUT = BUILDER.comment(new String[] { "in Seconds", "The time to wait for a response before an error is thrown. (Default: 60)" })
                 .defineInRange("networking.response_timeout", 60, 10, 300);
