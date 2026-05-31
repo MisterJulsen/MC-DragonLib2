@@ -44,7 +44,7 @@ public class BasicMesh extends Mesh {
         return fromBakedModel(state, srcModel, random);
     }
 
-    public static BasicMesh fromLocation(ResourceLocation modelLocation, RandomSource random) {
+    public static BasicMesh fromLocation(ModelResourceLocation modelLocation, RandomSource random) {
         return fromBakedModel(null, ModelUtils.getModel(modelLocation), random);
     }
 

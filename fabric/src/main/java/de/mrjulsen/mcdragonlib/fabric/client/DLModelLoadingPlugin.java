@@ -17,7 +17,7 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
 
     @Override
     public void onInitializeModelLoader(Context pluginContext) {
-        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(pluginContext::addModels);
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(e -> pluginContext.addModels(e.id()));
         pluginContext.modifyModelAfterBake().register((original, ctx) -> {
             BakedModel model = ModelEvents.MODIFY_MODELS.invoker().modifyModels(original, new ModelEvents.ModifyModels.Context() {
                 @Override
@@ -26,8 +26,8 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
                 }
 
                 @Override
-                public ResourceLocation getModelLocation() {
-                    return ctx.id();
+                public ModelResourceLocation getModelLocation() {
+                    return ctx.topLevelId();
                 }
 
                 @Override

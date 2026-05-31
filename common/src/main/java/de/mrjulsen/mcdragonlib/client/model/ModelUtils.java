@@ -1,6 +1,7 @@
 package de.mrjulsen.mcdragonlib.client.model;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -555,14 +556,8 @@ public final class ModelUtils
         return a.distanceSquared(b) <= Math.pow(threshold, 2);
     }
 
-    @ExpectPlatform
-    public static BakedModel getModel(ResourceLocation location) {
-        throw new AssertionError();
-    }
-
-    @ExpectPlatform
     public static BakedModel getModel(ModelResourceLocation location) {
-        throw new AssertionError();
+        return Minecraft.getInstance().getModelManager().getModel(location);
     }
 
 
