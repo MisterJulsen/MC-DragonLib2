@@ -1,19 +1,22 @@
 {
-    "generated_at": "2026-03-13T19:10:19Z",
+    "generated_at": "2026-05-31T21:31:47Z",
     "mod_id": "dragonlib",
     "display_name": "DragonLib",
-    "mod_version": "3.0.23",
+    "maven_group": "de.mrjulsen.mcdragonlib",
+    "maven_local_path": "C:\\Users\\julia/.m2/github/modsrepo/maven",
+    "ci_run_id": "",
+    "mod_version": "3.0.28",
     "minecraft_version": "1.21.1",
     "release_channel_raw": "beta",
-    "full_version": "1.21.1-beta-3.0.23",
+    "full_version": "1.21.1-beta-3.0.28",
     "release_channel": "beta",
     "artifacts": {
         "fabric": {
-            "filename": "dragonlib-fabric-1.21.1-beta-3.0.23",
+            "filename": "dragonlib-fabric-1.21.1-beta-3.0.28",
             "platform": "fabric"
         },
         "neoforge": {
-            "filename": "dragonlib-neoforge-1.21.1-beta-3.0.23",
+            "filename": "dragonlib-neoforge-1.21.1-beta-3.0.28",
             "platform": "neoforge"
         }
     }
