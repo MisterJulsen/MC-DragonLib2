@@ -1050,16 +1050,15 @@ public class DLTextBox extends DLGuiComponent implements ITextActionTarget {
         entries.add(DLContextMenu.ItemEntry.SEPARATOR);
         entries.add(menuEntry("cut", editable && readable, this::cutSelection));
         entries.add(menuEntry("copy", readable, this::copySelection));
-        entries.add(menuEntry("copy_plain", readable, this::copySelectionAsPlainText));
         entries.add(menuEntry("paste", editable, this::pasteFromClipboard));
-        entries.add(menuEntry("paste_plain", editable, this::pastePlainFromClipboard));
+        entries.add(menuEntry("delete", readable, this::deleteSelection));
         entries.add(DLContextMenu.ItemEntry.SEPARATOR);
         entries.add(menuEntry("select_all", !document.isEmpty(), this::selectAll));
 
-        List<TextAction> actions = parser().formatActions();
+        List<TextAction> actions = parser().additionalActions(this);
         if (editable && !actions.isEmpty()) {
             entries.add(DLContextMenu.ItemEntry.SEPARATOR);
-            entries.add(new DLContextMenu.ItemEntry(TextUtils.translate(MENU_TRANSLATION_PREFIX + "format"), DLSprite.empty(), true, () -> {}, (menuX, menuY) -> textActionEntries(actions)));
+            entries.addAll(textActionEntries(actions));
         }
     }
 
@@ -1080,8 +1079,7 @@ public class DLTextBox extends DLGuiComponent implements ITextActionTarget {
     }
 
     protected DLContextMenu.ItemEntry menuEntry(String key, boolean enabled, Runnable action) {
-        return new DLContextMenu.ItemEntry(TextUtils.translate(MENU_TRANSLATION_PREFIX + key),
-                DLSprite.empty(), enabled, action, null);
+        return new DLContextMenu.ItemEntry(TextUtils.translate(MENU_TRANSLATION_PREFIX + key), DLSprite.empty(), enabled, action, null);
     }
 
     @Override
@@ -1515,7 +1513,7 @@ public class DLTextBox extends DLGuiComponent implements ITextActionTarget {
         }
         KeyEvent event = new KeyEvent(keyCode, scanCode,
                 Screen.hasControlDown(), Screen.hasShiftDown(), Screen.hasAltDown());
-        return keyMap.handle(this, event) || runShortcut(parser().formatActions(), event);
+        return keyMap.handle(this, event) || runShortcut(parser().additionalActions(this), event);
     }
 
     protected boolean runShortcut(List<TextAction> actions, KeyEvent event) {

@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLTextBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.input.IKeyStroke;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.layout.IBlockLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.markup.block.BlockContext;
@@ -108,8 +109,7 @@ public final class MarkdownParser implements ITextFormatParser {
 
     @Override
     public ParsedLine parseLine(CharSequence line, int incomingState) {
-        BlockContext context = new BlockContext(line, incomingState, inlineParser, spacesPerIndent,
-                MarkupText.dimmed(markupColor, markupAlpha));
+        BlockContext context = new BlockContext(line, incomingState, inlineParser, spacesPerIndent, MarkupText.dimmed(markupColor, markupAlpha));
         for (IBlockRule rule : blockRules) {
             ParsedLine parsed = rule.parse(context);
             if (parsed != null) {
@@ -191,8 +191,11 @@ public final class MarkdownParser implements ITextFormatParser {
     }
 
     @Override
-    public List<TextAction> formatActions() {
-        return formatActions;
+    public List<TextAction> additionalActions(DLTextBox textBox) {
+        ArrayList<TextAction> actions = new ArrayList<>(formatActions);
+        actions.add(0, TextAction.menu("paste_plain", target -> textBox.pastePlainFromClipboard()));
+        actions.add(0, TextAction.menu("copy_plain", target -> textBox.copySelectionAsPlainText()));
+        return actions;
     }
 
     @Override

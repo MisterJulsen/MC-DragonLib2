@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.markup;
 
 import java.util.List;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLTextBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.layout.IBlockLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.render.IBlockDecorator;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.style.StyleFlag;
@@ -44,7 +45,7 @@ public interface ITextFormatParser {
         return styleBlock("", "") != null;
     }
 
-    default List<TextAction> formatActions() {
+    default List<TextAction> additionalActions(DLTextBox dlTextBox) {
         return List.of();
     }
 

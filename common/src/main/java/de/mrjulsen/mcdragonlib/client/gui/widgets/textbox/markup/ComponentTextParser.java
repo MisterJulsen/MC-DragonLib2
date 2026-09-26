@@ -3,6 +3,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.markup;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLTextBox;
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.input.IKeyStroke;
@@ -79,7 +80,7 @@ public final class ComponentTextParser implements ITextFormatParser {
     }
 
     @Override
-    public List<TextAction> formatActions() {
+    public List<TextAction> additionalActions(DLTextBox dlTextBox) {
         List<TextAction> actions = new ArrayList<>();
         for (StyleFlag flag : StyleFlag.all()) {
             if (formattingOf(flag) != null) {

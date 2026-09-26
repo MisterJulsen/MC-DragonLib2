@@ -73,6 +73,7 @@
     "gui.dragonlib.textbox.redo": "Wiederholen",
     "gui.dragonlib.textbox.cut": "Ausschneiden",
     "gui.dragonlib.textbox.copy": "Kopieren",
+    "gui.dragonlib.textbox.delete": "Löschen",
     "gui.dragonlib.textbox.copy_plain": "Als unformatierten Text kopieren",
     "gui.dragonlib.textbox.copy_source": "Quelltext kopieren",
     "gui.dragonlib.textbox.copy_texture": "Texturpfad kopieren",
