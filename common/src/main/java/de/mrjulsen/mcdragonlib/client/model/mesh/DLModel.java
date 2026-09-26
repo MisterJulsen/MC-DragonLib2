@@ -65,6 +65,14 @@ public abstract class DLModel {
         return false;
     }
 
+    public void clearCache() {
+        cachedBlockQuads.clear();
+    }
+
+    public void clearCache(ModelCacheKey key) {
+        cachedBlockQuads.remove(key);
+    }
+
     /**
      * Enabled or disables ambient occlusion for this model.
      * 
