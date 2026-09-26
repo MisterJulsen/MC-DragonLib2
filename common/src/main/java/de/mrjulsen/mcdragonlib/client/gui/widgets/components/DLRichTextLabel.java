@@ -65,6 +65,7 @@ import java.util.regex.Pattern;
     DLRichTextLabel.TextInteractiveElementClicked.class,
     DLRichTextLabel.TextTextValidationEvent.class
 })
+@Deprecated
 public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.MenuBuilder {
     
     public record TextChangedEvent(RichTextComponent text) implements IEvent {}

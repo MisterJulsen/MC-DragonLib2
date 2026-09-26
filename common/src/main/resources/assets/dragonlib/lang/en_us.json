@@ -73,5 +73,21 @@
     "compat.dragonlib.click_to_open_modpage": "Click to open mod page",
     "compat.dragonlib.sodium_warn": "You are using %s. To avoid visual glitches with colored blocks, please also install %s.",
 
+    "gui.dragonlib.textbox.undo": "Undo",
+    "gui.dragonlib.textbox.redo": "Redo",
+    "gui.dragonlib.textbox.cut": "Cut",
+    "gui.dragonlib.textbox.copy": "Copy",
+    "gui.dragonlib.textbox.copy_plain": "Copy as plain text",
+    "gui.dragonlib.textbox.copy_source": "Copy source",
+    "gui.dragonlib.textbox.copy_texture": "Copy texture location",
+    "gui.dragonlib.textbox.toggle_task": "Toggle task",
+    "gui.dragonlib.textbox.open_link": "Open link",
+    "gui.dragonlib.textbox.copy_link": "Copy link",
+    "gui.dragonlib.textbox.paste": "Paste",
+    "gui.dragonlib.textbox.paste_plain": "Paste as plain text",
+    "gui.dragonlib.textbox.select_all": "Select all",
+    "gui.dragonlib.textbox.format": "Formatting",
+
+
     "block.dragonlib.dragon": "Dragon"
 }

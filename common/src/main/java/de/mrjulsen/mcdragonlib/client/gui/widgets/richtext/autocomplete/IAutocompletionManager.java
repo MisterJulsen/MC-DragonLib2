@@ -5,6 +5,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
 import de.mrjulsen.mcdragonlib.util.math.Point;
 
 @FunctionalInterface
+@Deprecated
 public interface IAutocompletionManager<T> {
 
     /**

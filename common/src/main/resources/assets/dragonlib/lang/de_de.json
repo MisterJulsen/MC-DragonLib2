@@ -69,5 +69,20 @@
     "compat.dragonlib.click_to_open_modpage": "Klicke, um Modseite zu öffnen.",
     "compat.dragonlib.sodium_warn": "Du nutzt %s. Um Grafikfehler zu vermeiden, installiere bitte auch %s.",
 
+    "gui.dragonlib.textbox.undo": "Rückgängig",
+    "gui.dragonlib.textbox.redo": "Wiederholen",
+    "gui.dragonlib.textbox.cut": "Ausschneiden",
+    "gui.dragonlib.textbox.copy": "Kopieren",
+    "gui.dragonlib.textbox.copy_plain": "Als unformatierten Text kopieren",
+    "gui.dragonlib.textbox.copy_source": "Quelltext kopieren",
+    "gui.dragonlib.textbox.copy_texture": "Texturpfad kopieren",
+    "gui.dragonlib.textbox.toggle_task": "Aufgabe umschalten",
+    "gui.dragonlib.textbox.open_link": "Link öffnen",
+    "gui.dragonlib.textbox.copy_link": "Link kopieren",
+    "gui.dragonlib.textbox.paste": "Einfügen",
+    "gui.dragonlib.textbox.paste_plain": "Unformatierten Text einfügen",
+    "gui.dragonlib.textbox.select_all": "Alles auswählen",
+    "gui.dragonlib.textbox.format": "Formatierung",
+
     "block.dragonlib.dragon": "Drache"
 }

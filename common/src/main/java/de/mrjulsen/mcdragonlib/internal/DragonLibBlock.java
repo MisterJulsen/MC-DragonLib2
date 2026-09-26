@@ -6,6 +6,7 @@ import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -49,6 +50,10 @@ public class DragonLibBlock extends BaseEntityBlock {
     
 
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (!Platform.isDevelopmentEnvironment()) {
+            return InteractionResult.PASS;
+        }
+
         if (pLevel.isClientSide) {
             /*
             NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
@@ -61,7 +66,7 @@ public class DragonLibBlock extends BaseEntityBlock {
             });
 
              */
-            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;
         } else {
