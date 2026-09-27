@@ -6,6 +6,10 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.function.Supplier;
 
+/**
+ * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.PacketContext}.
+ */
+@Deprecated
 public interface NetworkPacketContext {
     Player getPlayer();    
     void queue(Runnable runnable);    

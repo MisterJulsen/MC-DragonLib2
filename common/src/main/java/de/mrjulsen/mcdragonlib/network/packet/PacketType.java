@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated The packet kind is decided by the registered {@link de.mrjulsen.mcdragonlib.net.PacketDefinition} now.
+ */
+@Deprecated
 public enum PacketType {
     EMPTY((byte)0x0),
     SEND((byte)0x1),

@@ -8,6 +8,10 @@ import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Function;
 
+/**
+ * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.codec.DLStreamCodec} to describe a payload.
+ */
+@Deprecated
 @FieldsAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class NetworkPacketData implements INBTSerializable {
@@ -59,9 +63,9 @@ public abstract class NetworkPacketData implements INBTSerializable {
 
 
 
-    static final class Empty extends NetworkPacketData {
+    public static final class Empty extends NetworkPacketData {
         public Empty(DLStatus result) {
-            super(DLStatus.OK);
+            super(result);
         }
 
         @Override

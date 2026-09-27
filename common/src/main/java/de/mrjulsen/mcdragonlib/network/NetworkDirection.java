@@ -2,10 +2,18 @@ package de.mrjulsen.mcdragonlib.network;
 
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
+import de.mrjulsen.mcdragonlib.net.PacketTarget;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 
+/**
+ * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.PacketTarget}.
+ */
+@Deprecated
 public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDirection.S2C {
     
     @FunctionalInterface
@@ -29,10 +37,35 @@ public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDi
 
     void send(Packet<?> packet);
     NetworkSide getDirection();
+
+    /**
+     * Returns the connection this instance sends over, if it knows one.
+     *
+     * <p>The instances handed out by {@link #toPlayer(ServerPlayer)} and {@link #toServer()} do.
+     * A hand written implementation does not, in which case the networking layer falls back to
+     * routing purely through {@link #send(Packet)}.
+     *
+     * @return the connection, or {@code null} if this instance only knows how to send
+     */
+    @Nullable
+    default Connection getConnection() {
+        return null;
+    }
     
 
     public static S2C toPlayer(ServerPlayer player) {
-        return packet -> Objects.requireNonNull(player, "Unable to send packet to a 'null' player!").connection.send(packet);
+        Objects.requireNonNull(player, "Unable to send packet to a 'null' player!");
+        return new S2C() {
+            @Override
+            public void send(Packet<?> packet) {
+                player.connection.send(packet);
+            }
+
+            @Override
+            public Connection getConnection() {
+                return PacketTarget.connectionOf(player);
+            }
+        };
     }
     
     public static C2S toServer() {

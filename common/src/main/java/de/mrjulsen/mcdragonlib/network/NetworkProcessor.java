@@ -2,6 +2,10 @@ package de.mrjulsen.mcdragonlib.network;
 
 import java.util.Optional;
 
+/**
+ * @deprecated Use the handler interfaces of the packet types in {@code de.mrjulsen.mcdragonlib.net.packet}.
+ */
+@Deprecated
 public final class NetworkProcessor {
     private NetworkProcessor() {}
     

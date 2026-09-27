@@ -7,6 +7,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 
+/**
+ * @deprecated Reassembly state lives in {@link de.mrjulsen.mcdragonlib.net.transport.MessageAssembler}.
+ */
+@Deprecated
 public class NetworkReceiverData {
 
     private final Key key;

@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated Replaced by {@link de.mrjulsen.mcdragonlib.net.transport.FrameType}.
+ */
+@Deprecated
 public enum SegmentType {
     SINGLE((byte)0x0),
     START((byte)0x1),

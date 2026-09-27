@@ -1,263 +1,211 @@
 package de.mrjulsen.mcdragonlib.network;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
-import de.mrjulsen.mcdragonlib.network.packet.NetworkPacker;
-import de.mrjulsen.mcdragonlib.network.packet.SegmentedPacketHeaderInfo;
-import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.minecraft.nbt.CompoundTag;
+import de.mrjulsen.mcdragonlib.net.DLChannel;
+import de.mrjulsen.mcdragonlib.net.DLNetwork;
+import de.mrjulsen.mcdragonlib.net.NetworkFlow;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Central manager for network channels and packet registration used by DragonLib.
+ * Registry for packets of the deprecated networking API.
  *
- * <p>This class holds a per-channel registry of {@link NetworkPacketType} instances,
- * provides convenience registration methods for common packet patterns (send-only,
- * receive-only, send-and-receive, streaming), and dispatches incoming raw buffers
- * to the appropriate packet decoder/handler via {@link NetworkPacker}.
+ * <p>An instance is a thin view onto a {@link DLChannel} with the same id, so packets registered
+ * here and packets registered through the current API share one channel, one wire format and one
+ * set of limits. Two managers created for the same channel id now cooperate instead of silently
+ * shadowing each other.
  *
- * <p>Usage:
- * <ul>
- *   <li>Create one manager per channel (ResourceLocation) with a protocol version.</li>
- *   <li>Register packets with {@code registerSendOnlyPacket}, {@code registerReceiveOnlyPacket},
- *       {@code registerSendAndReceivePacket} or {@code registerStreamPacket}.</li>
- * </ul>
- *
- * <p>Note: channel registration and packet &lt;-&gt; platform {@code Packet<?>} translation are
- * provided by platform-specific implementations.
+ * @deprecated Use {@link DLChannel} instead.
  */
+@Deprecated
 public final class DLNetworkManager {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(DragonLib.MOD_NAME + " Networking System");
-    private static final ConcurrentHashMap<ResourceLocation, DLNetworkManager> managers = new ConcurrentHashMap<>();
+    /** Logger of the networking layer. */
+    public static final Logger LOGGER = DLNetwork.LOGGER;
 
     private final ResourceLocation channelId;
     private final String protocolVersion;
-    private final ConcurrentHashMap<String, NetworkPacketType<?, ?, ?>> packets = new ConcurrentHashMap<>();
+    private final DLChannel channel;
+    private final Map<String, NetworkPacketType<?, ?, ?>> packets = new ConcurrentHashMap<>();
 
     /**
-     * Creates a network manager instance for the given channel identifier and protocol version.
+     * Creates a view onto the channel with the given id, creating that channel if needed.
      *
-     * @param channelId unique channel {@link ResourceLocation} used to separate message namespaces
-     * @param protocolVersion string protocol version used for compatibility checks
+     * @param channelId the channel to use
+     * @param protocolVersion the version string announced to the other side
      */
     public DLNetworkManager(ResourceLocation channelId, String protocolVersion) {
         this.channelId = channelId;
         this.protocolVersion = protocolVersion;
+        this.channel = DLChannel.create(channelId, protocolVersion);
     }
-   
 
     /**
-     * Register a send-only packet type.
+     * Returns the channel backing this manager.
      *
-     * <p>This registers a packet type that can only be sent (no response expected). The
-     * {@code processor} handles sending logic and {@code factory} creates the packet payload instance.
+     * @return the underlying channel
+     */
+    public DLChannel getChannel() {
+        return channel;
+    }
+
+    /**
+     * Returns the version string announced to the other side.
      *
-     * @param name packet id (unique per channel)
-     * @param direction the {@link NetworkDirection} describing which side can send/receive
-     * @param processor network processor handling send operations
-     * @param factory function that produces an input data instance given a {@link de.mrjulsen.mcdragonlib.data.DLStatus}
-     * @param <N> NetworkDirection type
-     * @param <I> input data type (implements {@link NetworkPacketData})
-     * @param <S> processor type extending {@link NetworkProcessor.Send}
-     * @return registered {@link NetworkPacketType.Send} instance
-     * @throws IllegalArgumentException if a packet with the same name is already registered
+     * @return the protocol version
+     */
+    public String getProtocolVersion() {
+        return protocolVersion;
+    }
+
+    /**
+     * Registers a packet that is sent without expecting an answer.
+     *
+     * @param name the packet id, unique within the channel
+     * @param direction which side starts the exchange
+     * @param processor handles a received payload
+     * @param factory creates a blank payload instance
+     * @param <N> the direction type
+     * @param <I> the payload type
+     * @param <S> the processor type
+     * @return the registered packet
      */
     public <N extends NetworkDirection, I extends NetworkPacketData, S extends NetworkProcessor.Send<I>> NetworkPacketType.Send<N, I> registerSendOnlyPacket(String name, N direction, S processor, Function<DLStatus, I> factory) {
         return register(new NetworkPacketType.Send<>(channelId, name, direction, processor, factory));
     }
 
     /**
-     * Register a receive-only packet type.
+     * Registers a packet that asks the other side for a value without sending one.
      *
-     * <p>The {@code processor} handles incoming data for this packet and {@code factory}
-     * is used to create the expected data container.
-     *
-     * @param name packet id (unique per channel)
-     * @param direction direction this packet is associated with
-     * @param processor processor handling receive events
-     * @param factory factory for creating receive-side data instances
-     * @param <N> NetworkDirection type
-     * @param <O> output data type (implements {@link NetworkPacketData})
-     * @param <S> processor type extending {@link NetworkProcessor.Receive}
-     * @return registered {@link NetworkPacketType.Receive} instance
-     * @throws IllegalArgumentException if a packet with the same name is already registered
+     * @param name the packet id, unique within the channel
+     * @param direction which side starts the exchange
+     * @param processor produces the answer
+     * @param factory creates a blank answer instance
+     * @param <N> the direction type
+     * @param <O> the response type
+     * @param <S> the processor type
+     * @return the registered packet
      */
     public <N extends NetworkDirection, O extends NetworkPacketData, S extends NetworkProcessor.Receive<O>> NetworkPacketType.Receive<N, O> registerReceiveOnlyPacket(String name, N direction, S processor, Function<DLStatus, O> factory) {
         return register(new NetworkPacketType.Receive<>(channelId, name, direction, processor, factory));
     }
 
     /**
-     * Register a packet type that supports both sending and receiving (request/response).
+     * Registers a packet that sends a value and receives one back.
      *
-     * @param name packet id (unique per channel)
-     * @param direction direction this packet is associated with
-     * @param processor processor implementing {@link NetworkProcessor.SendAndReceive}
-     * @param inputFactory factory for creating input instances
-     * @param outputFactory factory for creating output instances
-     * @param <N> direction type
-     * @param <I> input data type
-     * @param <O> output data type
-     * @param <S> processor type
-     * @return registered {@link NetworkPacketType.SendAndReceive} instance
-     * @throws IllegalArgumentException on duplicate registration
+     * @param name the packet id, unique within the channel
+     * @param direction which side starts the exchange
+     * @param processor turns a request into a response
+     * @param inputFactory creates a blank request instance
+     * @param outputFactory creates a blank response instance
+     * @param <N> the direction type
+     * @param <I> the request type
+     * @param <O> the response type
+     * @param <S> the processor type
+     * @return the registered packet
      */
     public <N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData, S extends NetworkProcessor.SendAndReceive<I, O>> NetworkPacketType.SendAndReceive<N, I, O> registerSendAndReceivePacket(String name, N direction, S processor, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
         return register(new NetworkPacketType.SendAndReceive<>(channelId, name, direction, processor, inputFactory, outputFactory));
     }
-    
+
     /**
-     * Register a streaming packet type. Streaming packets allow multiple segments and
-     * use a {@link NetworkProcessor.StreamReceiver} to manage incremental data.
+     * Registers a packet that exchanges a value per round trip.
      *
-     * @param name packet id (unique per channel)
-     * @param direction packet direction
-     * @param factory supplier that creates a new StreamReceiver for each stream
-     * @param inputFactory factory for input data instances per segment
-     * @param outputFactory factory for output data
-     * @param <N> direction type
-     * @param <I> input data type
-     * @param <O> output data type
-     * @return registered {@link NetworkPacketType.Stream} instance
+     * @param name the packet id, unique within the channel
+     * @param direction which side starts the exchange
+     * @param factory creates the receiver for a new stream
+     * @param inputFactory creates a blank instance of the initiating payload
+     * @param outputFactory creates a blank instance of the answering payload
+     * @param <N> the direction type
+     * @param <I> the type sent by the initiating side
+     * @param <O> the type sent back per chunk
+     * @return the registered packet
      */
     public <N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> NetworkPacketType.Stream<N, I, O> registerStreamPacket(String name, N direction, Supplier<NetworkProcessor.StreamReceiver<I, O>> factory, Function<DLStatus, I> inputFactory, Function<DLStatus, O> outputFactory) {
         return register(new NetworkPacketType.Stream<>(channelId, name, direction, factory, inputFactory, outputFactory));
     }
-    
-    /**
-     * Internal helper that performs registration and ensures the channel is registered
-     * once per {@link ResourceLocation}. Throws on duplicate packet names.
-     *
-     * @param packet packet type to register
-     * @param <T> concrete {@link NetworkPacketType} subtype
-     * @return the same packet instance passed in
-     * @throws IllegalArgumentException if a packet with the same name already exists for this channel
-     */
+
     private <T extends NetworkPacketType<?, ?, ?>> T register(T packet) {
         if (isPacketRegistered(packet.getName())) {
             throw new IllegalArgumentException("A packet with id '" + packet.getName() + "' has already been registered for '" + channelId + "'.");
         }
-        managers.computeIfAbsent(channelId, x -> {
-            registerChannel(channelId, protocolVersion);
-            return this;
-        });
+        channel.register(packet.getDelegate());
         packets.put(packet.getName(), packet);
         LOGGER.info("Registering {} network packet of type {} with id '{}' in '{}'.", packet.getDirection(), packet.getType(), packet.getName(), channelId);
         return packet;
     }
 
     /**
-     * Returns whether a packet with the given name is already registered for this manager.
+     * Returns whether a packet with the given name is registered here.
      *
-     * @param name packet id
-     * @return true if registered, false otherwise
+     * @param name the packet id
+     * @return {@code true} if it is registered
      */
     public boolean isPacketRegistered(String name) {
         return packets.containsKey(name);
     }
 
     /**
-     * Retrieves a registered packet by name if it exists and matches the requested side.
+     * Looks up a registered packet.
      *
-     * @param name packet id
-     * @param side {@link NetworkSide} expected side for the packet
-     * @return an {@link Optional} containing the {@link NetworkPacketType} if found and matching side
+     * @param name the packet id
+     * @param side the side the packet is expected to start from
+     * @return the packet, or an empty optional if nothing matches
      */
     public Optional<NetworkPacketType<?, ?, ?>> getRegisteredPacket(String name, NetworkSide side) {
-        if (!isPacketRegistered(name)) {
-            return Optional.empty();
-        }
         NetworkPacketType<?, ?, ?> type = packets.get(name);
         if (type == null || type.getDirection() != side) {
             return Optional.empty();
         }
         return Optional.of(type);
     }
-    
+
     /**
-     * Platform entry point to register the underlying network channel.
+     * Registers the underlying custom payload channel.
      *
-     * <p>Platform-specific implementations must bind a listener such that inbound buffers
-     * are forwarded to {@link #receiveData(ResourceLocation, FriendlyByteBuf, NetworkSide, NetworkPacketContext)}.
-     *
-     * @param channelId channel identifier (ResourceLocation)
-     * @param protocolVersion textual protocol version used for compatibility checks
-     * @throws AssertionError when called on non-platform implementation stub
-     * @see dev.architectury.injectables.annotations.ExpectPlatform
+     * @param channelId the channel to register
+     * @param protocolVersion the version string announced to the other side
+     * @deprecated Creating a {@link DLChannel} already does this.
      */
-    @ExpectPlatform
+    @Deprecated
     public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
-        throw new AssertionError();
+        DLChannel.create(channelId, protocolVersion);
     }
 
     /**
-     * Platform-specific conversion from a raw {@link FriendlyByteBuf} to a network {@code Packet<?>}
-     * that the Minecraft networking stack can send.
+     * Wraps a buffer into the Minecraft packet that carries it.
      *
-     * <p>Platform implementations must serialize the provided buffer into the correct packet
-     * instance for the given {@code channelId} and {@code side}.
-     *
-     * @param channelId channel identifier
-     * @param side side information
-     * @param buffer buffer containing already-packed packet payload
-     * @return a platform {@link Packet} ready to be sent
-     * @throws AssertionError when called on non-platform implementation stub
+     * @param channelId the channel the data belongs to
+     * @param side the direction the data travels in
+     * @param buffer the data to wrap
+     * @return a packet ready to be sent
+     * @deprecated Use {@link DLNetwork#toPacket(ResourceLocation, NetworkFlow, FriendlyByteBuf)}.
      */
-    @ExpectPlatform
+    @Deprecated
     public static Packet<?> toPacket(ResourceLocation channelId, NetworkSide side, FriendlyByteBuf buffer) {
-        throw new AssertionError();
-    }    
-        
-    /**
-     * Entry point called by the platform networking layer when raw data arrives for a channel.
-     *
-     * <p>This method:
-     * <ol>
-     *   <li>reads a {@link SegmentedPacketHeaderInfo} header from the buffer</li>
-     *   <li>determines the communication direction and resolves the registered packet</li>
-     *   <li>delegates deserialization to {@link NetworkPacker} and invokes the packet handler</li>
-     * </ol>
-     *
-     * <p>If the packet is unknown the buffer will be cleaned up and a warning logged.
-     *
-     * @param channelId channel identifier the data was received on
-     * @param buf raw {@link FriendlyByteBuf} containing header + payload
-     * @param side side the buffer was received from (client/server)
-     * @param context contextual information provided by the platform when dispatching the buffer
-     */
-    public static void receiveData(ResourceLocation channelId, FriendlyByteBuf buf, NetworkSide side, NetworkPacketContext context) {
-        if (!managers.containsKey(channelId)) return;
-
-        SegmentedPacketHeaderInfo header = SegmentedPacketHeaderInfo.readBufferHeader(buf);
-
-        CommunicationType communication = header.type().communication();
-        NetworkSide fSide;
-        if (communication == CommunicationType.RESPONSE) {
-            fSide = side;
-        } else {
-            fSide = side == NetworkSide.S2C ? NetworkSide.C2S : NetworkSide.S2C;
-        }
-
-        managers.get(channelId).getRegisteredPacket(header.type().name(), fSide).ifPresentOrElse(x -> {
-            NetworkPacker.unpack(header, fSide, buf, context, (rawData) -> {
-                CompoundTag nbt = rawData.readAnySizeNbt();
-                x.receive(header.type(), context, nbt, communication);
-                NetworkPacker.cleanUp(header, fSide);
-            });
-        }, () -> {
-            LOGGER.warn("There is no {} packet registered with ID '{}' in '{}'.", fSide, header.type().name(), channelId);
-            NetworkPacker.cleanUp(header, fSide);
-        });
+        return DLNetwork.toPacket(channelId, side == NetworkSide.C2S ? NetworkFlow.SERVERBOUND : NetworkFlow.CLIENTBOUND, buffer);
     }
 
+    /**
+     * No longer used. Received data is dispatched by the current transport.
+     *
+     * @param channelId the channel the data arrived on
+     * @param buf the received data
+     * @param side the direction the data travelled in
+     * @param context the context of the received message
+     * @deprecated Received data reaches packets through {@link DLNetwork} now.
+     */
+    @Deprecated
+    public static void receiveData(ResourceLocation channelId, FriendlyByteBuf buf, NetworkSide side, NetworkPacketContext context) {
+        LOGGER.warn("Ignoring a call to the removed legacy receive path for channel '{}'.", channelId);
+    }
 }

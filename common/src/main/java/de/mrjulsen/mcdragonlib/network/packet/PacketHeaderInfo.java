@@ -5,6 +5,10 @@ import java.nio.charset.StandardCharsets;
 import de.mrjulsen.mcdragonlib.network.CommunicationType;
 import net.minecraft.network.FriendlyByteBuf;
 
+/**
+ * @deprecated Replaced by {@link de.mrjulsen.mcdragonlib.net.transport.FrameHeader}.
+ */
+@Deprecated
 public record PacketHeaderInfo(PacketType type, CommunicationType communication, long requestId, String name) {
 
     public void writeBufferHeader(FriendlyByteBuf buffer) {

@@ -1,10 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.data.DLStatus;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
-import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
@@ -55,17 +52,6 @@ public class DragonLibBlock extends BaseEntityBlock {
         }
 
         if (pLevel.isClientSide) {
-            /*
-            NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
-                if (response.getStatus().isError()) {
-                    System.out.println("ERROR: " + response.getStatus().message());
-                }
-                System.out.println("RESPONSE: " + response.txt);
-            }, () -> {
-                System.out.println("ERROR callback");
-            });
-
-             */
             DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;

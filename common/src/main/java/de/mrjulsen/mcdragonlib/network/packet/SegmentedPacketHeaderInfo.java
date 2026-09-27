@@ -2,6 +2,10 @@ package de.mrjulsen.mcdragonlib.network.packet;
 
 import net.minecraft.network.FriendlyByteBuf;
 
+/**
+ * @deprecated Replaced by {@link de.mrjulsen.mcdragonlib.net.transport.FrameHeader}.
+ */
+@Deprecated
 public record SegmentedPacketHeaderInfo(PacketHeaderInfo type, SegmentType segment, int expectedParts, int partNumber) {
 
     public void writeBufferHeader(FriendlyByteBuf buffer) {

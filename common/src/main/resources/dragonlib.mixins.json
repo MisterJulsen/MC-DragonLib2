@@ -18,8 +18,10 @@
         "VertexFormatAccessor"
     ],
     "mixins": [
+        "ConnectionAccessor",
         "ItemMixin",
-        "LevelChunkMixin"
+        "LevelChunkMixin",
+        "ServerGamePacketListenerAccessor"
     ],
     "injectors": {
         "defaultRequire": 1

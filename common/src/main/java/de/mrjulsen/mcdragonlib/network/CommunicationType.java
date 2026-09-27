@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated The current transport does not use this classification.
+ */
+@Deprecated
 public enum CommunicationType {
     NONE((byte)0x0),
     REQUEST((byte)0x1),
