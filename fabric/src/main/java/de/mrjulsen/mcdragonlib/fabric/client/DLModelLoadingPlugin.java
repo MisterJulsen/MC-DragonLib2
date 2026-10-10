@@ -5,49 +5,65 @@ import com.google.common.collect.ImmutableMap;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry.ModelRegistryData;
 import de.mrjulsen.mcdragonlib.events.client.ModelEvents;
+import de.mrjulsen.mcdragonlib.events.client.ModelEvents.ModifyModels;
+import de.mrjulsen.mcdragonlib.events.client.ModelReplacements;
 import de.mrjulsen.mcdragonlib.fabric.client.model.DynamicBakedModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.ResourceLocation;
 
 @Environment(EnvType.CLIENT)
 public class DLModelLoadingPlugin implements ModelLoadingPlugin {
 
     @Override
     public void onInitializeModelLoader(Context pluginContext) {
-        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(pluginContext::addModels);
-        pluginContext.modifyModelAfterBake().register((original, ctx) -> {
-            BakedModel model = ModelEvents.MODIFY_MODELS.invoker().modifyModels(original, new ModelEvents.ModifyModels.Context() {
-                @Override
-                public ModelBakery getModelBakery() {
-                    return ctx.loader();
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(e -> pluginContext.addModels(e.id()));
+
+        ModelReplacements replacements = ModelReplacements.collect();
+        if (!replacements.isEmpty()) {
+            pluginContext.modifyModelAfterBake().register((original, ctx) -> {
+                ModelResourceLocation id = ctx.topLevelId();
+                if (id == null) {
+                    return original;
                 }
 
-                @Override
-                public ResourceLocation getModelLocation() {
-                    return ctx.id();
-                }
+                BakedModel model = replacements.apply(id, loc -> original, new ModifyModels.Context() {
+                    @Override
+                    public ModelBakery getModelBakery() {
+                        return ctx.loader();
+                    }
 
-                @Override
-                public UnbakedModel getUnbakedModel() {
-                    return ctx.sourceModel();
-                }
+                    @Override
+                    public ModelResourceLocation getModelLocation() {
+                        return id;
+                    }
+
+                    @Override
+                    public UnbakedModel getUnbakedModel() {
+                        return ctx.sourceModel();
+                    }
+                });
+                return model == null ? original : model;
             });
-            return model == null ? original : model;
-        });
+        }
 
-        ImmutableMap<ResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
+        ImmutableMap<ModelResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
+        if (!factories.isEmpty()) {
+            pluginContext.modifyModelAfterBake().register((original, ctx) -> {
+                ModelResourceLocation id = ctx.topLevelId();
+                if (id == null) {
+                    return original;
+                }
 
-        pluginContext.modifyModelAfterBake().register((original, context) -> {
-            BakedModel model = original;
-            if (factories.containsKey(context.id())) {
-                ModelRegistryData data = factories.get(context.id());
-                DLBlockModelRegistry.setOriginalModel(data.state(), model);
-                model = new DynamicBakedModel(model, data.state(), data.factory().getModelFactory().get());
-            }
-            return model;
-        });
+                ModelRegistryData data = factories.get(id);
+                if (data == null) {
+                    return original;
+                }
+
+                DLBlockModelRegistry.setOriginalModel(data.state(), original);
+                return new DynamicBakedModel(original, data.state(), data.factory().getModelFactory().get());
+            });
+        }
     }
 }
