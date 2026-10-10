@@ -24,20 +24,20 @@ public abstract class TransformationMixin implements TransformationExtensions {
 	public abstract Matrix4f getMatrix();
 
 	@Unique
-	private Matrix3f normalTransform = null;
+	private Matrix3f dragonlib$normalTransform = null;
 
 	@Override
 	public Matrix3f dragonlib$getNormalMatrix() {
 		dragonlib$checkNormalTransform();
-		return normalTransform;
+		return dragonlib$normalTransform;
 	}
 
 	@Unique
 	private void dragonlib$checkNormalTransform() {
-		if (normalTransform == null) {
-			normalTransform = new Matrix3f(this.matrix);
-			normalTransform.invert();
-			normalTransform.transpose();
+		if (dragonlib$normalTransform == null) {
+			dragonlib$normalTransform = new Matrix3f(this.matrix);
+			dragonlib$normalTransform.invert();
+			dragonlib$normalTransform.transpose();
 		}
 	}
 

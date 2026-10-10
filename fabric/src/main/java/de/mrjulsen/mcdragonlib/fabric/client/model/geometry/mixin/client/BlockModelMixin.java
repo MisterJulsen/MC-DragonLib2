@@ -36,24 +36,27 @@ public class BlockModelMixin implements BlockModelExtensions {
 	@Shadow
 	@Final
 	private List<ItemOverride> overrides;
+
 	@Shadow
 	@Nullable
-	public BlockModel parent;
+    protected BlockModel parent;
+
 	@Unique
-	private IUnbakedGeometry<?> customModel;
+	private IUnbakedGeometry<?> dragonlib$customModel;
+
 	@Unique
 	@Nullable
-	private Transformation rootTransform;
+	private Transformation dragonlib$rootTransform;
+
 	@Unique
-	private final VisibilityData visibilityData = new VisibilityData();
+	private final VisibilityData dragonlib$visibilityData = new VisibilityData();
 
 	@Inject(
 			method = "bake(Lnet/minecraft/client/resources/model/ModelBaker;Lnet/minecraft/client/renderer/block/model/BlockModel;Ljava/util/function/Function;Lnet/minecraft/client/resources/model/ModelState;Lnet/minecraft/resources/ResourceLocation;Z)Lnet/minecraft/client/resources/model/BakedModel;",
 			at = @At("HEAD"),
 			cancellable = true
 	)
-	public void handleCustomModels(ModelBaker modelBaker, BlockModel ownerModel, Function<Material, TextureAtlasSprite> spriteGetter,
-								   ModelState modelTransform, ResourceLocation modelLocation, boolean guiLight3d, CallbackInfoReturnable<BakedModel> cir) {
+	public void dragonlib$handleCustomModels(ModelBaker modelBaker, BlockModel ownerModel, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ResourceLocation modelLocation, boolean guiLight3d, CallbackInfoReturnable<BakedModel> cir) {
 		IUnbakedGeometry<?> geometry = dragonlib$getCustomGeometry();
 		if (geometry != null) {
 			ItemOverrides overrides = dragonlib$getOverrides(modelBaker, ownerModel, spriteGetter);
@@ -64,9 +67,9 @@ public class BlockModelMixin implements BlockModelExtensions {
 	}
 
 	@Inject(method = "resolveParents", at = @At("HEAD"))
-	private void handleCustomResolveParents(Function<ResourceLocation, UnbakedModel> function, CallbackInfo ci) {
+	private void dragonlib$handleCustomResolveParents(Function<ResourceLocation, UnbakedModel> function, CallbackInfo ci) {
 		if (dragonlib$getCustomGeometry() != null)
-			dragonlib$getCustomGeometry().resolveParents(function, (BlockModel)self());
+			dragonlib$getCustomGeometry().resolveParents(function, (BlockModel) dragonlib$self());
 	}
 
 	@Override
@@ -76,42 +79,45 @@ public class BlockModelMixin implements BlockModelExtensions {
 
 	@Override
 	public void dragonlib$setCustomGeometry(IUnbakedGeometry<?> geometry) {
-		this.customModel = geometry;
+		this.dragonlib$customModel = geometry;
 	}
 
 	@Override
 	public IUnbakedGeometry<?> dragonlib$getCustomGeometry() {
-		return this.parent != null && customModel == null ? ((BlockModelExtensions)(Object)this.parent).dragonlib$getCustomGeometry() : customModel;
+		return this.parent != null && dragonlib$customModel == null ? ((BlockModelExtensions)(Object)this.parent).dragonlib$getCustomGeometry() : dragonlib$customModel;
 	}
 
 	@Override
 	public VisibilityData dragonlib$getVisibilityData() {
-		return this.visibilityData;
+		return this.dragonlib$visibilityData;
 	}
 
 	@Override
 	public boolean dragonlib$isComponentVisible(String part, boolean fallback) {
-		return selfParent() != null && !visibilityData.hasCustomVisibility(part) ?
-				selfParent().dragonlib$isComponentVisible(part, fallback) :
-				visibilityData.isVisible(part, fallback);
+		return dragonlib$selfParent() != null && !dragonlib$visibilityData.hasCustomVisibility(part) ?
+				dragonlib$selfParent().dragonlib$isComponentVisible(part, fallback) :
+				dragonlib$visibilityData.isVisible(part, fallback);
 	}
 
 	@Override
 	public Transformation dragonlib$getRootTransform() {
-		if (rootTransform != null)
-			return rootTransform;
-		return selfParent() != null ? selfParent().dragonlib$getRootTransform() : Transformation.identity();
+		if (dragonlib$rootTransform != null)
+			return dragonlib$rootTransform;
+		return dragonlib$selfParent() != null ? dragonlib$selfParent().dragonlib$getRootTransform() : Transformation.identity();
 	}
 
-	public void setRootTransform(Transformation rootTransform) {
-		this.rootTransform = rootTransform;
+	@Override
+	public void dragonlib$setRootTransform(Transformation rootTransform) {
+		this.dragonlib$rootTransform = rootTransform;
 	}
 
-	private BlockModelExtensions self() {
+	@Unique
+	private BlockModelExtensions dragonlib$self() {
 		return (BlockModelExtensions)(Object)this;
 	}
 
-	private BlockModelExtensions selfParent() {
-		return (BlockModelExtensions)(Object)(((BlockModelAccessor)(Object)self()).dragonlib$getParent());
+	@Unique
+	private BlockModelExtensions dragonlib$selfParent() {
+		return (BlockModelExtensions)(Object)(((BlockModelAccessor)(Object) dragonlib$self()).dragonlib$getParent());
 	}
 }
