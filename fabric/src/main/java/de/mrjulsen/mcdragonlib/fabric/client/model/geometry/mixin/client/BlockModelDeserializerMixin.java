@@ -35,10 +35,10 @@ import net.minecraft.util.GsonHelper;
 public abstract class BlockModelDeserializerMixin {
 
 	@Inject(method = "deserialize(Lcom/google/gson/JsonElement;Ljava/lang/reflect/Type;Lcom/google/gson/JsonDeserializationContext;)Lnet/minecraft/client/renderer/block/model/BlockModel;", at = @At("RETURN"), cancellable = true)
-	public void modelLoading(JsonElement element, Type type, JsonDeserializationContext deserializationContext, CallbackInfoReturnable<BlockModel> cir) {
+	public void dragonlib$modelLoading(JsonElement element, Type type, JsonDeserializationContext deserializationContext, CallbackInfoReturnable<BlockModel> cir) {
 		BlockModel model = cir.getReturnValue();
 		JsonObject jsonobject = element.getAsJsonObject();
-		IUnbakedGeometry<?> geometry = deserializeGeometry(deserializationContext, jsonobject);
+		IUnbakedGeometry<?> geometry = dragonlib$deserializeGeometry(deserializationContext, jsonobject);
 
 		List<BlockElement> elements = model.getElements();
 		if (geometry != null) {
@@ -62,7 +62,7 @@ public abstract class BlockModelDeserializerMixin {
 
 	@Unique
 	@Nullable
-	private static IUnbakedGeometry<?> deserializeGeometry(JsonDeserializationContext deserializationContext, JsonObject object) throws JsonParseException {
+	private static IUnbakedGeometry<?> dragonlib$deserializeGeometry(JsonDeserializationContext deserializationContext, JsonObject object) throws JsonParseException {
 		String loaderId = GeometryLoaderManager.getModelLoader(object);
 		if (loaderId == null)
 			return null;
