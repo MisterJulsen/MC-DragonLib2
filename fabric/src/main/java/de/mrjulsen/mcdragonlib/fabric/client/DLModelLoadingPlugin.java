@@ -12,18 +12,19 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.resources.model.*;
+import net.minecraft.resources.ResourceLocation;
 
 @Environment(EnvType.CLIENT)
 public class DLModelLoadingPlugin implements ModelLoadingPlugin {
 
     @Override
     public void onInitializeModelLoader(Context pluginContext) {
-        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(e -> pluginContext.addModels(e.id()));
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(e -> pluginContext.addModels(e));
 
         ModelReplacements replacements = ModelReplacements.collect();
         if (!replacements.isEmpty()) {
             pluginContext.modifyModelAfterBake().register((original, ctx) -> {
-                ModelResourceLocation id = ctx.topLevelId();
+                ResourceLocation id = ctx.id();
                 if (id == null) {
                     return original;
                 }
@@ -35,7 +36,7 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
                     }
 
                     @Override
-                    public ModelResourceLocation getModelLocation() {
+                    public ResourceLocation getModelLocation() {
                         return id;
                     }
 
@@ -48,10 +49,10 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
             });
         }
 
-        ImmutableMap<ModelResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
+        ImmutableMap<ResourceLocation, ModelRegistryData> factories = DLBlockModelRegistry.getCustomRegisteredModelsMapped();
         if (!factories.isEmpty()) {
             pluginContext.modifyModelAfterBake().register((original, ctx) -> {
-                ModelResourceLocation id = ctx.topLevelId();
+                ResourceLocation id = ctx.id();
                 if (id == null) {
                     return original;
                 }

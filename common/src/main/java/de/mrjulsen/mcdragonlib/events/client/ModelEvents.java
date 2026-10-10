@@ -2,6 +2,8 @@ package de.mrjulsen.mcdragonlib.events.client;
 
 import java.util.function.Predicate;
 
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import dev.architectury.event.Event;
@@ -54,8 +56,8 @@ public interface ModelEvents {
         void collectModels(ModelModifier modifier);
 
         interface ModelModifier {
-            void replace(ModelResourceLocation location, ModelReplacer replacer);
-            void replaceIf(Predicate<ModelResourceLocation> filter, ModelReplacer replacer);
+            void replace(ResourceLocation location, ModelReplacer replacer);
+            void replaceIf(Predicate<ResourceLocation> filter, ModelReplacer replacer);
 
             default void replaceBlock(Block block, ModelReplacer replacer) {
                 for (BlockState state : block.getStateDefinition().getPossibleStates()) {
@@ -68,7 +70,7 @@ public interface ModelEvents {
             }
 
             default void replaceItem(Item item, ModelReplacer replacer) {
-                replace(ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(item)), replacer);
+                replace(new ModelResourceLocation(BuiltInRegistries.ITEM.getKey(item), "inventory"), replacer);
             }
 
             default void replaceNamespace(String namespace, ModelReplacer replacer) {

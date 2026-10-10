@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus.Internal;
 
 import com.google.common.collect.ImmutableMap;
@@ -168,11 +169,11 @@ public class DLBlockModelRegistry implements ResourceManagerReloadListener {
      * Maps every registered model to the location of the baked model it replaces.
      * <p>
      * Keyed by the full {@link ModelResourceLocation} including its variant, because all block states of a block
-     * share the same {@link ModelResourceLocation#id()}. The registrations are kept, so this may be called once
+     * share the same base {@link ResourceLocation}. The registrations are kept, so this may be called once
      * per resource reload.
      */
-    public static ImmutableMap<ModelResourceLocation, ModelRegistryData> getCustomRegisteredModelsMapped() {
-        Map<ModelResourceLocation, ModelRegistryData> mapped = new LinkedHashMap<>();
+    public static ImmutableMap<ResourceLocation, ModelRegistryData> getCustomRegisteredModelsMapped() {
+        Map<ResourceLocation, ModelRegistryData> mapped = new LinkedHashMap<>();
         for (ICustomModelFactory factory : customModels) {
             if (factory.getModelFactory() != null) {
                 for (BlockState state : factory.getStates()) {

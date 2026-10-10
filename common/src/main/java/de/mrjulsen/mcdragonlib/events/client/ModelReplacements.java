@@ -17,13 +17,14 @@ import de.mrjulsen.mcdragonlib.events.client.ModelEvents.ModifyModels.ModelModif
 import de.mrjulsen.mcdragonlib.events.client.ModelEvents.ModifyModels.ModelReplacer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public final class ModelReplacements {
     private ModelReplacements() {}
 
     private final ModelModifier collector = new ModelModifier() {
         @Override
-        public void replace(ModelResourceLocation location, ModelReplacer replacer) {
+        public void replace(ResourceLocation location, ModelReplacer replacer) {
             isStillCollecting();
             Objects.requireNonNull(location);
             Objects.requireNonNull(replacer);
@@ -31,7 +32,7 @@ public final class ModelReplacements {
         }
 
         @Override
-        public void replaceIf(Predicate<ModelResourceLocation> filter, ModelReplacer replacer) {
+        public void replaceIf(Predicate<ResourceLocation> filter, ModelReplacer replacer) {
             isStillCollecting();
             Objects.requireNonNull(filter);
             Objects.requireNonNull(replacer);
@@ -39,8 +40,8 @@ public final class ModelReplacements {
         }
     };
 
-    private final Map<ModelResourceLocation, ModelReplacer> named = new HashMap<>();
-    private final List<Pair<Predicate<ModelResourceLocation>, ModelReplacer>> filtered = new ArrayList<>();
+    private final Map<ResourceLocation, ModelReplacer> named = new HashMap<>();
+    private final List<Pair<Predicate<ResourceLocation>, ModelReplacer>> filtered = new ArrayList<>();
     private boolean collecting = true;
 
 
@@ -65,16 +66,16 @@ public final class ModelReplacements {
         return !filtered.isEmpty();
     }
 
-    public Set<ModelResourceLocation> namedLocations() {
+    public Set<ResourceLocation> namedLocations() {
         return Collections.unmodifiableSet(named.keySet());
     }
 
-    public boolean has(ModelResourceLocation location) {
+    public boolean has(ResourceLocation location) {
         return named.containsKey(location);
     }
 
-    public boolean matches(ModelResourceLocation location) {
-        for (Pair<Predicate<ModelResourceLocation>, ModelReplacer> pair : filtered) {
+    public boolean matches(ResourceLocation location) {
+        for (Pair<Predicate<ResourceLocation>, ModelReplacer> pair : filtered) {
             if (pair.getFirst().test(location)) {
                 return true;
             }
@@ -82,7 +83,7 @@ public final class ModelReplacements {
         return false;
     }
 
-    public boolean isModified(ModelResourceLocation location) {
+    public boolean isModified(ResourceLocation location) {
         return has(location) || matches(location);
     }
 
@@ -93,7 +94,7 @@ public final class ModelReplacements {
         };
     }
 
-    public BakedModel apply(ModelResourceLocation location, Function<ModelResourceLocation, BakedModel> lookup, Context context) {
+    public BakedModel apply(ResourceLocation location, Function<ResourceLocation, BakedModel> lookup, Context context) {
         BakedModel current = null;
         boolean fetched = false;
         boolean changed = false;
@@ -109,7 +110,7 @@ public final class ModelReplacements {
             }
         }
 
-        for (Pair<Predicate<ModelResourceLocation>, ModelReplacer> pair : filtered) {
+        for (Pair<Predicate<ResourceLocation>, ModelReplacer> pair : filtered) {
             if (!pair.getFirst().test(location)) {
                 continue;
             }
