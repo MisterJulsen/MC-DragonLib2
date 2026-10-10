@@ -1,10 +1,11 @@
 plugins {
-    id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.gradleup.shadow' version '8.3.6' apply false
-    id "net.mrjulsen.mod-build-tools" version "1.0.15"
-    id "maven-publish"
+    id 'com.gradleup.shadow' version '9.0.0' apply false
+    id "net.mrjulsen.mod-build-tools" version "2.0.4"
 }
+
+
 
 architectury {
     minecraft = project.minecraft_version
@@ -12,7 +13,7 @@ architectury {
 
 allprojects {
     group = rootProject.maven_group
-    version = "$rootProject.minecraft_version${rootProject.release_channel != "release" ? "-$rootProject.release_channel" : ""}-$rootProject.mod_version"
+    version = rootProject.mod_version
 }
 
 subprojects {
@@ -22,6 +23,16 @@ subprojects {
 
     base {
         archivesName = "$rootProject.archives_name-$project.name"
+    }
+
+    configurations.configureEach {
+        if (rootProject.hasProperty("lwjgl_version")) {
+            resolutionStrategy.eachDependency { details ->
+                if (details.requested.group == "org.lwjgl") {
+                    details.useVersion rootProject.lwjgl_version
+                }
+            }
+        }
     }
 
     repositories {
@@ -53,6 +64,7 @@ subprojects {
         def expandProps = [
             "version": version,
             "minecraft_version": rootProject.minecraft_version,
+            "datapack_version": rootProject.datapack_version,
             "issues": rootProject.issues,
             "source": rootProject.source,
             "license": rootProject.license,
@@ -90,36 +102,38 @@ subprojects {
         it.options.release = 21
     }
 
+    jar {
+        manifest {
+            attributes([
+                    "Specification-Title"     : "${rootProject.display_name}",
+                    "Specification-Vendor"    : "${rootProject.authors}",
+                    "Specification-Version"   : "1",
+                    "Implementation-Title"    : "${rootProject.display_name}",
+                    "Implementation-Version"  : "${project.version}",
+                    "Implementation-Vendor"   : "${rootProject.authors}",
+                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                    "Built-On"                : "${rootProject.minecraft_version}",
+                    "Build-Jdk"               : "${System.getProperty('java.version')} (${System.getProperty('java.vendor')})"
+            ])
+        }
+    }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                artifactId = rootProject.archives_name + "-" + project.name
+                artifactId = base.archivesName.get()
                 from components.java
             }
         }
     }
-
-    java {
-        withSourcesJar()
-        withJavadocJar()
-    }
 }
 
-    
 modBuildTools {
+    modId = project.mod_id
+    displayName = project.display_name
+
     publish {
-        localRepoDir = "${System.getProperty('user.home')}/.m2/github/modsrepo/maven"
-        publishCommon = false
-    }
-    javadoc {
-        title = "DragonLib API ${release_channel}-${mod_version}"
-        tags = [
-            "apiNote:a:API Note:",
-            "implNote:a:Impl Note:",
-            "implSpec:a:Impl Spec:",
-            "related:a:Related:",
-            "example:a:Examples:",
-            "side:a:Valid on side:"
-        ]
+        localRepoDir = file("${System.getProperty('user.home')}/.m2/github/modsrepo/maven/")
+        mavenGroup = project.maven_group
     }
 }

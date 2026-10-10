@@ -69,8 +69,48 @@ shadowJar {
     exclude "architectury.common.json"
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = 'dev-shadow'
+
+    from(rootProject.file('LICENSE'))
 }
 
 remapJar {
     input.set shadowJar.archiveFile
+}
+
+
+
+
+afterEvaluate {
+    if (!rootProject.hasProperty("lwjgl_version")) return
+
+    tasks.named("configureLaunch").configure { task ->
+        task.doLast {
+            def classpathFile = file(".gradle/loom-cache/neoforge_minecraft_classpath.txt")
+            if (!classpathFile.exists()) return
+
+            def targetVersion = rootProject.lwjgl_version
+            def lwjglPaths = [:]
+            configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+                    .findAll { it.moduleVersion.id.group == "org.lwjgl" && it.moduleVersion.id.version == targetVersion }
+                    .each { a ->
+                        def key = a.moduleVersion.id.name + (a.classifier ? "-${a.classifier}" : "")
+                        lwjglPaths[key] = a.file.absolutePath
+                    }
+
+            def newContent = lwjglPaths.inject(classpathFile.text) { content, key, newPath ->
+                def modName = key.replaceAll(/-(natives-.+)$/, "")
+                def classifier = key == modName ? "" : key.substring(modName.length() + 1)
+                def bundledLwjglVersion = "3.3.1" // must match the LWJGL version Minecraft ships (1.20.1 -> 3.3.1)
+                def oldSuffix = classifier ? "${modName}-${bundledLwjglVersion}-${classifier}.jar" : "${modName}-${bundledLwjglVersion}.jar"
+                content.readLines().collect { line ->
+                    line.contains(oldSuffix) ? newPath : line
+                }.join(System.lineSeparator())
+            }
+
+            if (newContent != classpathFile.text) {
+                classpathFile.text = newContent
+                println "✔ neoforge_minecraft_classpath.txt: LWJGL → ${targetVersion}"
+            }
+        }
+    }
 }
