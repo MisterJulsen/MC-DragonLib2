@@ -1,19 +1,11 @@
 package de.mrjulsen.mcdragonlib.mixin;
 
-import com.ibm.icu.impl.coll.BOCSU;
-import com.mojang.realmsclient.client.RealmsClient;
-
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.internal.DLTestWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfig;
-import net.minecraft.server.packs.resources.ReloadInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
