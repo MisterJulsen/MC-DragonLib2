@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.util.properties;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,7 +59,8 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
     private final S defaultValue;
     private Optional<IPropertyUpdateCallback<T>> onModify = Optional.empty();
     private Optional<IPropertyAfterUpdateCallback<T>> afterChanged = Optional.empty();
-    
+    private final List<IPropertyAfterUpdateCallback<T>> changeListeners = new ArrayList<>();
+
     private S value;
 
     /**
@@ -98,6 +101,22 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         return (P)this;
     }
 
+    public void addChangeListener(IPropertyAfterUpdateCallback<T> listener) {
+        if (listener != null) {
+            changeListeners.add(listener);
+        }
+    }
+
+    public boolean removeChangeListener(IPropertyAfterUpdateCallback<T> listener) {
+        return changeListeners.remove(listener);
+    }
+
+    protected void notifyChangeListeners(T oldValue, T newValue) {
+        for (IPropertyAfterUpdateCallback<T> l : changeListeners) {
+            l.update(oldValue, newValue);
+        }
+    }
+
     protected abstract S serialize(T t);
     protected abstract T deserialize(S s);
 
@@ -127,6 +146,7 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         T val = getModificationCallback().map(x -> x.update(old, t)).orElse(t);
         this.value = serialize(val);
         getAfterChangeCallback().ifPresent(x -> x.update(old, val));
+        notifyChangeListeners(old, val);
         return t;
     }
 
@@ -153,6 +173,7 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         T val = getModificationCallback().map(x -> x.update(old, t)).orElse(t);
         this.value = serialize(val);
         getAfterChangeCallback().ifPresent(x -> x.update(old, val));
+        notifyChangeListeners(old, val);
         return t;
     }
 

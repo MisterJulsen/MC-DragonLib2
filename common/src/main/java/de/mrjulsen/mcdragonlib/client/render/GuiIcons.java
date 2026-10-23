@@ -20,7 +20,9 @@ public enum GuiIcons {
     ARROW_UP("arrow_up", 7, 0),
     ARROW_LEFT("arrow_left", 8, 0),
     ARROW_RIGHT("arrow_right", 9, 0),
-    X("x", 10, 0);
+    X("x", 10, 0),
+    BULLET_S("bullet_s", 11, 0),
+    CHECK_S("check_s", 12, 0);
     
     private String id;
     private int u;

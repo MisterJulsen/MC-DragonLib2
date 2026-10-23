@@ -173,7 +173,15 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
 
     @Override
     public boolean remove(Object o) {
-        return this.getList().remove(o);
+        boolean b = this.getList().remove(o);
+        List<T> currentState = get();
+        List<T> modifiedState = modifyInput(currentState);
+        if (currentState != modifiedState) {
+            this.getList().clear();
+            this.getList().addAll(modifiedState);
+        }
+        runAfterChange(ListOperation.REMOVE);
+        return b;
     }
 
     @Override

@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 public class DLTextureSheet {
 
     public static final DLTextureSheet VANILLA_BUTTON = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_buttons.png"));
+    public static final DLTextureSheet CHECKBOX = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/checkbox.png"));
     public static final DLTextureSheet DRAGONLIB_UI = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/ui2.png"));
     public static final DLTextureSheet VANILLA_TEXTBOX = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_textbox.png"));
     public static final DLTextureSheet VANILLA_SCROLLBAR = new DLTextureSheet(new ResourceLocation(DragonLib.MODID, "textures/gui/vanilla_scrollbar.png"));
