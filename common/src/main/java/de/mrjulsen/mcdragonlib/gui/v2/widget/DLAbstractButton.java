@@ -1,6 +1,7 @@
 package de.mrjulsen.mcdragonlib.gui.v2.widget;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
@@ -40,7 +41,7 @@ public abstract class DLAbstractButton extends GuiComponent {
         }
 
         @Override
-        public void render(DLGuiGraphics g, GuiComponent component, double x, double y, double width, double height) {
+        public void render(DLGuiGraphics g, DLAbstractButton component, double x, double y, double width, double height) {
             if (!component.enabled.get()) {
                 GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_DISABLED), x, y, width, height);
             } else if (component.isPressed()) {
@@ -55,7 +56,7 @@ public abstract class DLAbstractButton extends GuiComponent {
 
     public record CaptionChangedEvent(Component text) implements IEvent {}
 
-    public static final Theme.Key<WidgetRenderer<? extends DLAbstractButton>> THEME_KEY_RENDERER = Theme.key(DragonLib.MODID + ".button.renderer", Renderer.STANDARD);
+    public static final Theme.Key<WidgetRenderer<DLAbstractButton>> THEME_KEY_RENDERER = Theme.key(DragonLib.MODID + ".button.renderer", Renderer.STANDARD);
     public static final Theme.Key<DLColor> THEME_KEY_BACKGROUND_COLOR = Theme.key(DragonLib.MODID + ".button.background_color", DLColor.WHITE);
 
     protected static final int TEXT_PADDING = 6;
@@ -72,6 +73,7 @@ public abstract class DLAbstractButton extends GuiComponent {
         super(x, y, w, h);
         focusable.set(true);
         clipsChildren.set(false);
+        cursor.set(CursorType.HAND);
         defaultClickSoundEventId = addEventListener(ClickEvent.class, (s, e) -> {
             playClickSound();
         }, GuiEvent.PRIORITY_LOWEST);
@@ -106,39 +108,19 @@ public abstract class DLAbstractButton extends GuiComponent {
         final Component label = getText();
         final double iconWidth = sprite == null || sprite.isEmpty() ? 0 : sprite.getWidth();
         final double textWidth = label == null ? 0 : TextUtils.textWidth(g.font(), label);
-        final double gap = iconWidth > 0 && textWidth > 0 ? ICON_GAP : 0;
+        final double iconSpace = iconWidth > 0 && textWidth > 0 ? iconWidth + ICON_GAP : iconWidth;
+        final double contentWidth = dWidth() - TEXT_PADDING * 2;
 
-        final double contentX = TEXT_PADDING;
-        final double contentWidth = Math.max(0, dWidth() - TEXT_PADDING * 2);
+        final ETextAlignment textAlign = textWidth > 0 ? textAlignment.get() : ETextAlignment.CENTER;
+        final boolean attached = iconAlignment.get() == ETextAlignment.CENTER;
+        final double iconFactor = attached ? 0 : iconAlignment.get().getId() / 2D;
 
-        double iconX;
-        double textAreaX;
-        double textAreaWidth;
-
-        switch (iconAlignment.get()) {
-            case LEFT -> {
-                iconX = contentX;
-                textAreaX = contentX + iconWidth + gap;
-                textAreaWidth = contentWidth - iconWidth - gap;
-            }
-            case RIGHT -> {
-                iconX = contentX + contentWidth - iconWidth;
-                textAreaX = contentX;
-                textAreaWidth = contentWidth - iconWidth - gap;
-            }
-            default -> {
-                ETextAlignment blockAlignment = textWidth > 0 ? textAlignment.get() : ETextAlignment.CENTER;
-                iconX = contentX + Math.max(0, GuiUtils.alignmentOffset(blockAlignment, contentWidth, iconWidth + gap + textWidth));
-                textAreaX = iconX + iconWidth + gap;
-                textAreaWidth = textWidth;
-            }
-        }
-
-        final double textX = textAreaX + Math.max(0, GuiUtils.alignmentOffset(textAlignment.get(), textAreaWidth, textWidth));
+        final double textX = TEXT_PADDING + iconSpace * (1 - iconFactor) + (contentWidth - iconSpace - textWidth) * textAlign.getId() / 2D;
+        final double iconX = attached ? textX - iconSpace : TEXT_PADDING + (contentWidth - iconWidth) * iconFactor;
         final double offset = isPressed() ? 1 : 0;
 
         if (iconWidth > 0) {
-            sprite.render(g.legacy(), (int)iconX, (int)((dHeight() - sprite.getHeight()) / 2.0D + offset));
+            sprite.render(g.legacy(), (int)Math.floor(iconX), (int)Math.floor((dHeight() - sprite.getHeight()) / 2D + offset));
         }
         if (textWidth > 0) {
             GuiUtils.text(g, label, textX, TextUtils.centerTextY(g.font(), dHeight()) + offset, getThemeValue(!enabled.get() ? Theme.TEXT_DISABLED : Theme.TEXT), drawFontShadow.get());
