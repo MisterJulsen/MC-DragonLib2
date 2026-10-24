@@ -109,7 +109,7 @@ public final class ResizeHandle extends AbstractBehaviour implements CursorSourc
         listen(GuiEvents.MouseEnterEvent.class, (src, e) -> updateHovered(e.localX(host), e.localY(host)), priority);
         listen(GuiEvents.MouseMoveEvent.class, (src, e) -> updateHovered(e.localX(host), e.localY(host)), priority);
         listen(GuiEvents.MouseLeaveEvent.class, (src, e) -> hovered = Edge.NONE, priority);
-        listen(GuiEvents.DragBeginEvent.class, this::onDragBegin, priority);
+        listen(GuiEvents.DragThresholdBeginEvent.class, this::onDragBegin, priority);
         listen(GuiEvents.DragEvent.class, this::onDrag, priority);
         listen(GuiEvents.DragEndEvent.class, this::onDragEnd, priority);
     }

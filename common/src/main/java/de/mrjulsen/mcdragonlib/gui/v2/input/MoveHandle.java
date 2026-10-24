@@ -77,7 +77,7 @@ public final class MoveHandle extends AbstractBehaviour implements CursorSource 
 
     @Override
     protected void onAttached(GuiComponent host) {
-        listen(GuiEvents.DragBeginEvent.class, this::onDragBegin, priority);
+        listen(GuiEvents.DragThresholdBeginEvent.class, this::onDragBegin, priority);
         listen(GuiEvents.DragEvent.class, this::onDrag, priority);
         listen(GuiEvents.DragEndEvent.class, this::onDragEnd, priority);
     }
@@ -110,7 +110,7 @@ public final class MoveHandle extends AbstractBehaviour implements CursorSource 
         return moving ? CursorType.ALLRESIZE : null;
     }
 
-    private void onDragBegin(GuiComponent src, GuiEvents.DragBeginEvent event) {
+    private void onDragBegin(GuiComponent src, GuiEvents.DragThresholdBeginEvent event) {
         GuiComponent target = target();
         if (!enabled.get() || target == null) {
             return;

@@ -44,6 +44,8 @@ public final class InputRouter {
     private double lastScreenY;
 
     private boolean dragging;
+    private boolean dragThresholdExceeded;
+    private boolean dragConsumed;
     private DragSession dragSession;
 
     private int clickCount;
@@ -282,31 +284,30 @@ public final class InputRouter {
         if (pressed == null) {
             return false;
         }
-        if (!dragging) {
-            double distance = Math.abs(screenX - pressScreenX) + Math.abs(screenY - pressScreenY);
-            if (distance < DRAG_THRESHOLD) {
-                return false;
-            }
+
+        boolean wasThresholdExceeded = dragThresholdExceeded;
+        dragThresholdExceeded |= Math.abs(screenX - pressScreenX) + Math.abs(screenY - pressScreenY) >= DRAG_THRESHOLD;
+        if (!dragging || wasThresholdExceeded != dragThresholdExceeded) {
+            boolean wasDragging = dragging;
             dragging = true;
-            startDrag(screenX, screenY, button);
+            startDrag(screenX, screenY, button, !wasDragging);
         }
         if (dragSession != null) {
             updateDropTarget(root, screenX, screenY);
         } else {
-            deliver(pressedStack, new GuiEvents.DragEvent(pressed, screenX, screenY, button, pressScreenX, pressScreenY, deltaX, deltaY));
+            dragConsumed |= !deliver(pressedStack, new GuiEvents.DragEvent(pressed, screenX, screenY, button, pressScreenX, pressScreenY, deltaX, deltaY, dragThresholdExceeded));
         }
         updateCursor();
         return true;
     }
 
-    private void startDrag(double screenX, double screenY, int button) {
+    private void startDrag(double screenX, double screenY, int button, boolean fresh) {
         for (int i = 0; i < pressedStack.size(); i++) {
             GuiComponent component = pressedStack.get(i);
             if (!component.isEnabled()) {
                 continue;
             }
-            if (component.hasEventListeners(GuiEvents.DragBeginEvent.class)
-                || component.hasEventListeners(GuiEvents.DragEvent.class)) {
+            if (component.hasEventListeners(GuiEvents.DragBeginEvent.class) || component.hasEventListeners(GuiEvents.DragEvent.class)) {
                 break;
             }
             if (!(component instanceof DragSource source)) {
@@ -322,7 +323,13 @@ public final class InputRouter {
             return;
         }
         dragSession = null;
-        deliver(pressedStack, new GuiEvents.DragBeginEvent(pressed, pressScreenX, pressScreenY, button));
+
+        if (fresh) {
+            dragConsumed |= !deliver(pressedStack, new GuiEvents.DragBeginEvent(pressed, pressScreenX, pressScreenY, button));
+        }
+        if (dragThresholdExceeded) {
+            dragConsumed |= !deliver(pressedStack, new GuiEvents.DragThresholdBeginEvent(pressed, pressScreenX, pressScreenY, button));
+        }
     }
 
     private void updateDropTarget(GuiComponent root, double screenX, double screenY) {
@@ -359,9 +366,11 @@ public final class InputRouter {
                 dragSession.finish();
                 dragSession = null;
             } else {
-                deliver(pressedStack, new GuiEvents.DragEndEvent(pressed, screenX, screenY, button, pressScreenX, pressScreenY));
+                dragConsumed |= !deliver(pressedStack, new GuiEvents.DragEndEvent(pressed, screenX, screenY, button, pressScreenX, pressScreenY, dragThresholdExceeded));
             }
-        } else {
+        }
+
+        if (dragSession == null && !dragConsumed) {
             deliver(pressedStack, new GuiEvents.MouseReleaseEvent(pressed, screenX, screenY, button));
             if (pressed.containsScreenPoint(screenX, screenY)) {
                 emitClick(screenX, screenY, button);
@@ -370,6 +379,8 @@ public final class InputRouter {
 
         releasePressed();
         dragging = false;
+        dragThresholdExceeded = false;
+        dragConsumed = false;
         updateHover(root, screenX, screenY);
         return true;
     }

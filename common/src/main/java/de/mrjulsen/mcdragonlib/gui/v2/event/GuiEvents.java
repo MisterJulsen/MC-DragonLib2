@@ -401,6 +401,13 @@ public interface GuiEvents {
         }
     }
 
+    class DragThresholdBeginEvent extends DragBeginEvent {
+
+        public DragThresholdBeginEvent(GuiComponent target, double screenX, double screenY, int button) {
+            super(target, screenX, screenY, button);
+        }
+    }
+
     /**
      * The mouse moved while dragging. {@code dragX}/{@code dragY} are the step since the last event,
      * {@code originX}/{@code originY} where the drag started, and {@code totalDelta} the distance
@@ -412,13 +419,15 @@ public interface GuiEvents {
         private final double originY;
         private final double dragX;
         private final double dragY;
+        private final boolean thresholdExceeded;
 
-        public DragEvent(GuiComponent target, double screenX, double screenY, int button, double originX, double originY, double dragX, double dragY) {
+        public DragEvent(GuiComponent target, double screenX, double screenY, int button, double originX, double originY, double dragX, double dragY, boolean thresholdExceeded) {
             super(target, screenX, screenY, button);
             this.originX = originX;
             this.originY = originY;
             this.dragX = dragX;
             this.dragY = dragY;
+            this.thresholdExceeded = thresholdExceeded;
         }
 
         public double originX() {
@@ -444,6 +453,10 @@ public interface GuiEvents {
         public double totalDeltaY() {
             return screenY() - originY;
         }
+
+        public boolean thresholdExceeded() {
+            return thresholdExceeded;
+        }
     }
 
     /**
@@ -453,11 +466,13 @@ public interface GuiEvents {
 
         private final double originX;
         private final double originY;
+        private final boolean thresholdExceeded;
 
-        public DragEndEvent(GuiComponent target, double screenX, double screenY, int button, double originX, double originY) {
+        public DragEndEvent(GuiComponent target, double screenX, double screenY, int button, double originX, double originY, boolean thresholdExceeded) {
             super(target, screenX, screenY, button);
             this.originX = originX;
             this.originY = originY;
+            this.thresholdExceeded = thresholdExceeded;
         }
 
         public double originX() {
@@ -466,6 +481,10 @@ public interface GuiEvents {
 
         public double originY() {
             return originY;
+        }
+
+        public boolean thresholdExceeded() {
+            return thresholdExceeded;
         }
     }
 
