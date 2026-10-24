@@ -16,5 +16,5 @@ public interface WidgetRenderer<T extends GuiComponent> {
      */
     WidgetRenderer<?> NONE = (g, component, x, y, width, height) -> {};
 
-    void render(DLGuiGraphics g, GuiComponent component, double x, double y, double width, double height);
+    void render(DLGuiGraphics g, T component, double x, double y, double width, double height);
 }
