@@ -298,8 +298,15 @@ public final class GuiUtils {
      * Fills a rectangle and draws a 1 pixel border on top of it.
      */
     public static void box(DLGuiGraphics g, double x, double y, double width, double height, DLColor fill, DLColor border) {
+        box(g, x, y, width, height, fill, border, 1);
+    }
+
+    /**
+     * Fills a rectangle and draws border on top of it.
+     */
+    public static void box(DLGuiGraphics g, double x, double y, double width, double height, DLColor fill, DLColor border, int thickness) {
         fill(g, x, y, width, height, fill);
-        border(g, x, y, width, height, 1, border);
+        border(g, x, y, width, height, thickness, border);
     }
 
 
@@ -408,10 +415,13 @@ public final class GuiUtils {
      * @return the offset, negative if the content is longer than the available space
      */
     public static double alignmentOffset(ETextAlignment alignment, double available, double content) {
+        if (content <= 0) {
+            return 0;
+        }
         return switch (alignment) {
-            case CENTER -> (available - content) / 2.0D;
+            case CENTER -> available / 2D - content / 2D;
             case RIGHT -> available - content;
-            default -> 0.0D;
+            default -> 0D;
         };
     }
 
