@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 
 public class DLButton extends DLAbstractButton {
 
-    public final Property<Component> text = new Property<>(TextUtils.empty());
+    public final Property<Component> text = new Property<>(TextUtils.text(getClass().getSimpleName()));
     public final Property<DLSprite> icon = new Property<>(DLSprite.empty());
 
     public DLButton(int x, int y, int w, int h) {

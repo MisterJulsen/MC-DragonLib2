@@ -23,7 +23,7 @@ public class DLToggleButton extends DLAbstractToggleButton {
         }
 
         @Override
-        public void render(DLGuiGraphics g, GuiComponent component, double x, double y, double width, double height) {
+        public void render(DLGuiGraphics g, DLAbstractButton component, double x, double y, double width, double height) {
             if (component.enabled.get() && component instanceof DLToggleButton t && t.checked.get()) {
                 if (component.isHovered() || component.isFocused()) {
                     GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_PRESSED), x, y, width, height);
@@ -36,7 +36,7 @@ public class DLToggleButton extends DLAbstractToggleButton {
         }
     }
 
-    public final Property<Component> text = new Property<>(TextUtils.empty());
+    public final Property<Component> text = new Property<>(TextUtils.text(getClass().getSimpleName()));
     public final Property<Function<Boolean, DLSprite>> icon = new Property<>((state -> null));
 
     public DLToggleButton(int x, int y, int w, int h) {

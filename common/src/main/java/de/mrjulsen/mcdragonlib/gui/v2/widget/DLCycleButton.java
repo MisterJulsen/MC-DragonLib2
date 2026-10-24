@@ -35,7 +35,7 @@ public class DLCycleButton<T> extends DLAbstractButton {
     public final NumberProperty<Integer> selectedIndex = new NumberProperty<>(INVALID, INVALID, Integer.MAX_VALUE);
     public final BooleanProperty cycling = new BooleanProperty(true);
 
-    public final Property<Component> text = new Property<>(TextUtils.empty());
+    public final Property<Component> text = new Property<>(TextUtils.text(getClass().getSimpleName()));
     public final Property<Function<Optional<T>, Component>> textFormat = new Property<>((item) -> TextUtils.text(text.get().getString()).append(": ").append(item.map(Object::toString).orElse("")));
     public final Property<Function<Optional<T>, DLSprite>> icon = new Property<>((item) -> null);
 

@@ -59,7 +59,7 @@ public class DLCheckBox extends DLAbstractToggleButton {
         }
 
         @Override
-        public void render(DLGuiGraphics g, GuiComponent component, double x, double y, double width, double height) {
+        public void render(DLGuiGraphics g, DLAbstractButton component, double x, double y, double width, double height) {
             if (!(component instanceof DLCheckBox cb)) {
                 return;
             }
@@ -101,7 +101,7 @@ public class DLCheckBox extends DLAbstractToggleButton {
         }
     }
 
-    public final Property<Component> text = new Property<>(TextUtils.empty());
+    public final Property<Component> text = new Property<>(TextUtils.text(getClass().getSimpleName()));
     public final BooleanProperty textWrap = new BooleanProperty(true);
 
     private int cachedLinesW;
