@@ -10,22 +10,22 @@ public enum WidgetState {
     HOVERED,
     PRESSED,
     FOCUSED,
+    DISABLED_HOVERED,
     DISABLED;
 
     /**
      * The state of a component, by precedence: disabled, pressed, hovered, focused, normal.
      */
     public static WidgetState of(GuiComponent component) {
-        if (!component.isEnabled()) {
+        if (!component.isEnabled() && component.isHovered()) {
+            return DISABLED_HOVERED;
+        } else if (!component.isEnabled()) {
             return DISABLED;
-        }
-        if (component.isPressed()) {
+        } else if (component.isPressed()) {
             return PRESSED;
-        }
-        if (component.isHovered()) {
+        } else if (component.isHovered()) {
             return HOVERED;
-        }
-        if (component.isFocused()) {
+        } else if (component.isFocused()) {
             return FOCUSED;
         }
         return NORMAL;
