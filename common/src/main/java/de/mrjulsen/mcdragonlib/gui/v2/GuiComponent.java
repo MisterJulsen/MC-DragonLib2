@@ -997,6 +997,9 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
      * a resize handle can show an arrow; otherwise the {@link #cursor} property wins.
      */
     public CursorType getCurrentCursor() {
+        if (!enabled.get()) {
+            return CursorType.NOT_ALLOWED;
+        }
         if (behaviours != null) {
             for (Behaviour b : behaviours) {
                 if (b instanceof CursorSource source) {
