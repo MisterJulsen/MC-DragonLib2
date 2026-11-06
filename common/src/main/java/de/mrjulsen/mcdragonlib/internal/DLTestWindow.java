@@ -5,7 +5,6 @@ import java.util.List;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.*;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.autocomplete.DLAutocompleteWindow;
 import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.glfw.GLFW;
 
@@ -23,10 +22,6 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.action.UrlClickAction;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLFormattedLabel;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLTextBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.TextFormat;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.input.KeyStrokes;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
@@ -123,10 +118,12 @@ public class DLTestWindow extends DLWindow {
 
         DLScrollBar scrollbarV = new DLScrollBar(20, 115, 100, Orientation.VERTICAL);
         scrollbarV.componentRenderer.set(VanillaListScrollBarRenderer.VANILLA_SCROLLBAR);
+        scrollbarV.scrollerSize.set(5);
         addComponent(scrollbarV);
         
         DLScrollBar scrollbarH = new DLScrollBar(40, 115, 100, Orientation.HORIZONTAL);
         scrollbarH.showButtons.set(true);
+        scrollbarH.scrollerSize.set(5);
         addComponent(scrollbarH);
 
         DLToggleButton toggleBtn = new DLToggleButton(150, 20, 50, 20);
@@ -142,18 +139,10 @@ public class DLTestWindow extends DLWindow {
         DLNumberPicker numberPicker = new DLNumberPicker(50, 150, 80, 20);
         addComponent(numberPicker);
 
-        DLTextBox textbox = new DLTextBox(200, 50, 250, 200);
-        textbox.format.set(TextFormat.MARKDOWN_EXTENDED);
-        textbox.multiline.set(true);
-        textbox.autocompleteManager.set((DLAutocompleteWindow<String> win, DLTextBox box) -> {
-            List<String> str = new ArrayList<>();
-            for (int i = 0; i < 10000; i++) {
-                str.add("Test " + i);
-            }
-            win.items.set(str);
-            win.itemFilter.set(s -> s.toLowerCase().contains(box.getPlainText().toLowerCase()));
-        });
-        addComponent(textbox);
+        DLItemPicker<String> itemPicker = new DLItemPicker<>(50, 180, 80, 20);
+        itemPicker.items.addAll(List.of("Item 1", "Item 2", "Item 3", "Item 4", "Item 5"));
+        addComponent(itemPicker);
+
 
 
         DLProgressBar progressBar = new DLProgressBar(300, 20, 200, 10);

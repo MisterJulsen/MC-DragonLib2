@@ -232,6 +232,7 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
+        runAfterChange(ListOperation.REPLACE);
         return t;
     }
 

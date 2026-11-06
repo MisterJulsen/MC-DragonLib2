@@ -8,6 +8,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.GuiComponent;
 import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
+import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetRenderer;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
@@ -22,7 +23,7 @@ public class DLCheckBox extends DLAbstractToggleButton {
 
     public static final int BOX_GAP = 3;
 
-    public static class Renderer extends DLAbstractButton.Renderer {
+    public static class Renderer implements WidgetRenderer<DLAbstractButton> {
 
         public static final Renderer STANDARD = new Renderer(DLTextureSheet.CHECKBOX);
         private static final int STATE_NORMAL = 0;
@@ -43,11 +44,13 @@ public class DLCheckBox extends DLAbstractToggleButton {
                 "radiobutton_checked_selected"
         };
 
+
+        protected final DLTextureSheet spriteSheet;
         private int spriteWidth;
         private int spriteHeight;
 
         public Renderer(DLTextureSheet spriteSheet) {
-            super(spriteSheet);
+            this.spriteSheet = spriteSheet;
         }
 
         public int getSpriteWidth() {

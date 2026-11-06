@@ -382,6 +382,47 @@ public final class DLGuiGraphics {
     }
 
     /**
+     * Enters a local coordinate space whose 0/0 sits at that point of the current one, and advances the
+     * depth so what follows is drawn on top. Must be paired with {@link #popLocalSpace()}; prefer
+     * {@link #withLocalSpace} where possible.
+     * <p>Everything inside works in the new local coordinates, exactly as a component does: not only
+     * drawing, but also {@link #mouseX()}, {@link #mouseY()} and
+     * {@link #pushClip(GuiComponent, double, double, double, double)}. That makes it the way to render
+     * a widget's internal parts, like the rows of a list or the items of a context menu, without
+     * handing each of them an offset to add by hand.</p>
+     */
+    public void pushLocalSpace(double localX, double localY) {
+        PoseStack pose = pose();
+        pose.pushPose();
+        pose.translate(localX, localY, 0);
+        pushOrigin(originX + localX * originScale, originY + localY * originScale, originScale);
+        pushZ();
+        advanceZ(zStep);
+    }
+
+    /**
+     * Restores the coordinate space from before the matching push.
+     */
+    public void popLocalSpace() {
+        popZ();
+        popOrigin();
+        pose().popPose();
+    }
+
+    /**
+     * Runs the action in a local coordinate space starting at that point and restores the previous one
+     * afterwards, even if the action throws.
+     */
+    public void withLocalSpace(double localX, double localY, Runnable action) {
+        pushLocalSpace(localX, localY);
+        try {
+            action.run();
+        } finally {
+            popLocalSpace();
+        }
+    }
+
+    /**
      * Queues drawing for the end of the frame, on the given layer. The action runs outside all clip
      * rectangles and above the normal content, which is what tooltips, popups and drag ghosts need.
      * <p>Coordinates inside the action are screen coordinates, since the pose stack is no longer at the

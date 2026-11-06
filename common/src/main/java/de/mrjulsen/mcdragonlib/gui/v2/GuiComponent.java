@@ -909,6 +909,10 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
         return pressed;
     }
 
+    public int getPressedButton() {
+        return pressButton;
+    }
+
     /**
      * Set by the input router while the mouse is over this component. Not meant to be called by hand.
      */

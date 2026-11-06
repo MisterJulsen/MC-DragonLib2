@@ -1,6 +1,8 @@
 package de.mrjulsen.mcdragonlib.gui.v2.theme;
 
 import de.mrjulsen.mcdragonlib.gui.v2.GuiComponent;
+import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * The visual state of a widget, which is what a {@link WidgetRenderer} picks its look from.
@@ -21,7 +23,7 @@ public enum WidgetState {
             return DISABLED_HOVERED;
         } else if (!component.isEnabled()) {
             return DISABLED;
-        } else if (component.isPressed()) {
+        } else if (component.isPressed() && component.getPressedButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return PRESSED;
         } else if (component.isHovered()) {
             return HOVERED;

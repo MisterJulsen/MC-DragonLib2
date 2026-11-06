@@ -4,7 +4,6 @@ import de.mrjulsen.mcdragonlib.annotations.SupportsEvents;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.textbox.DLTextBox;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
@@ -38,28 +37,23 @@ public class DLEditableLabel extends DLGuiComponent {
     public final BooleanProperty editable = new BooleanProperty(true);
 
 
-    protected final DLTextBox input;
+    protected final DLRichTextEditBox editBox;
     protected boolean isEditing = false;
-
-    @Deprecated
-    protected final DLRichTextEditBox editBox = new DLRichTextEditBox(0, 0, 1, 1);
 
     public DLEditableLabel(int x, int y, int w, int h) {
         super(x, y, w, h);
 
-        input = new DLTextBox(0, 0, w, h);
-        input.anchor.set(EAlign.values());
-        input.visible.set(false);
-        input.multiline.set(false);
-        input.padding.set(new Padding(0, 3, 0, 3));
-        addComponent(input);
+        editBox = new DLRichTextEditBox(0, 0, w, h);
+        editBox.anchor.set(EAlign.values());
+        editBox.visible.set(false);
+        addComponent(editBox);
 
-        input.addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
+        editBox.addEventListener(DLGuiStandardEvents.FocusChangedEvent.class, (s, e) -> {
             if (isEditing && !e.focus()) {
                 this.isEditing = false;
-                this.input.visible.set(false);
+                this.editBox.visible.set(false);
                 if (editable.get()) {
-                    this.text.set(this.input.getText());
+                    this.text.set(this.editBox.text.get().getPlainText());
                     invokeEvent(this, new EditModeChangedEvent(false));
                     invokeEvent(this, new TextEditedEvent(this.text.get()));
                 }
@@ -70,18 +64,14 @@ public class DLEditableLabel extends DLGuiComponent {
         addEventListener(DLGuiStandardEvents.ClickEvent.class, (s, e) -> {
             if (editable.get() && !isEditing) {
                 this.isEditing = true;
-                this.input.visible.set(true);
-                this.input.setText(text.get());
+                this.editBox.visible.set(true);
                 this.editBox.text.get().set(text.get());
-                getWindowManager().focusComponent(this.input);
+                this.editBox.contentPadding.set(new Padding(0, 3, 0, 3));
+                getWindowManager().focusComponent(this.editBox);
                 invokeEvent(this, new EditModeChangedEvent(true));
             }
             return false;
         });
-    }
-
-    public DLTextBox textInput() {
-        return input;
     }
 
     public boolean isEditing() {

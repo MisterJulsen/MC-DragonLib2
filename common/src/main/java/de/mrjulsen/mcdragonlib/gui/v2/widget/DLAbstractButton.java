@@ -13,6 +13,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetRenderer;
+import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetState;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Size;
@@ -22,17 +23,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import org.lwjgl.glfw.GLFW;
 
 public abstract class DLAbstractButton extends GuiComponent {
 
     public static class Renderer implements WidgetRenderer<DLAbstractButton> {
 
-        public static final Renderer STANDARD = new Renderer(DLTextureSheet.VANILLA_BUTTON);
-
         public static final String SPRITE_NORMAL = "normal";
-        public static final String SPRITE_PRESSED = "down_selected";
-        public static final String SPRITE_HOVERED = "selected";
         public static final String SPRITE_DISABLED = "disabled";
+        public static final String SPRITE_SELECTED = "selected";
+        public static final String SPRITE_DOWN = "down";
+        public static final String SPRITE_DOWN_SELECTED = "down_selected";
 
         protected final DLTextureSheet spriteSheet;
 
@@ -40,23 +41,57 @@ public abstract class DLAbstractButton extends GuiComponent {
             this.spriteSheet = spriteSheet;
         }
 
+        protected String getSprite(DLAbstractButton component) {
+            return switch (WidgetState.of(component)) {
+                case DISABLED, DISABLED_HOVERED -> SPRITE_DISABLED;
+                case HOVERED, FOCUSED -> SPRITE_SELECTED;
+                case PRESSED -> SPRITE_DOWN_SELECTED;
+                default -> SPRITE_NORMAL;
+            };
+        }
+
         @Override
         public void render(DLGuiGraphics g, DLAbstractButton component, double x, double y, double width, double height) {
-            if (!component.enabled.get()) {
-                GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_DISABLED), x, y, width, height);
-            } else if (component.isPressed()) {
-                GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_PRESSED), x, y, width, height);
-            } else if (component.isHovered() || component.isFocused()) {
-                GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_HOVERED), x, y, width, height);
-            } else {
-                GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_NORMAL), x, y, width, height);
-            }
+            GuiUtils.sprite(g, spriteSheet.getSprite(getSprite(component)), x, y, width, height);
         }
     }
 
+    public static class FlatRenderer extends Renderer {
+
+        private final String spritePrefix;
+
+        public FlatRenderer(DLTextureSheet spriteSheet, String spritePrefix) {
+            super(spriteSheet);
+            this.spritePrefix = spritePrefix;
+        }
+
+        @Override
+        protected String getSprite(DLAbstractButton component) {
+            return "button_" + spritePrefix + "_" + switch (WidgetState.of(component)) {
+                case DISABLED, DISABLED_HOVERED -> SPRITE_DISABLED;
+                case HOVERED -> SPRITE_SELECTED;
+                case PRESSED -> SPRITE_DOWN_SELECTED;
+                default -> SPRITE_NORMAL;
+            };
+        }
+    }
+
+
+    public static final Renderer VANILLA_RENDERER = new Renderer(DLTextureSheet.VANILLA_BUTTON);
+    public static final Renderer VANILLA_LEGACY_RENDERER = new Renderer(DLTextureSheet.VANILLA_BUTTON) {
+        @Override
+        protected String getSprite(DLAbstractButton component) {
+            return "legacy_" + super.getSprite(component);
+        }
+    };
+    public static final Renderer FLAT_GRAY_RENDERER = new FlatRenderer(DLTextureSheet.DRAGONLIB_UI, "gray");
+    public static final Renderer FLAT_BROWN_RENDERER = new FlatRenderer(DLTextureSheet.DRAGONLIB_UI, "brown");
+    public static final Renderer FLAT_RED_RENDERER = new FlatRenderer(DLTextureSheet.DRAGONLIB_UI, "red");
+
+
     public record CaptionChangedEvent(Component text) implements IEvent {}
 
-    public static final Theme.Key<WidgetRenderer<DLAbstractButton>> THEME_KEY_RENDERER = Theme.key(DragonLib.MODID + ".button.renderer", Renderer.STANDARD);
+    public static final Theme.Key<WidgetRenderer<DLAbstractButton>> THEME_KEY_RENDERER = Theme.key(DragonLib.MODID + ".button.renderer", VANILLA_RENDERER);
     public static final Theme.Key<DLColor> THEME_KEY_BACKGROUND_COLOR = Theme.key(DragonLib.MODID + ".button.background_color", DLColor.WHITE);
 
     protected static final int TEXT_PADDING = 6;
@@ -117,7 +152,7 @@ public abstract class DLAbstractButton extends GuiComponent {
 
         final double textX = TEXT_PADDING + iconSpace * (1 - iconFactor) + (contentWidth - iconSpace - textWidth) * textAlign.getId() / 2D;
         final double iconX = attached ? textX - iconSpace : TEXT_PADDING + (contentWidth - iconWidth) * iconFactor;
-        final double offset = isPressed() ? 1 : 0;
+        final double offset = isPressed() && getPressedButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : 0;
 
         if (iconWidth > 0) {
             sprite.render(g.legacy(), (int)Math.floor(iconX), (int)Math.floor((dHeight() - sprite.getHeight()) / 2D + offset));
