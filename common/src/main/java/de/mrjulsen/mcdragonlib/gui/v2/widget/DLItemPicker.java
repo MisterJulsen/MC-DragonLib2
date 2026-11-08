@@ -97,7 +97,7 @@ public class DLItemPicker<T> extends GuiComponent {
     public static final Theme.Key<WidgetRenderer<ContentPanel<?>>> THEME_KEY_RENDERER = Theme.key(DragonLib.MODID + ".item_picker.renderer", RENDERER);
     public static final Theme.Key<DLColor> THEME_KEY_BACKGROUND_COLOR = Theme.key(DragonLib.MODID + ".item_picker.background_color", DLColor.WHITE);
 
-    public final ListProperty<T> items = new ListProperty<T>().withUpdateCallback((val, operation) -> updateSelectedItem(operation == ListProperty.ListOperation.ADD));
+    public final ListProperty<T> items = new ListProperty<T>().withUpdateCallback((val, operation) -> updateSelectedItem(operation == ListProperty.ListOperation.ADD || operation == ListProperty.ListOperation.REPLACE));
     public final Property<Optional<T>> selectedItem = new Property<>(Optional.empty());
     public final NumberProperty<Integer> selectedIndex = new NumberProperty<>(INVALID, INVALID, Integer.MAX_VALUE);
 

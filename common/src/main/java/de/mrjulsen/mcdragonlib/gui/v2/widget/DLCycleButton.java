@@ -30,7 +30,7 @@ public class DLCycleButton<T> extends DLAbstractButton {
     public record SelectedItemChanged<T>(Optional<T> item, int index) implements IEvent {}
 
     public final ListProperty<T> items = new ListProperty<T>()
-            .withUpdateCallback((val, operation) -> updateSelectedItem(operation == ListProperty.ListOperation.ADD));
+            .withUpdateCallback((val, operation) -> updateSelectedItem(operation == ListProperty.ListOperation.ADD || operation == ListProperty.ListOperation.REPLACE));
     public final Property<Optional<T>> selectedItem = new Property<>(Optional.empty());
     public final NumberProperty<Integer> selectedIndex = new NumberProperty<>(INVALID, INVALID, Integer.MAX_VALUE);
     public final BooleanProperty cycling = new BooleanProperty(true);

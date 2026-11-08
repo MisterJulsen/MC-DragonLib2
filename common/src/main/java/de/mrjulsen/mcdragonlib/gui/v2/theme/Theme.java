@@ -14,6 +14,9 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
  */
 public final class Theme {
 
+    public static final DLColor BORDER_COLOR = DLColor.fromInt(0xFFA0A0A0);
+    public static final DLColor BACKGROUND_COLOR = DLColor.fromInt(0xFF000000);
+
     /**
      * A theme key: its name and the value to use when no theme defines it.
      * <p>Keys are compared by identity, so hold on to the constant instead of building the same key
@@ -21,7 +24,7 @@ public final class Theme {
      */
     public record Key<T>(String id, T fallback) {}
 
-    public static final Key<DLColor> TEXT = key("text", DLColor.WHITE);
+    public static final Key<DLColor> TEXT = key("text", DLColor.fromInt(0xFFFCFCFC));
     public static final Key<DLColor> TEXT_DISABLED = key("text_disabled", DLColor.fromInt(0xFF9E9E9E));
     public static final Key<DLColor> TEXT_HIGHLIGHT = key("text_highlight", DLColor.fromInt(0xFFFFFFA0));
     public static final Key<DLColor> TEXT_MUTED = key("text_muted", DLColor.fromInt(0xFF969696));

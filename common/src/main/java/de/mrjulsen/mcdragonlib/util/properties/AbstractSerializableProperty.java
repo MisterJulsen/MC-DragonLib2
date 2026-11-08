@@ -111,6 +111,10 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         return changeListeners.remove(listener);
     }
 
+    protected boolean hasChangeListeners() {
+        return !changeListeners.isEmpty() || afterChanged.isPresent();
+    }
+
     protected void notifyChangeListeners(T oldValue, T newValue) {
         for (IPropertyAfterUpdateCallback<T> l : changeListeners) {
             l.update(oldValue, newValue);
