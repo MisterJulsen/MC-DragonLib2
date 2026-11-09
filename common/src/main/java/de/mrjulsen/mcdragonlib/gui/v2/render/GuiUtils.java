@@ -288,6 +288,7 @@ public final class GuiUtils {
         if (width <= 0 || height <= 0 || thickness <= 0 || color.getAlpha() == 0) {
             return;
         }
+
         fill(g, x, y, width, thickness, color);
         fill(g, x, y + height - thickness, width, thickness, color);
         fill(g, x, y + thickness, thickness, height - thickness * 2, color);
@@ -305,7 +306,7 @@ public final class GuiUtils {
      * Fills a rectangle and draws border on top of it.
      */
     public static void box(DLGuiGraphics g, double x, double y, double width, double height, DLColor fill, DLColor border, int thickness) {
-        fill(g, x, y, width, height, fill);
+        fill(g, x + 1, y + 1, width - 2, height - 2, fill);
         border(g, x, y, width, height, thickness, border);
     }
 

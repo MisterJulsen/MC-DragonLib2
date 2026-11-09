@@ -15,6 +15,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.input.WheelScroll;
 import de.mrjulsen.mcdragonlib.gui.v2.layout.StackLayout;
 import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
+import de.mrjulsen.mcdragonlib.gui.v2.theme.BoxStyle;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetRenderer;
 import de.mrjulsen.mcdragonlib.util.DLColor;
@@ -31,19 +32,16 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class DLListBox<T> extends GuiComponent {
 
-    public record SelectedItemsChanged<T>(List<T> items, List<Integer> indices) implements IEvent {}
-    public record ItemCheckedChanged<T>(T item, int index, boolean checked) implements IEvent {}
+    public record SelectedItemsChanged(List<?> items, List<Integer> indices) implements IEvent {}
+    public record ItemActivation(Optional<?> item, int index) implements IEvent {}
+    public record ItemCheckedChanged(Optional<?> item, int index, boolean checked) implements IEvent {}
 
     public enum CheckMode {
         NONE,
@@ -84,6 +82,7 @@ public class DLListBox<T> extends GuiComponent {
                 Rectangle bounds = itemBounds();
                 double mouseX = e.localX(s);
                 double mouseY = e.localY(s);
+
                 if (bounds.collision(mouseX, mouseY)) {
                     int idx = indexAt(mouseY + scrollY() - bounds.top());
                     container.itemClick(idx, mouseX - bounds.left());
@@ -92,17 +91,22 @@ public class DLListBox<T> extends GuiComponent {
 
             scroll = new WheelScroll();
             addBehaviour(scroll);
+
+            addEventListener(GuiEvents.LayoutUpdatedEvent.class, (s, e) -> {
+                container.scrollbar.max.set((int)itemsHeight());
+                container.scrollbar.screenSize.set((int)itemBounds().height());
+                container.scrollbar.stepSize.set(container.itemHeight.get());
+                scroll.step.set((double)container.itemHeight.get());
+            });
         }
 
         @Override
         protected Size measureContent(double availableWidth, double availableHeight) {
-            Rectangle itemBounds = itemBounds();
-            double h = container.items.size() * container.itemHeight.get();
-            container.scrollbar.max.set((int)h);
-            container.scrollbar.screenSize.set((int)itemBounds.height());
-            container.scrollbar.stepSize.set(container.itemHeight.get());
-            scroll.step.set((double)container.itemHeight.get());
-            return Size.of(0, dHeight() - itemBounds.height() + h);
+            return Size.of(0, itemsHeight() + getThemeValue(THEME_KEY_ITEM_MARGIN).vertical());
+        }
+
+        protected double itemsHeight() {
+            return (double)container.items.size() * container.itemHeight.get();
         }
 
         protected Rectangle itemBounds() {
@@ -145,7 +149,7 @@ public class DLListBox<T> extends GuiComponent {
         }
 
         protected void renderListBox(DLGuiGraphics g, DLListBox<?> component, double width, double height) {
-            GuiUtils.box(g, 0, 0, width, height, component.getThemeValue(THEME_KEY_BACKGROUND_COLOR), component.getThemeValue(THEME_KEY_BORDER_COLOR));
+            GuiUtils.box(g, 0, 0, width, height, component.getThemeValue(THEME_KEY_COLOR).fill(), component.getThemeValue(THEME_KEY_COLOR).border());
         }
 
         protected void renderItem(DLGuiGraphics g, DLListBox<?> component, int itemIndex, ItemPanel.RowLayout layout, double width, double height) {
@@ -163,9 +167,9 @@ public class DLListBox<T> extends GuiComponent {
 
         protected void renderItemBackground(DLGuiGraphics g, DLListBox<?> component, int itemIndex, boolean selected, boolean hovered, double width, double height) {
             if (selected) {
-                GuiUtils.box(g, 0, 0, width, height, Theme.BACKGROUND_COLOR, DLColor.WHITE);
+                GuiUtils.box(g, 0, 0, width, height, component.getThemeValue(THEME_KEY_ITEM_SELECTION_COLOR).fill(), component.getThemeValue(THEME_KEY_ITEM_SELECTION_COLOR).border());
             } else if (hovered) {
-                GuiUtils.box(g, 0, 0, width, height, Theme.BACKGROUND_COLOR, Theme.BORDER_COLOR);
+                GuiUtils.box(g, 0, 0, width, height, component.getThemeValue(THEME_KEY_ITEM_HOVER_COLOR).fill(), component.getThemeValue(THEME_KEY_ITEM_HOVER_COLOR).border());
             }
         }
 
@@ -201,9 +205,9 @@ public class DLListBox<T> extends GuiComponent {
 
     public static final Theme.Key<Renderer> THEME_KEY_ITEM_RENDERER = Theme.key(DragonLib.MODID + ".listbox.item_renderer", new Renderer());
     public static final Theme.Key<Insets> THEME_KEY_ITEM_MARGIN = Theme.key(DragonLib.MODID + ".listbox.item_margin", Insets.of(0));
-    public static final Theme.Key<DLColor> THEME_KEY_BACKGROUND_COLOR = Theme.key(DragonLib.MODID + ".listbox.background_color", DLColor.fromInt(0x88000000));
-    public static final Theme.Key<DLColor> THEME_KEY_BORDER_COLOR = Theme.key(DragonLib.MODID + ".listbox.border_color", Theme.BORDER_COLOR);
-    public static final Theme.Key<DLColor> THEME_KEY_HIGHLIGHT_COLOR = Theme.key(DragonLib.MODID + ".listbox.highlight_color", DLColor.fromInt(0x44FFFFFF));
+    public static final Theme.Key<BoxStyle> THEME_KEY_COLOR = Theme.key(DragonLib.MODID + ".listbox.color", new BoxStyle(Theme.BORDER_COLOR, DLColor.fromInt(0x88000000)));
+    public static final Theme.Key<BoxStyle> THEME_KEY_ITEM_SELECTION_COLOR = Theme.key(DragonLib.MODID + ".listbox.selection_color", new BoxStyle(DLColor.WHITE, Theme.BACKGROUND_COLOR));
+    public static final Theme.Key<BoxStyle> THEME_KEY_ITEM_HOVER_COLOR = Theme.key(DragonLib.MODID + ".listbox.hover_color", new BoxStyle(Theme.BORDER_COLOR, Theme.BACKGROUND_COLOR));
 
     private final IntOpenHashSet selectedLookup = new IntOpenHashSet();
     private final Set<T> checkedItems = new HashSet<>();
@@ -233,6 +237,7 @@ public class DLListBox<T> extends GuiComponent {
     public final Property<CheckMode> checkMode = new Property<>(CheckMode.NONE);
     public final NumberProperty<Integer> itemHeight = new NumberProperty<>(14, 1, Integer.MAX_VALUE);
     public final NumberProperty<Integer> iconSize = new NumberProperty<>(12, 1, Integer.MAX_VALUE);
+    public final NumberProperty<Integer> maxVisibleItems = new NumberProperty<>(Integer.MAX_VALUE, 1, Integer.MAX_VALUE);
 
     private final DLScrollBar scrollbar;
     private final ItemPanel<T> contentPanel;
@@ -240,6 +245,7 @@ public class DLListBox<T> extends GuiComponent {
     private int lastClickedIndex = 0;
     private int checkedIndex = INVALID;
     private boolean syncingSelection = false;
+    private double cachedTextWidth = INVALID;
 
     public DLListBox(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -247,8 +253,6 @@ public class DLListBox<T> extends GuiComponent {
         StackLayout layout = new StackLayout(StackLayout.Direction.HORIZONTAL);
         layout.crossAlignment.set(Alignment.STRETCH);
         this.layout.set(layout);
-
-        addBehaviour(new ResizeHandle());
 
         this.padding.set(Insets.of(1));
         this.focusable.set(true);
@@ -263,6 +267,7 @@ public class DLListBox<T> extends GuiComponent {
 
 
         this.textFormat.addChangeListener((o, n) -> {
+            cachedTextWidth = INVALID;
             invalidateLayout();
             invokeEvent(this, new DLItemPicker.TextFormatChangedEvent());
         });
@@ -281,7 +286,7 @@ public class DLListBox<T> extends GuiComponent {
             syncingSelection = true;
             selectedItems.set(itms);
             syncingSelection = false;
-            invokeEvent(this, new SelectedItemsChanged<>(itms, n));
+            invokeEvent(this, new SelectedItemsChanged(itms, n));
         });
         this.selectedItems.addChangeListener((o, n) -> {
             if (!syncingSelection && !DLListUtils.compareCollections(o, n, Objects::equals)) {
@@ -309,6 +314,55 @@ public class DLListBox<T> extends GuiComponent {
         });
         this.checkOnClick.addChangeListener((o, n) -> updateSelectable());
         this.iconSize.addChangeListener((o, n) -> invalidateLayout());
+        this.itemHeight.addChangeListener((o, n) -> contentPanel.invalidateLayout());
+        this.maxVisibleItems.addChangeListener((o, n) -> invalidateLayout());
+    }
+
+    @Override
+    protected Size measureContent(double availableWidth, double availableHeight) {
+        Insets margin = contentPanel.getThemeValue(THEME_KEY_ITEM_MARGIN);
+        double rows = Math.min(items.size(), maxVisibleItems.get());
+        double w = widthMode.get() == SizeMode.AUTO ? contentPanel.rowLayout().textX() + textWidth() + 3 + margin.horizontal() + scrollbar.dWidth() : 0;
+        return Size.of(w, rows * itemHeight.get() + margin.vertical());
+    }
+
+    public double heightForItems(int count) {
+        return (double)count * itemHeight.get() + contentPanel.getThemeValue(THEME_KEY_ITEM_MARGIN).vertical() + padding.get().vertical();
+    }
+
+    public int itemsFitting(double height) {
+        return Math.max(0, (int)((height - heightForItems(0)) / itemHeight.get()));
+    }
+
+    public void scrollToItem(T item) {
+        scrollToItem(items.indexOf(item));
+    }
+
+    public void scrollToItem(int index) {
+        if (index < 0 || index >= items.size()) return;
+
+        double h = itemHeight.get();
+        double top = index * h;
+        double bottom = top + h;
+        double view = contentPanel.itemBounds().height();
+        double scroll = contentPanel.scrollY();
+
+        if (bottom > scroll + view) {
+            contentPanel.setScrollY(bottom - view);
+        } else if (top < scroll) {
+            contentPanel.setScrollY(top);
+        }
+    }
+
+    protected double textWidth() {
+        if (cachedTextWidth < 0) {
+            int max = 0;
+            for (T item : items) {
+                max = Math.max(max, TextUtils.textWidth(TextUtils.font(), textFormat.get().apply(item)));
+            }
+            cachedTextWidth = max;
+        }
+        return cachedTextWidth;
     }
 
     public boolean isSelected(int index) {
@@ -365,7 +419,7 @@ public class DLListBox<T> extends GuiComponent {
     private void applyChecked(int index, boolean checked) {
         T item = items.get(index);
         checkedSetter.get().accept(item, checked);
-        invokeEvent(this, new ItemCheckedChanged<>(item, index, checked));
+        invokeEvent(this, new ItemCheckedChanged(Optional.ofNullable(item), index, checked));
     }
 
     public List<T> getCheckedItems() {
@@ -373,6 +427,8 @@ public class DLListBox<T> extends GuiComponent {
     }
 
     protected void onItemsChanged(ListProperty.ListOperation operation) {
+        cachedTextWidth = INVALID;
+        contentPanel.invalidateLayout();
         if (operation != ListProperty.ListOperation.ADD && !checkedItems.isEmpty()) {
             checkedItems.retainAll(new HashSet<>(items.get()));
         }
@@ -428,6 +484,8 @@ public class DLListBox<T> extends GuiComponent {
         }
 
         lastClickedIndex = index;
+
+        invokeEvent(this, new ItemActivation(Optional.ofNullable(items.get(index)), index));
     }
 
     @Override

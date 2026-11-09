@@ -529,19 +529,45 @@ public class WindowManager {
     }
 
     private boolean isInsidePopup(double screenX, double screenY) {
-        for (Popup popup : popups) {
-            GuiComponent content = popup.content();
-            if (content.visible.get() && content.containsScreenPoint(screenX, screenY)) {
-                return true;
-            }
-        }
-        return false;
+        return popupAt(screenX, screenY) != null;
     }
 
-    private boolean dismissLightPopups() {
+    private Popup popupAt(double screenX, double screenY) {
+        for (int i = popups.size() - 1; i >= 0; i--) {
+            GuiComponent content = popups.get(i).content();
+            if (content.visible.get() && content.containsScreenPoint(screenX, screenY)) {
+                return popups.get(i);
+            }
+        }
+        return null;
+    }
+
+    private Set<Popup> ownerChain(Popup popup) {
+        Set<Popup> roots = new HashSet<>();
+        Popup current = popup == null ? null : popup.root();
+        while (current != null && roots.add(current)) {
+            current = popupOwning(current.owner());
+        }
+        return roots;
+    }
+
+    private Popup popupOwning(GuiComponent component) {
+        if (component == null) {
+            return null;
+        }
+        for (Popup popup : popups) {
+            if (component.isDescendantOf(popup.content())) {
+                return popup.root();
+            }
+        }
+        return null;
+    }
+
+    private boolean dismissLightPopups(Popup keep) {
+        Set<Popup> keepRoots = ownerChain(keep);
         boolean closed = false;
         for (Popup popup : List.copyOf(popups)) {
-            if (popup.isOpen() && popup.lightDismiss.get()) {
+            if (popup.isOpen() && popup.lightDismiss.get() && !keepRoots.contains(popup.root())) {
                 popup.close();
                 closed = true;
             }
@@ -646,7 +672,8 @@ public class WindowManager {
      * @return whether the GUI handled the press
      */
     public boolean mousePressed(double mouseX, double mouseY, int button) {
-        if (!isInsidePopup(mouseX, mouseY) && dismissLightPopups()) {
+        Popup hit = popupAt(mouseX, mouseY);
+        if (dismissLightPopups(hit) && hit == null) {
             return true;
         }
         GuiComponent target = pointerRoot(mouseX, mouseY);
