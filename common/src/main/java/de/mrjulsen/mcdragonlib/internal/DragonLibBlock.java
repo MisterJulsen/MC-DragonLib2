@@ -1,7 +1,7 @@
 package de.mrjulsen.mcdragonlib.internal;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.gui.v2.window.DLScreen;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLScreen;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import dev.architectury.platform.Platform;
