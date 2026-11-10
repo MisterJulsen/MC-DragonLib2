@@ -2,7 +2,7 @@ package de.mrjulsen.mcdragonlib.events;
 
 
 @FunctionalInterface
-public interface IEventListener<S extends IEventDispatcher<S>, T extends IEvent> {
+public interface IEventListener<S, T extends IEvent> {
     /**
      * Executes the event.
      * @param source The component this event is assigned to.

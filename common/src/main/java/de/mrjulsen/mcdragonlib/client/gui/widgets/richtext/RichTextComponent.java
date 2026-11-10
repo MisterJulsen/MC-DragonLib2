@@ -2,7 +2,7 @@ package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext;
 
 import com.google.common.collect.Maps;
 
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.FontAccessor;
 import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;

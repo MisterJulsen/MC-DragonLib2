@@ -11,6 +11,7 @@ public class DLTexture {
     private final int textureWidth;
     private final int textureHeight;
 
+    @Deprecated
     public DLTexture(ResourceLocation texture, int textureId, boolean useTextureId, int textureWidth, int textureHeight) {
         this.texture = texture;
         this.textureId = textureId;

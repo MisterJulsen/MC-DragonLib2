@@ -2,9 +2,14 @@ package de.mrjulsen.mcdragonlib.network.packet;
 
 import java.nio.charset.StandardCharsets;
 
+import de.mrjulsen.mcdragonlib.network.v2.transport.FrameHeader;
 import de.mrjulsen.mcdragonlib.network.CommunicationType;
 import net.minecraft.network.FriendlyByteBuf;
 
+/**
+ * @deprecated Replaced by {@link FrameHeader}.
+ */
+@Deprecated
 public record PacketHeaderInfo(PacketType type, CommunicationType communication, long requestId, String name) {
 
     public void writeBufferHeader(FriendlyByteBuf buffer) {

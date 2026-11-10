@@ -1,13 +1,18 @@
 package de.mrjulsen.mcdragonlib.data;
 
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.StringRepresentable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A small extension for enums that allows for easy translation without developing a lot of code.
  * Especially useful for cases where the user has contact to the values of this enum to represent
- * them ​​in human-readable text.
+ * them in human-readable text.
  */
 public interface ITranslatableEnum extends StringRepresentable {
 
@@ -17,7 +22,7 @@ public interface ITranslatableEnum extends StringRepresentable {
      * @param enumName The name key of this enum.
      * @param valueName The name key of this enum value.
      */
-    public static record Data(String modid, String enumName, String valueName) {}
+    record Data(String modid, String enumName, String valueName) {}
 
     /**
      * General information about the enum to create the translation keys.
@@ -63,5 +68,18 @@ public interface ITranslatableEnum extends StringRepresentable {
     default MutableComponent getValueDescriptionTranslation() {
         Data data = getTranslationData();
         return TextUtils.translate(String.format("enum.%s.%s.description.%s", data.modid(), data.enumName(), data.valueName()));
+    }
+
+    static <T extends Enum<T> & ITranslatableEnum> List<Component> getEnumTooltipSummary(Class<T> enumClass, int maxWidth) {
+        List<Component> c = new ArrayList<>();
+        T enumValue = enumClass.getEnumConstants()[0];
+        c.add(enumValue.getEnumTranslation().withStyle(ChatFormatting.BOLD));
+        c.add(enumValue.getEnumDescriptionTranslation().withStyle(ChatFormatting.GRAY));
+        c.add(TextUtils.text(" "));
+        for (T t : enumClass.getEnumConstants()) {
+            c.add(TextUtils.text("> ").withStyle(ChatFormatting.BOLD).append(t.getValueTranslation()).withStyle(ChatFormatting.BOLD));
+            c.add(t.getValueDescriptionTranslation().withStyle(ChatFormatting.GRAY));
+        }
+        return c;
     }
 }

@@ -2,11 +2,16 @@ package de.mrjulsen.mcdragonlib.network.packet;
 
 import java.util.concurrent.PriorityBlockingQueue;
 
+import de.mrjulsen.mcdragonlib.network.v2.transport.MessageAssembler;
 import de.mrjulsen.mcdragonlib.network.NetworkSide;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 
+/**
+ * @deprecated Reassembly state lives in {@link MessageAssembler}.
+ */
+@Deprecated
 public class NetworkReceiverData {
 
     private final Key key;

@@ -40,6 +40,7 @@ import java.util.*;
     DLAbstractRichTextInputField.TextAcceptKeyPressedEvent.class,
     DLAbstractRichTextInputField.TextCancelKeyPressedEvent.class
 })
+@Deprecated
 public abstract class DLAbstractRichTextInputField extends DLRichTextLabel {
     
     public record TextReadOnlyChangedEvent(boolean readOnly) implements IEvent {}

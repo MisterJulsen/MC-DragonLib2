@@ -5,7 +5,7 @@ import java.util.UUID;
 public class EventListenerId {
     private final UUID id;
 
-    EventListenerId(UUID id) {
+    public EventListenerId(UUID id) {
         this.id = id;
     }
 

@@ -1,11 +1,10 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.data.DLStatus;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLScreen;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
-import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
+import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -49,19 +48,16 @@ public class DragonLibBlock extends BaseEntityBlock {
     
 
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        if (pLevel.isClientSide) {
-            /*
-            NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
-                if (response.getStatus().isError()) {
-                    System.out.println("ERROR: " + response.getStatus().message());
-                }
-                System.out.println("RESPONSE: " + response.txt);
-            }, () -> {
-                System.out.println("ERROR callback");
-            });
+        if (!Platform.isDevelopmentEnvironment()) {
+            return InteractionResult.PASS;
+        }
 
-             */
-            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+        if (pLevel.isClientSide) {
+            if (pPlayer.isShiftKeyDown()) {
+                DLScreen.open(mgr -> new TestGui());
+            } else {
+                DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            }
             //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;
         } else {

@@ -6,6 +6,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox.T
 import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 
+@Deprecated
 public class VanillaTextBoxRenderer implements IStateRenderer<TextBoxState> {
 
     public static final VanillaTextBoxRenderer VANILLA_TEXTBOX = new VanillaTextBoxRenderer();

@@ -26,7 +26,7 @@ import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
 import de.mrjulsen.mcdragonlib.events.IEvent;
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.FontAccessor;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.Holder.MutableHolder;
@@ -65,6 +65,7 @@ import java.util.regex.Pattern;
     DLRichTextLabel.TextInteractiveElementClicked.class,
     DLRichTextLabel.TextTextValidationEvent.class
 })
+@Deprecated
 public class DLRichTextLabel extends DLGuiComponent implements DLContextMenu.MenuBuilder {
     
     public record TextChangedEvent(RichTextComponent text) implements IEvent {}

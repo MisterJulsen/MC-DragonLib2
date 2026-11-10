@@ -49,6 +49,8 @@
     "gui.dragonlib.colorpicker.rgb": "RGB",
     "gui.dragonlib.colorpicker.hex": "HEX",
     
+    "gui.dragonlib.menu.undo": "Rückgängig",
+    "gui.dragonlib.menu.redo": "Wiederholen",
     "gui.dragonlib.menu.cut": "Ausschneiden",
     "gui.dragonlib.menu.copy": "Kopieren",
     "gui.dragonlib.menu.paste": "Einfügen",
@@ -68,6 +70,10 @@
     
     "compat.dragonlib.click_to_open_modpage": "Klicke, um Modseite zu öffnen.",
     "compat.dragonlib.sodium_warn": "Du nutzt %s. Um Grafikfehler zu vermeiden, installiere bitte auch %s.",
+
+    "gui.dragonlib.textbox.copy_plain": "Als unformatierten Text kopieren",
+    "gui.dragonlib.textbox.paste_plain": "Unformatierten Text einfügen",
+    "gui.dragonlib.textbox.format": "Formatierung",
 
     "block.dragonlib.dragon": "Drache"
 }

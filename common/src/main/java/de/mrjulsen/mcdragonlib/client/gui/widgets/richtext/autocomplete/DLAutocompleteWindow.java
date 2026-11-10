@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+@Deprecated
 public class DLAutocompleteWindow<T> extends DLWindow {
 
     private final int ITEM_HEIGHT = 12;

@@ -1,12 +1,6 @@
 package de.mrjulsen.mcdragonlib.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -88,5 +82,22 @@ public final class DLListUtils {
             }
         }
         return Optional.empty();
+    }
+
+    public static <T> List<Integer> indicesOf(List<T> items, Collection<T> selectedItems) {
+        if (selectedItems.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<?> selected = selectedItems instanceof Set<?> set ? set : new HashSet<>(selectedItems);
+        List<Integer> indices = new ArrayList<>(selected.size());
+        int i = 0;
+        for (T item : items) {
+            if (selected.contains(item)) {
+                indices.add(i);
+            }
+            i++;
+        }
+        return indices;
     }
 }

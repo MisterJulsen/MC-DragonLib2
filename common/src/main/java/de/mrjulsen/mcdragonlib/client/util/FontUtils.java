@@ -12,9 +12,9 @@ import org.apache.commons.lang3.mutable.MutableFloat;
 
 import com.mojang.blaze3d.font.GlyphInfo;
 
-import de.mrjulsen.mcdragonlib.mixin.BakedGlyphAccessor;
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
-import de.mrjulsen.mcdragonlib.mixin.StringSplitterAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.BakedGlyphAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.FontAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.StringSplitterAccessor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;

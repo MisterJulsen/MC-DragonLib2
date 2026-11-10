@@ -20,7 +20,15 @@ public enum GuiIcons {
     ARROW_UP("arrow_up", 7, 0),
     ARROW_LEFT("arrow_left", 8, 0),
     ARROW_RIGHT("arrow_right", 9, 0),
-    X("x", 10, 0);
+    X("x", 10, 0),
+    BULLET_S("bullet_s", 11, 0),
+    CHECK_S("check_s", 12, 0),
+
+
+    OPEN_ARROW_DOWN("open_arrow_down", 6, 1),
+    OPEN_ARROW_UP("open_arrow_up", 7, 1),
+    OPEN_ARROW_LEFT("open_arrow_left", 8, 1),
+    OPEN_ARROW_RIGHT("open_arrow_right", 9, 1);
     
     private String id;
     private int u;
@@ -64,6 +72,6 @@ public enum GuiIcons {
     }
 
     public DLSprite getAsSprite(int renderWidth, int renderHeight) {
-        return new DLSprite(ICON_TEXTURE, ICON_SIZE, ICON_SIZE, getU(), getV(), renderWidth, renderHeight);
+        return new DLSprite(ICON_TEXTURE, renderWidth, renderHeight, getU(), getV(), ICON_SIZE, ICON_SIZE);
     }
 }

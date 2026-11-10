@@ -11,7 +11,7 @@ import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.client.util.FontUtils;
 import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
-import de.mrjulsen.mcdragonlib.mixin.BakedGlyphAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.BakedGlyphAccessor;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.Pair;
 import de.mrjulsen.mcdragonlib.util.TextUtils;

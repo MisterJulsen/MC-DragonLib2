@@ -15,6 +15,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * @deprecated Splitting and reassembling is handled by {@code de.mrjulsen.mcdragonlib.net.transport}.
+ */
+@Deprecated
 public class NetworkPacker {
 
     public static List<Packet<?>> pack(ResourceLocation channelId, PacketHeaderInfo info, NetworkSide side, CompoundTag rawData) {

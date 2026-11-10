@@ -16,6 +16,7 @@ import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
+@Deprecated
 public class DLRichTextEditBox extends DLAbstractRichTextInputField {
 
     public static enum TextBoxState {

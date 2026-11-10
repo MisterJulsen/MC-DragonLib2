@@ -2,29 +2,16 @@ package de.mrjulsen.mcdragonlib.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.mrjulsen.mcdragonlib.DragonLib;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.components.*;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.gui.builtin.DLColorPickerWindow;
 import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindowManager;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLBasicDataView;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCheckBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLComboBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLContextMenu;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCycleButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLEditableLabel;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemPicker;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLItemSelectionBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLPanel;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLProgressBar;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLRichTextEditBox;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLScrollBar;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLSlider;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLToggleButton;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLTooltip;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlot;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.SizeMode;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLAbstractDataView.DataSlotComponent;
@@ -34,11 +21,12 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.layout.FlowLayout.Direction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.render.VanillaListScrollBarRenderer;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.Padding;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.autocomplete.DLAutocompleteWindow;
+import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.action.UrlClickAction;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.util.DLSprite;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
+import de.mrjulsen.mcdragonlib.data.EVerticalAlignment;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
@@ -56,7 +44,6 @@ public class DLTestWindow extends DLWindow {
     private Component txt = TextUtils.empty();
 
     
-    private DLAutocompleteWindow<String> win;
 
     public DLTestWindow(DLWindowManager manager) {
         super(manager);
@@ -131,10 +118,12 @@ public class DLTestWindow extends DLWindow {
 
         DLScrollBar scrollbarV = new DLScrollBar(20, 115, 100, Orientation.VERTICAL);
         scrollbarV.componentRenderer.set(VanillaListScrollBarRenderer.VANILLA_SCROLLBAR);
+        scrollbarV.scrollerSize.set(5);
         addComponent(scrollbarV);
         
         DLScrollBar scrollbarH = new DLScrollBar(40, 115, 100, Orientation.HORIZONTAL);
         scrollbarH.showButtons.set(true);
+        scrollbarH.scrollerSize.set(5);
         addComponent(scrollbarH);
 
         DLToggleButton toggleBtn = new DLToggleButton(150, 20, 50, 20);
@@ -147,49 +136,16 @@ public class DLTestWindow extends DLWindow {
         toggleBtn3.radioButtonMode.set(true);
         addComponent(toggleBtn3);
 
+        DLNumberPicker numberPicker = new DLNumberPicker(50, 150, 80, 20);
+        addComponent(numberPicker);
 
-        DLRichTextEditBox textbox = new DLRichTextEditBox(200, 50, 150, 150);
-        textbox.multiline.set(true);
-        textbox.resizable.set(true);
-        textbox.showLineHighlight.set(true);
-        textbox.contentPadding.set(new Padding(2));
-        textbox.decoratedPadding.set(new Padding(1));
-        textbox.acceptAndCancelKeysEnabled.set(true);
-        textbox.addEventListener(DLRichTextEditBox.TextAcceptKeyPressedEvent.class, (src, e) -> {
-            txt = textbox.text.get().toComponent();
-            return false;
-        });
-        addComponent(textbox);
+        DLItemPicker<String> itemPicker = new DLItemPicker<>(50, 180, 80, 20);
+        itemPicker.items.addAll(List.of("Item 1", "Item 2", "Item 3", "Item 4", "Item 5"));
+        addComponent(itemPicker);
 
-        DLRichTextEditBox searchBox = new DLRichTextEditBox(100, 200, 80, 16);
-        searchBox.readOnly.set(true);
-        searchBox.multiline.set(false);
-        searchBox.contentPadding.set(new Padding(0, 2, 0, 2));
-        searchBox.decoratedPadding.set(new Padding(1));
-        searchBox.lineSpacing.set(2);
-        searchBox.filterRegex.set("^-?\\d+$");
-        addComponent(searchBox);
-        
-        DLRichTextEditBox autocompleteBox = new DLRichTextEditBox(200, 200, 150, 16);
-        autocompleteBox.multiline.set(false);
-        autocompleteBox.autocompleteManager.set((DLAutocompleteWindow<String> win, DLRichTextEditBox box) -> {
-            List<String> str = new ArrayList<>();
-            for (int i = 0; i < 10000; i++) {
-                str.add("Test " + i);
-            }
-            win.suggestions.set(str);
-            win.filter.set(s -> s.toLowerCase().contains(box.text.get().getPlainText().toLowerCase()));
-        });
-        addComponent(autocompleteBox);
-        
 
-        DLNumberPicker number = new DLNumberPicker(100, 225, 80, 20);
-        number.min.set(-100D);
-        number.step.set(1D);
-        number.showButtons.set(false);
-        addComponent(number);
 
-        DLProgressBar progressBar = new DLProgressBar(300, 20, 100, 10);
+        DLProgressBar progressBar = new DLProgressBar(300, 20, 200, 10);
         progressBar.style.set(ProgressBarStyle.CONTINUOUS);
         progressBar.value.set(0.3d);
         addComponent(progressBar);
@@ -240,7 +196,7 @@ public class DLTestWindow extends DLWindow {
         pnl.addComponent(pnl2);
         //addComponent(pnl);
         
-        DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(360, 50, 150, 150);
+        DLItemSelectionBox<String> listBox = new DLItemSelectionBox<>(460, 50, 150, 150);
         listBox.multiselect.set(true);
         listBox.resizable.set(true);
         for (int i = 0; i < 50; i++) {
@@ -249,21 +205,8 @@ public class DLTestWindow extends DLWindow {
         //listBox.selectedItems.set(List.of("Test 5"));
         addComponent(listBox);
 
-        DLComboBox<String> comboBox = new DLComboBox<>(100, 225, 80, 20);
-        for (int i = 0; i < 50; i++) {
-            comboBox.items.add("Test " + i);
-        }
-        //comboBox.selectedIndex.set(17);
-        addComponent(comboBox);
-
-        
-        DLItemPicker<String> picker = new DLItemPicker<>(200, 225, 80, 20);
-        for (int i = 0; i < 50; i++) {
-            picker.items.add("Test " + i);
-        }
-        //comboBox.selectedIndex.set(17);
-        addComponent(picker);
     }
+
 
     @Override
     public void renderFrontLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
