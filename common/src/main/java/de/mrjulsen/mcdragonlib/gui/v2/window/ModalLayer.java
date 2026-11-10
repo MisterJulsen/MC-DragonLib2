@@ -11,7 +11,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
  * gets input, the ones below are suspended.
  * <p>A modal layer dims everything beneath it. Within a layer the windows are sorted into three
  * bands, bottom, normal and top, and stacking only happens inside a band, see Window#topLevel.</p>
- * <p>Layers are created and discarded by the {@link WindowManager}; the methods here are for
+ * <p>Layers are created and discarded by the {@link DLWindowManager}; the methods here are for
  * looking, not for touching.</p>
  */
 public final class ModalLayer {
@@ -38,8 +38,8 @@ public final class ModalLayer {
     private final ModalId id;
     private final boolean modal;
     private final LayerPane pane;
-    private final List<Window> windows = new ArrayList<>();
-    private Window activeWindow;
+    private final List<DLWindow> windows = new ArrayList<>();
+    private DLWindow activeWindow;
 
     ModalLayer(ModalId id, boolean modal) {
         this.id = id;
@@ -61,7 +61,7 @@ public final class ModalLayer {
     /**
      * Snapshot of the windows on this layer, sorted by band and stacking order: last on top.
      */
-    public List<Window> getWindows() {
+    public List<DLWindow> getWindows() {
         return List.copyOf(windows);
     }
 
@@ -73,14 +73,14 @@ public final class ModalLayer {
         return windows.isEmpty();
     }
 
-    public boolean contains(Window window) {
+    public boolean contains(DLWindow window) {
         return windows.contains(window);
     }
 
     /**
      * The window that currently has the keyboard focus on this layer, or null if there is none.
      */
-    public Window getActiveWindow() {
+    public DLWindow getActiveWindow() {
         return activeWindow;
     }
 
@@ -92,7 +92,7 @@ public final class ModalLayer {
         pane.setSize(width, height);
     }
 
-    void add(Window window) {
+    void add(DLWindow window) {
         if (windows.contains(window)) {
             return;
         }
@@ -101,7 +101,7 @@ public final class ModalLayer {
         reorder();
     }
 
-    boolean remove(Window window) {
+    boolean remove(DLWindow window) {
         if (!windows.remove(window)) {
             return false;
         }
@@ -114,10 +114,10 @@ public final class ModalLayer {
     }
 
     void reorder() {
-        List<Window> bottom = new ArrayList<>(windows.size());
-        List<Window> normal = new ArrayList<>(windows.size());
-        List<Window> top = new ArrayList<>(windows.size());
-        for (Window window : windows) {
+        List<DLWindow> bottom = new ArrayList<>(windows.size());
+        List<DLWindow> normal = new ArrayList<>(windows.size());
+        List<DLWindow> top = new ArrayList<>(windows.size());
+        for (DLWindow window : windows) {
             if (window.bottomLevel.get()) {
                 bottom.add(window);
             } else if (window.topLevel.get()) {
@@ -131,12 +131,12 @@ public final class ModalLayer {
         windows.addAll(normal);
         windows.addAll(top);
 
-        for (Window window : windows) {
+        for (DLWindow window : windows) {
             pane.bringToFront(window);
         }
     }
 
-    void moveToBandFront(Window window) {
+    void moveToBandFront(DLWindow window) {
         if (!windows.remove(window)) {
             return;
         }
@@ -144,7 +144,7 @@ public final class ModalLayer {
         reorder();
     }
 
-    void moveToBandBack(Window window) {
+    void moveToBandBack(DLWindow window) {
         if (!windows.remove(window)) {
             return;
         }
@@ -152,10 +152,10 @@ public final class ModalLayer {
         reorder();
     }
 
-    Window topmostWindow() {
+    DLWindow topmostWindow() {
         List<GuiComponent> children = pane.getComponents();
         for (int i = children.size() - 1; i >= 0; i--) {
-            if (children.get(i) instanceof Window window && window.visible.get()) {
+            if (children.get(i) instanceof DLWindow window && window.visible.get()) {
                 return window;
             }
         }
@@ -174,11 +174,11 @@ public final class ModalLayer {
         }
     }
 
-    boolean setActiveWindow(Window window) {
+    boolean setActiveWindow(DLWindow window) {
         if (activeWindow == window) {
             return false;
         }
-        Window previous = activeWindow;
+        DLWindow previous = activeWindow;
         activeWindow = window;
         if (previous != null) {
             previous.notifyActivationChanged(false);

@@ -1,7 +1,6 @@
 package de.mrjulsen.mcdragonlib.gui.v2.theme;
 
 import de.mrjulsen.mcdragonlib.gui.v2.GuiComponent;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
 import org.lwjgl.glfw.GLFW;
 
 /**

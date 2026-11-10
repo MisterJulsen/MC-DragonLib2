@@ -13,13 +13,13 @@ import net.minecraft.client.gui.screens.Screen;
 
 /**
  * Bridge between Minecraft's Screen and the v2 GUI: forwards input, rendering and ticks to a
- * {@link WindowManager} and remembers the screen it was opened from.
+ * {@link DLWindowManager} and remembers the screen it was opened from.
  * <p>Usually there is no need to subclass this, see {@link #open(Function)}.</p>
  */
 public class DLScreen extends Screen {
 
-    private final WindowManager manager = new WindowManager();
-    private final Function<WindowManager, Window> initialWindow;
+    private final DLWindowManager manager = new DLWindowManager();
+    private final Function<DLWindowManager, DLWindow> initialWindow;
     private final Screen previousScreen;
     private boolean initialized;
 
@@ -27,7 +27,7 @@ public class DLScreen extends Screen {
      * @param initialWindow builds the window to open as soon as the screen is initialized; may be null
      *                      for a screen whose windows are opened later
      */
-    public DLScreen(Function<WindowManager, Window> initialWindow) {
+    public DLScreen(Function<DLWindowManager, DLWindow> initialWindow) {
         super(TextUtils.empty());
         this.initialWindow = initialWindow;
         this.previousScreen = Minecraft.getInstance().screen;
@@ -37,11 +37,11 @@ public class DLScreen extends Screen {
     /**
      * Opens a new screen with a single window on it. The usual entry point into a v2 GUI.
      */
-    public static void open(Function<WindowManager, Window> window) {
+    public static void open(Function<DLWindowManager, DLWindow> window) {
         Minecraft.getInstance().setScreen(new DLScreen(window));
     }
 
-    public WindowManager getWindowManager() {
+    public DLWindowManager getWindowManager() {
         return manager;
     }
 

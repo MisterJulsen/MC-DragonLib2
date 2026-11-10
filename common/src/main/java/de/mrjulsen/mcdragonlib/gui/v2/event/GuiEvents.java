@@ -9,7 +9,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.GuiComponent;
 import de.mrjulsen.mcdragonlib.gui.v2.dnd.DragSource;
 import de.mrjulsen.mcdragonlib.gui.v2.dnd.DropPosition;
 import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import de.mrjulsen.mcdragonlib.util.math.Size;
 import org.lwjgl.glfw.GLFW;
 
@@ -763,19 +763,19 @@ public interface GuiEvents {
      */
     class WindowManagerChangedEvent extends GuiEvent {
 
-        private final WindowManager oldManager;
-        private final WindowManager newManager;
+        private final DLWindowManager oldManager;
+        private final DLWindowManager newManager;
 
-        public WindowManagerChangedEvent(WindowManager oldManager, WindowManager newManager) {
+        public WindowManagerChangedEvent(DLWindowManager oldManager, DLWindowManager newManager) {
             this.oldManager = oldManager;
             this.newManager = newManager;
         }
 
-        public WindowManager oldManager() {
+        public DLWindowManager oldManager() {
             return oldManager;
         }
 
-        public WindowManager newManager() {
+        public DLWindowManager newManager() {
             return newManager;
         }
     }

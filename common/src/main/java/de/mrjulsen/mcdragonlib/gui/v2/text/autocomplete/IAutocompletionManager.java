@@ -1,7 +1,7 @@
 package de.mrjulsen.mcdragonlib.gui.v2.text.autocomplete;
 
 import de.mrjulsen.mcdragonlib.gui.v2.widget.DLTextBox;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 
 /**
  * Supplies the suggestions a {@link DLTextBox} offers, see {@code DLTextBox#autocompleteManager}.
@@ -21,7 +21,7 @@ public interface IAutocompletionManager<T> {
      *
      * @return the new window, not opened yet; the text box opens it
      */
-    default DLAutocompleteWindow<T> createWindow(WindowManager windowManager, DLTextBox textBox) {
+    default DLAutocompleteWindow<T> createWindow(DLWindowManager windowManager, DLTextBox textBox) {
         DLAutocompleteWindow<T> win = new DLAutocompleteWindow<>(textBox);
         win.positionBelowParent();
         return win;

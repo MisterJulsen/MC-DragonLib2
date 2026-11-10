@@ -14,7 +14,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.layout.Layout;
 import de.mrjulsen.mcdragonlib.gui.v2.layout.NoLayout;
 import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
 import de.mrjulsen.mcdragonlib.util.math.Point;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
@@ -57,7 +57,7 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
     private final List<GuiComponent> childrenView = Collections.unmodifiableList(children);
 
     private GuiComponent parent;
-    private WindowManager windowManager;
+    private DLWindowManager windowManager;
     private List<Behaviour> behaviours;
 
     private boolean hovered;
@@ -804,7 +804,7 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
     protected void onDetached() {
     }
 
-    public WindowManager getWindowManager() {
+    public DLWindowManager getWindowManager() {
         return windowManager;
     }
 
@@ -812,11 +812,11 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
      * Assigns the window manager and passes it down to all children. Normally handled automatically when
      * components are attached; fires {@link GuiEvents.WindowManagerChangedEvent}.
      */
-    public void setWindowManager(WindowManager manager) {
+    public void setWindowManager(DLWindowManager manager) {
         if (this.windowManager == manager) {
             return;
         }
-        WindowManager old = this.windowManager;
+        DLWindowManager old = this.windowManager;
         this.windowManager = manager;
         invokeEvent(this, new GuiEvents.WindowManagerChangedEvent(old, manager));
         for (GuiComponent c : children) {
@@ -952,7 +952,7 @@ public abstract class GuiComponent implements IGuiEventDispatcher<GuiComponent>,
      * @return false if there is no window manager, or this component is not focusable, enabled and visible
      */
     public boolean requestFocus() {
-        WindowManager manager = windowManager;
+        DLWindowManager manager = windowManager;
         if (manager == null || !focusable.get() || !isEnabled() || !isVisible()) {
             return false;
         }

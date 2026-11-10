@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
@@ -17,7 +18,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.event.GuiEvents;
 
 /**
  * Turns raw mouse and keyboard input into GUI events and keeps the state that goes with it: hover,
- * press, focus, drag and click counting. One per {@link de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager}.
+ * press, focus, drag and click counting. One per {@link DLWindowManager}.
  * <p>Pointer events are delivered along the hit stack, innermost first, until someone consumes them.
  * Keyboard events instead start at the focused component and bubble up to the root. A press captures
  * the mouse, so the components pressed keep receiving the drag and the release even if the cursor

@@ -13,8 +13,8 @@ import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetRenderer;
-import de.mrjulsen.mcdragonlib.gui.v2.window.Popup;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLPopup;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -205,7 +205,7 @@ public class DLContextMenu extends GuiComponent {
         .withUpdateCallback((value, operation) -> onItemsChanged());
     public final BooleanProperty showCheckMargin = new BooleanProperty(false);
 
-    private final Popup popup;
+    private final DLPopup popup;
     private final GuiComponent host;
     private final GuiComponent scope;
 
@@ -230,7 +230,7 @@ public class DLContextMenu extends GuiComponent {
         super(0, 0, 80, 100);
         this.host = host;
         this.scope = host instanceof DLContextMenu parentMenu ? parentMenu.scope : host;
-        this.popup = new Popup(this);
+        this.popup = new DLPopup(this);
 
         themeAnchor.set(host);
         focusable.set(true);
@@ -313,7 +313,7 @@ public class DLContextMenu extends GuiComponent {
         if (childMenu != null && childMenu.selectedSubMenuIndex == selectedIndex) {
             return;
         }
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager == null || popup == null) {
             return;
         }
@@ -328,7 +328,7 @@ public class DLContextMenu extends GuiComponent {
             }
         });
 
-        Popup child = menu.popup.prepare(manager);
+        DLPopup child = menu.popup.prepare(manager);
         double popupX = getTransform().screenRight() - getThemeValue(THEME_KEY_SUBMENU_OVERLAP);
         double popupY = getTransform().toScreenY(rowY(selectedIndex)) - getThemeValue(THEME_KEY_BORDER_SIZE) - getThemeValue(THEME_KEY_ITEM_MARGIN).top();
         if (popupX + menu.width() > manager.screenWidth()) {
@@ -610,7 +610,7 @@ public class DLContextMenu extends GuiComponent {
 
     @Override
     protected Size measureContent(double availableWidth, double availableHeight) {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         heightLimit = Double.isInfinite(availableHeight)
             ? (manager == null ? Double.POSITIVE_INFINITY : manager.screenHeight())
             : availableHeight;

@@ -11,7 +11,7 @@ import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
  * belong to. They can be chained, which is how nested menus work: closing a popup closes its
  * children as well. A popup is not a component, it wraps one.</p>
  */
-public final class Popup {
+public final class DLPopup {
 
     /**
      * Which side of the anchor component a popup opens on. It flips to the opposite side if there is no
@@ -26,9 +26,9 @@ public final class Popup {
 
     private final GuiComponent content;
 
-    private WindowManager manager;
-    private Popup parent;
-    private Popup child;
+    private DLWindowManager manager;
+    private DLPopup parent;
+    private DLPopup child;
     private GuiComponent owner;
     private Runnable closeHandler;
 
@@ -50,7 +50,7 @@ public final class Popup {
      * @param content the component to show; its size is taken from its measurement when opening
      * @throws IllegalArgumentException if the content is null
      */
-    public Popup(GuiComponent content) {
+    public DLPopup(GuiComponent content) {
         if (content == null) {
             throw new IllegalArgumentException("A popup needs content.");
         }
@@ -61,15 +61,15 @@ public final class Popup {
         return content;
     }
 
-    public Popup parent() {
+    public DLPopup parent() {
         return parent;
     }
 
-    public Popup child() {
+    public DLPopup child() {
         return child;
     }
 
-    public WindowManager manager() {
+    public DLWindowManager manager() {
         return manager;
     }
 
@@ -80,8 +80,8 @@ public final class Popup {
     /**
      * The outermost popup of this chain, i.e. the one that was opened first.
      */
-    public Popup root() {
-        Popup current = this;
+    public DLPopup root() {
+        DLPopup current = this;
         while (current.parent != null) {
             current = current.parent;
         }
@@ -100,7 +100,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup owner(GuiComponent value) {
+    public DLPopup owner(GuiComponent value) {
         this.owner = value;
         return this;
     }
@@ -111,7 +111,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup prepare(WindowManager manager) {
+    public DLPopup prepare(DLWindowManager manager) {
         if (manager == null) {
             return this;
         }
@@ -126,7 +126,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup onClosed(Runnable handler) {
+    public DLPopup onClosed(Runnable handler) {
         this.closeHandler = handler;
         return this;
     }
@@ -136,7 +136,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup openAt(WindowManager manager, double screenX, double screenY) {
+    public DLPopup openAt(DLWindowManager manager, double screenX, double screenY) {
         if (manager == null) {
             return this;
         }
@@ -152,7 +152,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup openBelow(GuiComponent anchor, double offsetX, double offsetY) {
+    public DLPopup openBelow(GuiComponent anchor, double offsetX, double offsetY) {
         return openRelativeTo(anchor, Placement.BELOW, offsetX, offsetY);
     }
 
@@ -161,7 +161,7 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup openRightOf(GuiComponent anchor, double offsetX, double offsetY) {
+    public DLPopup openRightOf(GuiComponent anchor, double offsetX, double offsetY) {
         return openRelativeTo(anchor, Placement.RIGHT_OF, offsetX, offsetY);
     }
 
@@ -171,8 +171,8 @@ public final class Popup {
      *
      * @return this popup, for chaining
      */
-    public Popup openRelativeTo(GuiComponent anchor, Placement placement, double offsetX, double offsetY) {
-        WindowManager target = anchor.getWindowManager();
+    public DLPopup openRelativeTo(GuiComponent anchor, Placement placement, double offsetX, double offsetY) {
+        DLWindowManager target = anchor.getWindowManager();
         if (target == null) {
             return this;
         }
@@ -217,7 +217,7 @@ public final class Popup {
      *
      * @return the child popup
      */
-    public Popup openChild(Popup popup, GuiComponent anchor, Placement placement, double offsetX, double offsetY) {
+    public DLPopup openChild(DLPopup popup, GuiComponent anchor, Placement placement, double offsetX, double offsetY) {
         closeChild();
         popup.parent = this;
         popup.inherit(this);
@@ -231,7 +231,7 @@ public final class Popup {
      *
      * @return the child popup
      */
-    public Popup openChildAt(Popup popup, double screenX, double screenY) {
+    public DLPopup openChildAt(DLPopup popup, double screenX, double screenY) {
         closeChild();
         popup.parent = this;
         popup.inherit(this);
@@ -240,7 +240,7 @@ public final class Popup {
         return popup;
     }
 
-    private void inherit(Popup parent) {
+    private void inherit(DLPopup parent) {
         if (owner == null) {
             owner = parent.owner;
         }
@@ -296,7 +296,7 @@ public final class Popup {
      */
     public void close() {
         closeChild();
-        WindowManager host = manager;
+        DLWindowManager host = manager;
         if (host == null) {
             return;
         }
@@ -323,7 +323,7 @@ public final class Popup {
      */
     public void closeChild() {
         if (child != null) {
-            Popup current = child;
+            DLPopup current = child;
             child = null;
             current.close();
         }

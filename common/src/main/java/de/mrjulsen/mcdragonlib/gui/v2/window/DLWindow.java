@@ -13,25 +13,25 @@ import de.mrjulsen.mcdragonlib.util.properties.BooleanProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 
 /**
- * A window: the root component of one screen's worth of content, managed by a {@link WindowManager}.
+ * A window: the root component of one screen's worth of content, managed by a {@link DLWindowManager}.
  * <p>A window is not usable on its own, it has to be opened through the manager, which puts it on a
  * {@link ModalLayer} and keeps track of stacking and activation. Being movable, resizable or
  * fullscreen is just a matter of the properties below; the handles behind them are attached on
  * demand.</p>
  */
-public class Window extends GuiComponent {
+public class DLWindow extends GuiComponent {
 
     @NotCancellable
     /**
      * Fired once the window has been added to a layer and placed. Its size is final at this point.
      */
-    public record WindowOpenedEvent(WindowManager manager, ModalId modal) implements IEvent {}
+    public record WindowOpenedEvent(DLWindowManager manager, ModalId modal) implements IEvent {}
 
     @NotCancellable
     /**
      * Fired after the window was removed from its layer.
      */
-    public record WindowClosedEvent(WindowManager manager) implements IEvent {}
+    public record WindowClosedEvent(DLWindowManager manager) implements IEvent {}
 
     @NotCancellable
     /**
@@ -66,7 +66,7 @@ public class Window extends GuiComponent {
      * The window this one belongs to. Closing the owner closes this window too, and
      * {@link SpawnPosition#OWNER_CENTER} centers on it.
      */
-    public final Property<Window> owner = new Property<>(null);
+    public final Property<DLWindow> owner = new Property<>(null);
     /**
      * Keeps this window above all normal ones of its layer. Within that band the usual stacking applies.
      */
@@ -102,7 +102,7 @@ public class Window extends GuiComponent {
      * @param width initial width, which the spawn position is calculated from
      * @param height initial height, which the spawn position is calculated from
      */
-    public Window(int width, int height) {
+    public DLWindow(int width, int height) {
         super(0, 0, width, height);
         movable.addChangeListener((o, n) -> updateMoveHandle(n));
         resizable.addChangeListener((o, n) -> updateResizeHandle(n));
@@ -120,7 +120,7 @@ public class Window extends GuiComponent {
     }
 
     private void requestReorder() {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager != null) {
             manager.bringToFront(this);
         }
@@ -181,7 +181,7 @@ public class Window extends GuiComponent {
     }
 
     private void applyFullscreen(boolean value) {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager == null) {
             return;
         }
@@ -253,7 +253,7 @@ public class Window extends GuiComponent {
      * layer.
      */
     public void activate() {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager != null) {
             manager.activate(this);
         }
@@ -264,14 +264,14 @@ public class Window extends GuiComponent {
      * and closing the last layer closes the screen.
      */
     public void close() {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager != null) {
             manager.closeWindow(this);
         }
     }
 
     public void centerOnScreen() {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager == null) {
             return;
         }
@@ -285,7 +285,7 @@ public class Window extends GuiComponent {
      * Centers this window on its {@link #owner}, or on the screen if it has none.
      */
     public void centerOnOwner() {
-        Window parentWindow = owner.get();
+        DLWindow parentWindow = owner.get();
         if (parentWindow == null) {
             centerOnScreen();
             return;
@@ -302,7 +302,7 @@ public class Window extends GuiComponent {
      */
     public void applySpawnPosition() {
         if (fullscreen.get()) {
-            WindowManager manager = getWindowManager();
+            DLWindowManager manager = getWindowManager();
             if (manager != null) {
                 refitFullscreen(manager.screenWidth(), manager.screenHeight());
             }
@@ -329,7 +329,7 @@ public class Window extends GuiComponent {
     protected void onClosed() {
     }
 
-    void notifyOpened(WindowManager manager, ModalId id) {
+    void notifyOpened(DLWindowManager manager, ModalId id) {
         this.modalId = id;
         if (fullscreen.get()) {
             applyFullscreen(true);
@@ -339,7 +339,7 @@ public class Window extends GuiComponent {
         invokeEvent(this, new WindowOpenedEvent(manager, id));
     }
 
-    void notifyClosed(WindowManager manager) {
+    void notifyClosed(DLWindowManager manager) {
         this.modalId = null;
         this.active = false;
         onClosed();

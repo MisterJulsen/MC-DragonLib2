@@ -24,10 +24,10 @@ import net.minecraft.client.gui.GuiGraphics;
  * Host of a v2 GUI: owns the component tree, the input router and the render pass, and manages the
  * windows on top of it.
  * <p>Windows are grouped into {@link ModalLayer}s, where only the topmost layer receives input.
- * {@link Popup}s sit on a separate pane above all of them. Input arrives through the mouseX and keyX
+ * {@link DLPopup}s sit on a separate pane above all of them. Input arrives through the mouseX and keyX
  * methods, usually from a {@link DLScreen}, and is handed to the {@link InputRouter}.</p>
  */
-public class WindowManager {
+public class DLWindowManager {
 
     private static final class Pane extends GuiComponent {
 
@@ -43,14 +43,14 @@ public class WindowManager {
     private final Pane popupRoot = new Pane();
     private final InputRouter router = new InputRouter();
     private final List<ModalLayer> layers = new ArrayList<>();
-    private final List<Popup> popups = new ArrayList<>();
+    private final List<DLPopup> popups = new ArrayList<>();
     private final Queue<Runnable> pendingTasks = new ConcurrentLinkedQueue<>();
     private final DLGuiGraphics graphics = new DLGuiGraphics();
 
     private int screenWidth;
     private int screenHeight;
     private boolean layoutRequested = true;
-    private Consumer<WindowManager> closeHandler;
+    private Consumer<DLWindowManager> closeHandler;
 
     /**
      * Whether closing the last window returns to the screen that was open before, instead of to the
@@ -62,7 +62,7 @@ public class WindowManager {
      */
     public final BooleanProperty focusTraversal = new BooleanProperty(true);
 
-    public WindowManager() {
+    public DLWindowManager() {
         root.setWindowManager(this);
         root.addComponent(popupRoot);
     }
@@ -108,7 +108,7 @@ public class WindowManager {
     /**
      * Sets what happens when the last layer is gone. {@link DLScreen} uses this to leave the screen.
      */
-    public void setCloseHandler(Consumer<WindowManager> handler) {
+    public void setCloseHandler(Consumer<DLWindowManager> handler) {
         this.closeHandler = handler;
     }
 
@@ -138,7 +138,7 @@ public class WindowManager {
         popupRoot.setSize(width, height);
         for (ModalLayer layer : layers) {
             layer.resize(width, height);
-            for (Window window : layer.getWindows()) {
+            for (DLWindow window : layer.getWindows()) {
                 repositionAfterResize(window);
             }
         }
@@ -146,12 +146,12 @@ public class WindowManager {
         requestLayout();
     }
 
-    private void repositionAfterResize(Window window) {
+    private void repositionAfterResize(DLWindow window) {
         if (window.fullscreen.get()) {
             window.refitFullscreen(screenWidth, screenHeight);
             return;
         }
-        if (window.spawnPosition.get() != Window.SpawnPosition.CUSTOM) {
+        if (window.spawnPosition.get() != DLWindow.SpawnPosition.CUSTOM) {
             window.applySpawnPosition();
             return;
         }
@@ -183,8 +183,8 @@ public class WindowManager {
     /**
      * All windows across all layers.
      */
-    public List<Window> allWindows() {
-        List<Window> result = new ArrayList<>();
+    public List<DLWindow> allWindows() {
+        List<DLWindow> result = new ArrayList<>();
         for (ModalLayer layer : layers) {
             result.addAll(layer.getWindows());
         }
@@ -215,7 +215,7 @@ public class WindowManager {
         return Optional.empty();
     }
 
-    public Optional<ModalLayer> layerOf(Window window) {
+    public Optional<ModalLayer> layerOf(DLWindow window) {
         for (ModalLayer layer : layers) {
             if (layer.contains(window)) {
                 return Optional.of(layer);
@@ -224,7 +224,7 @@ public class WindowManager {
         return Optional.empty();
     }
 
-    public List<Window> windowsOf(ModalId id) {
+    public List<DLWindow> windowsOf(ModalId id) {
         return layerOf(id).map(ModalLayer::getWindows).orElse(List.of());
     }
 
@@ -254,7 +254,7 @@ public class WindowManager {
      *
      * @return the window, so it can be assigned in the same line
      */
-    public <T extends Window> T openWindow(T window) {
+    public <T extends DLWindow> T openWindow(T window) {
         ModalLayer layer = currentLayer();
         if (layer == null) {
             layer = createLayer(false);
@@ -268,7 +268,7 @@ public class WindowManager {
      * @return the window, so it can be assigned in the same line
      * @throws IllegalArgumentException if the layer does not exist
      */
-    public <T extends Window> T openWindow(T window, ModalId id) {
+    public <T extends DLWindow> T openWindow(T window, ModalId id) {
         ModalLayer layer = layerOf(id).orElseThrow(() -> new IllegalArgumentException("Unknown modal layer: " + id));
         return openWindow(window, layer);
     }
@@ -280,20 +280,20 @@ public class WindowManager {
      * @return the id of the new layer, needed to close it again
      * @throws IllegalArgumentException if no window was passed
      */
-    public ModalId openModal(Window... windows) {
+    public ModalId openModal(DLWindow... windows) {
         if (windows.length <= 0) {
             throw new IllegalArgumentException("A modal layer needs at least one window.");
         }
         closeAllPopups();
         ModalLayer layer = createLayer(true);
         router.focus(null);
-        for (Window window : windows) {
+        for (DLWindow window : windows) {
             openWindow(window, layer);
         }
         return layer.getId();
     }
 
-    private <T extends Window> T openWindow(T window, ModalLayer layer) {
+    private <T extends DLWindow> T openWindow(T window, ModalLayer layer) {
         window.setWindowManager(this);
         layer.add(window);
         window.notifyOpened(this, layer.getId());
@@ -308,12 +308,12 @@ public class WindowManager {
      * Closes a window and every window it owns. An empty layer is discarded afterwards, and once the
      * last layer is gone the close handler runs.
      */
-    public void closeWindow(Window window) {
+    public void closeWindow(DLWindow window) {
         ModalLayer layer = layerOf(window).orElse(null);
         if (layer == null) {
             return;
         }
-        for (Window owned : allWindows()) {
+        for (DLWindow owned : allWindows()) {
             if (owned != window && owned.owner.get() == window) {
                 closeWindow(owned);
             }
@@ -337,7 +337,7 @@ public class WindowManager {
         if (layer == null) {
             return;
         }
-        for (Window window : layer.getWindows()) {
+        for (DLWindow window : layer.getWindows()) {
             detachWindow(layer, window);
         }
         discardLayer(layer);
@@ -364,7 +364,7 @@ public class WindowManager {
         }
     }
 
-    private void detachWindow(ModalLayer layer, Window window) {
+    private void detachWindow(ModalLayer layer, DLWindow window) {
         closePopupsOf(window);
         router.releaseInside(window);
         layer.remove(window);
@@ -398,7 +398,7 @@ public class WindowManager {
      * Makes a window the active one of its layer and brings it to the front. Ignored for windows on a
      * suspended layer.
      */
-    public void activate(Window window) {
+    public void activate(DLWindow window) {
         ModalLayer layer = layerOf(window).orElse(null);
         if (layer == null || layer != currentLayer()) {
             return;
@@ -410,7 +410,7 @@ public class WindowManager {
      * Pushes a window to the back of its band and, if it was the active one, activates whatever is now
      * on top.
      */
-    public void sendToBack(Window window) {
+    public void sendToBack(DLWindow window) {
         layerOf(window).ifPresent(layer -> {
             layer.moveToBandBack(window);
             if (layer == currentLayer() && layer.getActiveWindow() == window) {
@@ -422,14 +422,14 @@ public class WindowManager {
     /**
      * Pulls a window to the front of its band, without changing which window is active.
      */
-    public void bringToFront(Window window) {
+    public void bringToFront(DLWindow window) {
         layerOf(window).ifPresent(layer -> layer.moveToBandFront(window));
     }
 
     /**
      * The window on the topmost layer that receives keyboard input, or null if there is none.
      */
-    public Window activeWindow() {
+    public DLWindow activeWindow() {
         ModalLayer layer = currentLayer();
         return layer == null ? null : layer.getActiveWindow();
     }
@@ -437,7 +437,7 @@ public class WindowManager {
     /**
      * The frontmost visible window of the topmost layer, which is not necessarily the active one.
      */
-    public Window topmostWindow() {
+    public DLWindow topmostWindow() {
         ModalLayer layer = currentLayer();
         return layer == null ? null : layer.topmostWindow();
     }
@@ -446,7 +446,7 @@ public class WindowManager {
      * Whether any visible window asks for the game to pause, see Window#pauseGame.
      */
     public boolean isPauseScreen() {
-        for (Window window : allWindows()) {
+        for (DLWindow window : allWindows()) {
             if (window.visible.get() && window.pauseGame.get()) {
                 return true;
             }
@@ -467,7 +467,7 @@ public class WindowManager {
         router.focus(component);
     }
 
-    void addPopup(Popup popup) {
+    void addPopup(DLPopup popup) {
         if (popups.contains(popup)) {
             return;
         }
@@ -476,7 +476,7 @@ public class WindowManager {
         requestLayout();
     }
 
-    void removePopup(Popup popup) {
+    void removePopup(DLPopup popup) {
         if (!popups.remove(popup)) {
             return;
         }
@@ -489,7 +489,7 @@ public class WindowManager {
     /**
      * Snapshot of the open popups, in opening order.
      */
-    public List<Popup> popups() {
+    public List<DLPopup> popups() {
         return List.copyOf(popups);
     }
 
@@ -500,7 +500,7 @@ public class WindowManager {
     /**
      * The popup that was opened last, i.e. the one that gets the keyboard input, or null.
      */
-    public Popup topmostPopup() {
+    public DLPopup topmostPopup() {
         return popups.isEmpty() ? null : popups.get(popups.size() - 1);
     }
 
@@ -508,7 +508,7 @@ public class WindowManager {
      * Closes every open popup, e.g. before a modal dialog opens.
      */
     public void closeAllPopups() {
-        for (Popup popup : List.copyOf(popups)) {
+        for (DLPopup popup : List.copyOf(popups)) {
             if (popup.isOpen()) {
                 popup.close();
             }
@@ -520,7 +520,7 @@ public class WindowManager {
      * Happens automatically when a window closes.
      */
     public void closePopupsOf(GuiComponent subtree) {
-        for (Popup popup : List.copyOf(popups)) {
+        for (DLPopup popup : List.copyOf(popups)) {
             GuiComponent owner = popup.owner();
             if (popup.isOpen() && (owner == null || owner.isDescendantOf(subtree))) {
                 popup.close();
@@ -532,7 +532,7 @@ public class WindowManager {
         return popupAt(screenX, screenY) != null;
     }
 
-    private Popup popupAt(double screenX, double screenY) {
+    private DLPopup popupAt(double screenX, double screenY) {
         for (int i = popups.size() - 1; i >= 0; i--) {
             GuiComponent content = popups.get(i).content();
             if (content.visible.get() && content.containsScreenPoint(screenX, screenY)) {
@@ -542,20 +542,20 @@ public class WindowManager {
         return null;
     }
 
-    private Set<Popup> ownerChain(Popup popup) {
-        Set<Popup> roots = new HashSet<>();
-        Popup current = popup == null ? null : popup.root();
+    private Set<DLPopup> ownerChain(DLPopup popup) {
+        Set<DLPopup> roots = new HashSet<>();
+        DLPopup current = popup == null ? null : popup.root();
         while (current != null && roots.add(current)) {
             current = popupOwning(current.owner());
         }
         return roots;
     }
 
-    private Popup popupOwning(GuiComponent component) {
+    private DLPopup popupOwning(GuiComponent component) {
         if (component == null) {
             return null;
         }
-        for (Popup popup : popups) {
+        for (DLPopup popup : popups) {
             if (component.isDescendantOf(popup.content())) {
                 return popup.root();
             }
@@ -563,10 +563,10 @@ public class WindowManager {
         return null;
     }
 
-    private boolean dismissLightPopups(Popup keep) {
-        Set<Popup> keepRoots = ownerChain(keep);
+    private boolean dismissLightPopups(DLPopup keep) {
+        Set<DLPopup> keepRoots = ownerChain(keep);
         boolean closed = false;
-        for (Popup popup : List.copyOf(popups)) {
+        for (DLPopup popup : List.copyOf(popups)) {
             if (popup.isOpen() && popup.lightDismiss.get() && !keepRoots.contains(popup.root())) {
                 popup.close();
                 closed = true;
@@ -580,11 +580,11 @@ public class WindowManager {
     }
 
     private GuiComponent keyboardScope() {
-        Popup popup = topmostPopup();
+        DLPopup popup = topmostPopup();
         if (popup != null) {
             return popup.content();
         }
-        Window window = activeWindow();
+        DLWindow window = activeWindow();
         return window != null ? window : inputRoot();
     }
 
@@ -672,7 +672,7 @@ public class WindowManager {
      * @return whether the GUI handled the press
      */
     public boolean mousePressed(double mouseX, double mouseY, int button) {
-        Popup hit = popupAt(mouseX, mouseY);
+        DLPopup hit = popupAt(mouseX, mouseY);
         if (dismissLightPopups(hit) && hit == null) {
             return true;
         }
@@ -731,7 +731,7 @@ public class WindowManager {
      * @return whether something was actually closed
      */
     public boolean escapePressed() {
-        Popup popup = topmostPopup();
+        DLPopup popup = topmostPopup();
         if (popup != null) {
             if (!popup.closeOnEscape.get()) {
                 return false;
@@ -743,7 +743,7 @@ public class WindowManager {
         if (layer == null) {
             return false;
         }
-        Window window = layer.getActiveWindow() != null ? layer.getActiveWindow() : layer.topmostWindow();
+        DLWindow window = layer.getActiveWindow() != null ? layer.getActiveWindow() : layer.topmostWindow();
         if (window == null || !window.closeOnEscape.get()) {
             return false;
         }
@@ -765,7 +765,7 @@ public class WindowManager {
         closeAll();
     }
 
-    private static Optional<Window> windowOf(GuiComponent component) {
-        return component == null ? Optional.empty() : component.getParent(Window.class);
+    private static Optional<DLWindow> windowOf(GuiComponent component) {
+        return component == null ? Optional.empty() : component.getParent(DLWindow.class);
     }
 }

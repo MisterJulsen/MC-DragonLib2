@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import org.lwjgl.glfw.GLFW;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
@@ -19,8 +20,7 @@ import de.mrjulsen.mcdragonlib.gui.v2.render.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
 import de.mrjulsen.mcdragonlib.gui.v2.widget.DLScrollBar;
 import de.mrjulsen.mcdragonlib.gui.v2.widget.DLTextBox;
-import de.mrjulsen.mcdragonlib.gui.v2.window.Window;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindow;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
@@ -40,7 +40,7 @@ import net.minecraft.network.chat.MutableComponent;
  * listens on the text box for the arrow keys, Tab and Enter and closes itself once neither it nor the
  * text box has the focus.</p>
  */
-public class DLAutocompleteWindow<T> extends Window {
+public class DLAutocompleteWindow<T> extends DLWindow {
 
     /**
      * The pane the suggestions are drawn in. Only exists to give the list its own scroll offset.
@@ -145,7 +145,7 @@ public class DLAutocompleteWindow<T> extends Window {
         });
 
         addEventListener(WindowActivationEvent.class, (src, e) -> {
-            WindowManager manager = getWindowManager();
+            DLWindowManager manager = getWindowManager();
             if (manager == null) {
                 return;
             }

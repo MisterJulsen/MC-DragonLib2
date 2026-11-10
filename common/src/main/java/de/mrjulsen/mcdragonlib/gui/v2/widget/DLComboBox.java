@@ -11,8 +11,8 @@ import de.mrjulsen.mcdragonlib.gui.v2.render.GuiUtils;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.BoxStyle;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.Theme;
 import de.mrjulsen.mcdragonlib.gui.v2.theme.WidgetRenderer;
-import de.mrjulsen.mcdragonlib.gui.v2.window.Popup;
-import de.mrjulsen.mcdragonlib.gui.v2.window.WindowManager;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLPopup;
+import de.mrjulsen.mcdragonlib.gui.v2.window.DLWindowManager;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
@@ -118,7 +118,7 @@ public class DLComboBox<T> extends GuiComponent {
     }
 
     protected void openDropdown() {
-        WindowManager manager = getWindowManager();
+        DLWindowManager manager = getWindowManager();
         if (manager == null || items.isEmpty()) {
             return;
         }
@@ -141,14 +141,14 @@ public class DLComboBox<T> extends GuiComponent {
         boolean down = below >= required || below >= above;
         list.maxVisibleItems.set(Math.max(1, Math.min(required, down ? below : above)));
 
-        Popup popup = new Popup(list);
+        DLPopup popup = new DLPopup(list);
         list.addEventListener(DLListBox.ItemActivation.class, (s, e) -> {
             if (e.index() != INVALID) {
                 selectedIndex.set(e.index());
             }
             popup.closeCascade();
         });
-        popup.openRelativeTo(this, down ? Popup.Placement.BELOW : Popup.Placement.ABOVE, 0, 0);
+        popup.openRelativeTo(this, down ? DLPopup.Placement.BELOW : DLPopup.Placement.ABOVE, 0, 0);
         list.scrollToItem(selectedIndex.get());
     }
 
