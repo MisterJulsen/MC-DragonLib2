@@ -1,7 +1,7 @@
 package de.mrjulsen.mcdragonlib.network.fabric;
 
-import de.mrjulsen.mcdragonlib.net.NetworkFlow;
-import de.mrjulsen.mcdragonlib.net.fabric.DLNetworkImpl;
+import de.mrjulsen.mcdragonlib.network.v2.NetworkFlow;
+import de.mrjulsen.mcdragonlib.network.v2.fabric.DLNetworkImpl;
 import de.mrjulsen.mcdragonlib.network.NetworkSide;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;

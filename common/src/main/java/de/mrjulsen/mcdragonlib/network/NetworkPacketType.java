@@ -10,14 +10,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import de.mrjulsen.mcdragonlib.network.v2.packet.RequestPacket;
+import de.mrjulsen.mcdragonlib.network.v2.packet.SendPacket;
+import de.mrjulsen.mcdragonlib.network.v2.stream.StreamPacket;
 import org.jetbrains.annotations.Nullable;
 
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
-import de.mrjulsen.mcdragonlib.net.DLChannel;
-import de.mrjulsen.mcdragonlib.net.ExecutionMode;
-import de.mrjulsen.mcdragonlib.net.NetworkSettings;
-import de.mrjulsen.mcdragonlib.net.PacketDefinition;
+import de.mrjulsen.mcdragonlib.network.v2.DLChannel;
+import de.mrjulsen.mcdragonlib.network.v2.ExecutionMode;
+import de.mrjulsen.mcdragonlib.network.v2.NetworkSettings;
+import de.mrjulsen.mcdragonlib.network.v2.PacketDefinition;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketData.Empty;
 import de.mrjulsen.mcdragonlib.network.NetworkProcessor.StreamProvider;
 import de.mrjulsen.mcdragonlib.network.NetworkProcessor.StreamReceiver;
@@ -43,7 +46,7 @@ import net.minecraft.resources.ResourceLocation;
  * @param <N> the direction type
  * @param <I> the type sent by the initiating side
  * @param <O> the type sent back
- * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.DLChannel} and the packet builders in
+ * @deprecated Use {@link DLChannel} and the packet builders in
  *             {@code de.mrjulsen.mcdragonlib.net.packet} instead.
  */
 @Deprecated
@@ -241,7 +244,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      *
      * @param <N> the direction type
      * @param <I> the payload type
-     * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.packet.SendPacket} instead.
+     * @deprecated Use {@link SendPacket} instead.
      */
     @Deprecated
     public static class Send<N extends NetworkDirection, I extends NetworkPacketData> extends NetworkPacketType<N, I, NetworkPacketData.Empty> {
@@ -282,7 +285,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      *
      * @param <N> the direction type
      * @param <O> the response type
-     * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.packet.RequestPacket} instead.
+     * @deprecated Use {@link RequestPacket} instead.
      */
     @Deprecated
     public static class Receive<N extends NetworkDirection, O extends NetworkPacketData> extends NetworkPacketType<N, NetworkPacketData.Empty, O> {
@@ -351,7 +354,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      * @param <N> the direction type
      * @param <I> the request type
      * @param <O> the response type
-     * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.packet.RequestPacket} instead.
+     * @deprecated Use {@link RequestPacket} instead.
      */
     @Deprecated
     public static class SendAndReceive<N extends NetworkDirection, I extends NetworkPacketData, O extends NetworkPacketData> extends NetworkPacketType<N, I, O> {
@@ -422,7 +425,7 @@ public abstract class NetworkPacketType<N extends NetworkDirection, I extends Ne
      * @param <N> the direction type
      * @param <I> the type sent by the initiating side
      * @param <O> the type sent back per chunk
-     * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.stream.StreamPacket} instead, which keeps
+     * @deprecated Use {@link StreamPacket} instead, which keeps
      *             several chunks in flight rather than one per round trip.
      */
     @Deprecated

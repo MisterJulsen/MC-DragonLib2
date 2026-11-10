@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.network.forge;
 
-import de.mrjulsen.mcdragonlib.net.forge.ClientNetworkImpl;
+import de.mrjulsen.mcdragonlib.network.v2.forge.ClientNetworkImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;

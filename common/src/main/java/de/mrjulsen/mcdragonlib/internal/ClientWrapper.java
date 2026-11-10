@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.net.internal.ClientNetworkHooks;
+import de.mrjulsen.mcdragonlib.network.v2.internal.ClientNetworkHooks;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection.C2S;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;

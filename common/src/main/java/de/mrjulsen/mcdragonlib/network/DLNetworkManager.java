@@ -9,9 +9,9 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 
 import de.mrjulsen.mcdragonlib.data.DLStatus;
-import de.mrjulsen.mcdragonlib.net.DLChannel;
-import de.mrjulsen.mcdragonlib.net.DLNetwork;
-import de.mrjulsen.mcdragonlib.net.NetworkFlow;
+import de.mrjulsen.mcdragonlib.network.v2.DLChannel;
+import de.mrjulsen.mcdragonlib.network.v2.DLNetwork;
+import de.mrjulsen.mcdragonlib.network.v2.NetworkFlow;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;

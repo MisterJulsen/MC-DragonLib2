@@ -26,7 +26,7 @@ import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.events.EventListenerId;
 import de.mrjulsen.mcdragonlib.events.IEvent;
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.FontAccessor;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.Holder.MutableHolder;

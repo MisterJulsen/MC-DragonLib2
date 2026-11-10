@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.network;
 
+import de.mrjulsen.mcdragonlib.network.v2.PacketContext;
 import dev.architectury.utils.Env;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -7,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.function.Supplier;
 
 /**
- * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.PacketContext}.
+ * @deprecated Use {@link PacketContext}.
  */
 @Deprecated
 public interface NetworkPacketContext {

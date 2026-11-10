@@ -9,13 +9,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import de.mrjulsen.mcdragonlib.data.DLStatus;
-import de.mrjulsen.mcdragonlib.net.ChannelSession;
-import de.mrjulsen.mcdragonlib.net.DLNetwork;
-import de.mrjulsen.mcdragonlib.net.NetworkError;
-import de.mrjulsen.mcdragonlib.net.PacketContext;
-import de.mrjulsen.mcdragonlib.net.PacketDefinition;
-import de.mrjulsen.mcdragonlib.net.SessionResource;
-import de.mrjulsen.mcdragonlib.net.codec.DLStreamCodec;
+import de.mrjulsen.mcdragonlib.network.v2.ChannelSession;
+import de.mrjulsen.mcdragonlib.network.v2.DLNetwork;
+import de.mrjulsen.mcdragonlib.network.v2.NetworkError;
+import de.mrjulsen.mcdragonlib.network.v2.PacketContext;
+import de.mrjulsen.mcdragonlib.network.v2.PacketDefinition;
+import de.mrjulsen.mcdragonlib.network.v2.SessionResource;
+import de.mrjulsen.mcdragonlib.network.v2.codec.DLStreamCodec;
+import de.mrjulsen.mcdragonlib.network.v2.stream.StreamPacket;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketContext;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketData;
@@ -29,7 +30,7 @@ import net.minecraft.network.FriendlyByteBuf;
  *
  * <p>The old back and forth is kept as it was, one chunk per round trip, because that is the
  * behaviour existing mods are written against. New code should use
- * {@link de.mrjulsen.mcdragonlib.net.stream.StreamPacket}, which keeps several chunks in flight.
+ * {@link StreamPacket}, which keeps several chunks in flight.
  *
  * @param <I> the type sent by the requesting side
  * @param <O> the type sent back per chunk

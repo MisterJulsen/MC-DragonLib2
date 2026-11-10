@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.client.gui.widgets.richtext;
 
-import de.mrjulsen.mcdragonlib.mixin.FontAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.FontAccessor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.nbt.CompoundTag;

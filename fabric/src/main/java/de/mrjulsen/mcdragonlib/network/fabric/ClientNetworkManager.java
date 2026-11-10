@@ -1,6 +1,6 @@
 package de.mrjulsen.mcdragonlib.network.fabric;
 
-import de.mrjulsen.mcdragonlib.net.fabric.ClientNetworkImpl;
+import de.mrjulsen.mcdragonlib.network.v2.fabric.ClientNetworkImpl;
 import net.minecraft.resources.ResourceLocation;
 
 /**

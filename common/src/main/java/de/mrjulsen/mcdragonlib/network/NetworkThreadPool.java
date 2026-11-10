@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import de.mrjulsen.mcdragonlib.net.DLNetwork;
-import de.mrjulsen.mcdragonlib.net.ExecutionMode;
+import de.mrjulsen.mcdragonlib.network.v2.DLNetwork;
+import de.mrjulsen.mcdragonlib.network.v2.ExecutionMode;
 import net.minecraft.Util;
 
 /**

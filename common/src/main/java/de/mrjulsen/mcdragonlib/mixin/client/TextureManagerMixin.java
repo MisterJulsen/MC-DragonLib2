@@ -1,0 +1,31 @@
+package de.mrjulsen.mcdragonlib.mixin.client;
+
+import java.util.Map;
+
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At.Shift;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import dev.architectury.injectables.annotations.PlatformOnly;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.ResourceLocation;
+
+/** Fixes fabric */
+@Mixin(TextureManager.class)
+public class TextureManagerMixin {
+
+    @Final
+    @Shadow
+    private Map<ResourceLocation, AbstractTexture> byPath;
+
+    @PlatformOnly(value = PlatformOnly.FABRIC)
+    @Inject(method = "release", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;safeClose(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/client/renderer/texture/AbstractTexture;)V", shift = Shift.BEFORE))
+    public void dragonlib$release(ResourceLocation path, CallbackInfo ci) {
+        this.byPath.remove(path);
+    }
+}

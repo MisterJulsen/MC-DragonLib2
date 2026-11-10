@@ -5,13 +5,13 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
-import de.mrjulsen.mcdragonlib.net.PacketTarget;
+import de.mrjulsen.mcdragonlib.network.v2.PacketTarget;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.PacketTarget}.
+ * @deprecated Use {@link PacketTarget}.
  */
 @Deprecated
 public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDirection.S2C {

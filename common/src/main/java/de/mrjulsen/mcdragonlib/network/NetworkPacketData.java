@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.network;
 
 import de.mrjulsen.mcdragonlib.data.INBTSerializable;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
+import de.mrjulsen.mcdragonlib.network.v2.codec.DLStreamCodec;
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
@@ -9,7 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import java.util.function.Function;
 
 /**
- * @deprecated Use {@link de.mrjulsen.mcdragonlib.net.codec.DLStreamCodec} to describe a payload.
+ * @deprecated Use {@link DLStreamCodec} to describe a payload.
  */
 @Deprecated
 @FieldsAreNonnullByDefault
