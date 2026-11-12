@@ -1,5 +1,6 @@
 package de.mrjulsen.mcdragonlib.internal;
 
+import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
 import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLScreen;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
@@ -58,7 +59,7 @@ public class DragonLibBlock extends BaseEntityBlock {
             } else {
                 DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             }
-            //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
+            DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
             return InteractionResult.SUCCESS;
         } else {
 
