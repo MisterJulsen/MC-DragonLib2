@@ -1,13 +1,13 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 import java.time.Duration;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.mrjulsen.mcdragonlib.time.format.DurationFormat;
-import de.mrjulsen.mcdragonlib.time.format.TimeParser;
-import de.mrjulsen.mcdragonlib.time.format.TimeParts;
+import de.mrjulsen.mcdragonlib.time.v1.format.DurationFormat;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParser;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParts;
 
 /**
  * An amount of game time, measured in day time ticks, the same unit as {@link GameTime}. May be

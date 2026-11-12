@@ -1,8 +1,8 @@
-package de.mrjulsen.mcdragonlib.time.format;
+package de.mrjulsen.mcdragonlib.time.v1.format;
 
 import java.util.Locale;
 
-import de.mrjulsen.mcdragonlib.time.TimeOfDay;
+import de.mrjulsen.mcdragonlib.time.v1.TimeOfDay;
 
 /**
  * Turns a clock reading into text. Use one of the constants or write your own.

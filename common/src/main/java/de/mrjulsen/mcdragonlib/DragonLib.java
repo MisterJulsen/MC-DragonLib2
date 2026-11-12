@@ -16,7 +16,7 @@ import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.time.datapack.TimeSystemDatapackLoader;
-import de.mrjulsen.mcdragonlib.time.internal.TimeSystemSync;
+import de.mrjulsen.mcdragonlib.time.v1.internal.TimeSystemSync;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientTickEvent;

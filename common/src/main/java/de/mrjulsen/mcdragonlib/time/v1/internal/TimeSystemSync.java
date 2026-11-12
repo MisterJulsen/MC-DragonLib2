@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time.internal;
+package de.mrjulsen.mcdragonlib.time.v1.internal;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.network.v2.DLChannel;
@@ -7,9 +7,9 @@ import de.mrjulsen.mcdragonlib.network.v2.PacketTarget;
 import de.mrjulsen.mcdragonlib.network.v2.codec.DLCodecs;
 import de.mrjulsen.mcdragonlib.network.v2.codec.DLStreamCodec;
 import de.mrjulsen.mcdragonlib.network.v2.packet.SendPacket;
-import de.mrjulsen.mcdragonlib.time.TimeSection;
-import de.mrjulsen.mcdragonlib.time.TimeSystem;
-import de.mrjulsen.mcdragonlib.time.TimeSystems;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSection;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSystem;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSystems;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.LifecycleEvent;

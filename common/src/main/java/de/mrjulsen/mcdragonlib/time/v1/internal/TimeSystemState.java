@@ -1,9 +1,9 @@
-package de.mrjulsen.mcdragonlib.time.internal;
+package de.mrjulsen.mcdragonlib.time.v1.internal;
 
 import org.jetbrains.annotations.Nullable;
 
-import de.mrjulsen.mcdragonlib.time.TimeSystem;
-import de.mrjulsen.mcdragonlib.time.TimeSystems;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSystem;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSystems;
 
 /**
  * The time systems that come from outside the code: the datapack one and the one a server sent.

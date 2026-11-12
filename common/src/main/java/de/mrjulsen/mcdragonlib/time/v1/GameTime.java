@@ -1,9 +1,9 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 import java.time.Duration;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.time.format.ClockFormat;
+import de.mrjulsen.mcdragonlib.time.v1.format.ClockFormat;
 import net.minecraft.world.level.Level;
 
 /**

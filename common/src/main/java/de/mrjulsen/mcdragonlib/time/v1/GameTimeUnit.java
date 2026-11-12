@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 import java.util.concurrent.TimeUnit;
 

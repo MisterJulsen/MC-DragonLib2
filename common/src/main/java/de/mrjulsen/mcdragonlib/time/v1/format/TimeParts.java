@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time.format;
+package de.mrjulsen.mcdragonlib.time.v1.format;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;

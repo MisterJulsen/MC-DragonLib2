@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 /**
  * A section of the day in which time runs at one constant speed.

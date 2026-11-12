@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time.internal;
+package de.mrjulsen.mcdragonlib.time.v1.internal;
 
 import java.io.Reader;
 import java.util.Optional;
@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.time.TimeSystem;
+import de.mrjulsen.mcdragonlib.time.v1.TimeSystem;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import dev.architectury.registry.ReloadListenerRegistry;
 import net.minecraft.resources.ResourceLocation;

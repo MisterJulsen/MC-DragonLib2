@@ -1,13 +1,13 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 import java.time.LocalTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import de.mrjulsen.mcdragonlib.time.format.ClockFormat;
-import de.mrjulsen.mcdragonlib.time.format.TimeParser;
-import de.mrjulsen.mcdragonlib.time.format.TimeParts;
+import de.mrjulsen.mcdragonlib.time.v1.format.ClockFormat;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParser;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParts;
 
 /**
  * A clock reading within a game day, such as 06:30, independent of any time system.

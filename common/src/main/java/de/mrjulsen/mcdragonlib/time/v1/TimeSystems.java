@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time;
+package de.mrjulsen.mcdragonlib.time.v1;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.config.ModCommonConfig;
 import de.mrjulsen.mcdragonlib.config.ModServerConfig;
-import de.mrjulsen.mcdragonlib.time.internal.TimeSystemState;
+import de.mrjulsen.mcdragonlib.time.v1.internal.TimeSystemState;
 import dev.architectury.platform.Platform;
 
 /**

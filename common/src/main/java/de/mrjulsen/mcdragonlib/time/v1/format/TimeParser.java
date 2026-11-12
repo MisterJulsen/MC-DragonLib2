@@ -1,4 +1,4 @@
-package de.mrjulsen.mcdragonlib.time.format;
+package de.mrjulsen.mcdragonlib.time.v1.format;
 
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.mrjulsen.mcdragonlib.time.TimeOfDay;
-import de.mrjulsen.mcdragonlib.time.format.TimeParts.Field;
+import de.mrjulsen.mcdragonlib.time.v1.TimeOfDay;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParts.Field;
 
 /**
  * Reads clock readings and durations from text, e.g. from text fields, commands or configs. Reads

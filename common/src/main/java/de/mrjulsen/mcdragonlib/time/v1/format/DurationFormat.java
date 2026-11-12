@@ -1,8 +1,8 @@
-package de.mrjulsen.mcdragonlib.time.format;
+package de.mrjulsen.mcdragonlib.time.v1.format;
 
 import java.util.Locale;
 
-import de.mrjulsen.mcdragonlib.time.format.TimeParts.Field;
+import de.mrjulsen.mcdragonlib.time.v1.format.TimeParts.Field;
 
 /**
  * Turns a duration into text. Works for real durations ({@code TimeParts.of(duration)}) and game
