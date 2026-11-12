@@ -1,129 +1,72 @@
 package de.mrjulsen.mcdragonlib.util;
 
-import de.mrjulsen.mcdragonlib.util.math.MathUtils;
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+
+import de.mrjulsen.mcdragonlib.network.v2.codec.DLStreamCodec;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.DyeColor;
 
 /**
- * Immutable ARGB color utility and value object.
+ * Immutable ARGB color with conversion, transformation and blending utilities.
  *
- * <p>This final class represents a color using four 8-bit channels (Alpha, Red, Green, Blue).
- * Instances are immutable and may be created via the provided factory methods. A special
- * sentinel instance {@link #UNDEFINED} exists to represent the absence of a color; calling
- * most instance methods on that sentinel will throw {@link IllegalStateException}.
- *
- * <p>The class exposes:
- * <ul>
- *   <li>Factory methods for integer and normalized float components, packed ARGB ints,
- *       CSS-like hex strings and HSV.</li>
- *   <li>Accessors for raw 0–255 channels and normalized 0.0–1.0 floats, plus HSB/HSV helpers.</li>
- *   <li>Immutable color transforms (lighten, darken, invert, grayscale, saturate, rotateHue, etc.).</li>
- *   <li>Pixel/compositing helpers (blend, alphaBlend, combine, mixTint).</li>
- *   <li>Utility predicates and equality/hash contract that treat UNDEFINED specially.</li>
- * </ul>
- *
- * <p>Thread-safety: immutable and therefore inherently thread-safe.
- *
- * <p>Usage notes:
- * <ul>
- *   <li>All float inputs are clamped to the range [0.0, 1.0] where documented.</li>
- *   <li>Integer channel inputs are clamped to [0, 255].</li>
- *   <li>Methods returning new colors do not mutate the receiver.</li>
- * </ul>
+ * <p>Channel inputs are clamped (int: 0–255, float: 0.0–1.0). {@link #UNDEFINED} represents
+ * the absence of a color; most methods throw {@link IllegalStateException} when called on it.
  */
 public final class DLColor {
-    /**
-     * Modes describing how two colors are combined component-wise.
-     *
-     * <p>Combine algorithms follow commonly used blending semantics:
-     * <ul>
-     *   <li>ADD/SUBTRACT operate on normalized channels by addition/subtraction.</li>
-     *   <li>MULTIPLY multiplies normalized channels (darkening blend).</li>
-     *   <li>NEGATIVE_MULTIPLY and SCREEN implement two common screen-like formulas.</li>
-     *   <li>OVERLAY applies a contrast-preserving overlay.</li>
-     *   <li>DIFFERENCE produces the absolute-channel difference.</li>
-     * </ul>
-     *
-     * <p>All combine modes operate on RGB channels only; alpha handling is separate and
-     * implementations in this class generally combine alpha as a simple mean or preserve
-     * the original values as documented on the calling method.
-     */
+
+    /** Blend modes for {@link DLColor#combine(DLColor, DLColor, CombineMode)}. Only RGB is affected. */
     public enum CombineMode {
-        ADD, SUBTRACT, MULTIPLY, NEGATIVE_MULTIPLY, SCREEN, OVERLAY, DIFFERENCE
+        ADD,
+        SUBTRACT,
+        MULTIPLY,
+        /** @deprecated Identical to {@link #SCREEN}. Use {@link #SCREEN} instead. */
+        @Deprecated(forRemoval = true)
+        NEGATIVE_MULTIPLY,
+        SCREEN,
+        OVERLAY,
+        DIFFERENCE
     }
 
-    /**
-     * Identifiers for RGB channels used by channel-manipulation helpers.
-     *
-     * <p>Values refer to Red, Green and Blue channels respectively and are used by
-     * methods that need to select or swap channels dynamically.
-     */
+    /** RGB channel identifiers. */
     public enum ColorChannel {
         R, G, B
     }
 
     private final int a, r, g, b;
-    /** Flag to distinguish between a defined color and the UNDEFINED singleton. */
     private final boolean isDefined;
 
-    // --- Predefined Color Constants ---
-    /**
-     * A fully opaque white color (ARGB 0xFFFFFFFF).
-     */
     public static final DLColor WHITE = DLColor.of(255, 255, 255);
-
-    /**
-     * A fully opaque black color (ARGB 0xFF000000).
-     */
     public static final DLColor BLACK = DLColor.of(0, 0, 0);
-
-    /**
-     * A fully opaque red color (ARGB 0xFFFF0000).
-     */
     public static final DLColor RED = DLColor.of(255, 0, 0);
-
-    /**
-     * A fully opaque green color (ARGB 0xFF00FF00).
-     */
     public static final DLColor GREEN = DLColor.of(0, 255, 0);
-
-    /**
-     * A fully opaque blue color (ARGB 0xFF0000FF).
-     */
     public static final DLColor BLUE = DLColor.of(0, 0, 255);
-
-    /**
-     * A fully opaque yellow color (ARGB 0xFFFFFF00).
-     */
     public static final DLColor YELLOW = DLColor.of(255, 255, 0);
-
-    /**
-     * A fully opaque cyan color (ARGB 0xFF00FFFF).
-     */
     public static final DLColor CYAN = DLColor.of(0, 255, 255);
-
-    /**
-     * A fully opaque magenta color (ARGB 0xFFFF00FF).
-     */
     public static final DLColor MAGENTA = DLColor.of(255, 0, 255);
-
-    /**
-     * A fully transparent black (ARGB 0x00000000). Alpha = 0, RGB = 0.
-     *
-     * <p>This is useful as a neutral transparent color for compositing operations.
-     */
+    /** Fully transparent black. */
     public static final DLColor TRANSPARENT = DLColor.of(0, 0, 0, 0);
-
-    /**
-     * A sentinel value that denotes an undefined or absent color.
-     *
-     * <p>Methods that operate on colors will throw {@link IllegalStateException}
-     * when invoked on this sentinel, except for {@link #isUndefined()} which
-     * explicitly checks for it. Use this constant to represent "no color".
-     */
+    /** Sentinel for "no color". Only {@link #isUndefined()}, {@code equals}, {@code hashCode} and {@code toString} are safe to call. */
     public static final DLColor UNDEFINED = new DLColor();
 
-    /**
-     * Main constructor for defined colors.
-     */
+    /** Decodes from a packed ARGB int or a hex string, encodes as packed ARGB int. */
+    public static final Codec<DLColor> CODEC = Codec.either(Codec.INT, Codec.STRING).comapFlatMap(
+        either -> either.map(argb -> DataResult.success(fromInt(argb)), DLColor::parseHexResult),
+        color -> Either.left(color.getAsARGB())
+    );
+
+    /** Network codec. Supports {@link #UNDEFINED}. */
+    public static final DLStreamCodec<DLColor> STREAM_CODEC = DLStreamCodec.of(
+        (buf, color) -> {
+            buf.writeBoolean(color.isDefined);
+            if (color.isDefined) {
+                buf.writeInt(color.getAsARGB());
+            }
+        },
+        buf -> buf.readBoolean() ? fromInt(buf.readInt()) : UNDEFINED
+    );
+
     private DLColor(int a, int r, int g, int b) {
         this.a = clamp(a);
         this.r = clamp(r);
@@ -132,9 +75,6 @@ public final class DLColor {
         this.isDefined = true;
     }
 
-    /**
-     * Special private constructor only for the UNDEFINED singleton.
-     */
     private DLColor() {
         this.a = 0;
         this.r = 0;
@@ -143,104 +83,47 @@ public final class DLColor {
         this.isDefined = false;
     }
 
-    /**
-     * Create an opaque color from integer RGB components (0–255).
-     *
-     * @param r the red channel in [0,255]
-     * @param g the green channel in [0,255]
-     * @param b the blue channel in [0,255]
-     * @return a new DLColor instance with alpha = 255 and the specified RGB channels
-     */
+    /** Creates an opaque color from RGB channels (0–255). */
     public static DLColor of(int r, int g, int b) {
         return new DLColor(255, r, g, b);
     }
 
-    /**
-     * Create a color from explicit ARGB integer components (0–255).
-     *
-     * @param a the alpha channel in [0,255]
-     * @param r the red channel in [0,255]
-     * @param g the green channel in [0,255]
-     * @param b the blue channel in [0,255]
-     * @return a new DLColor instance representing the supplied ARGB channels
-     */
+    /** Creates a color from ARGB channels (0–255). */
     public static DLColor of(int a, int r, int g, int b) {
         return new DLColor(a, r, g, b);
     }
 
-    /**
-     * Create an opaque color from normalized float RGB components.
-     *
-     * <p>Float values are expected in the range [0.0, 1.0]. Values outside that range
-     * will be clamped. The returned color has alpha = 255 (fully opaque).
-     *
-     * @param r normalized red channel in [0.0,1.0]
-     * @param g normalized green channel in [0.0,1.0]
-     * @param b normalized blue channel in [0.0,1.0]
-     * @return a new DLColor instance with alpha = 255
-     */
+    /** Creates an opaque color from normalized RGB channels (0.0–1.0). */
     public static DLColor of(float r, float g, float b) {
-        return new DLColor(255, (int) (clamp(r) * 255f + 0.5f), (int) (clamp(g) * 255f + 0.5f), (int) (clamp(b) * 255f + 0.5f));
+        return new DLColor(255, toByte(r), toByte(g), toByte(b));
     }
 
-    /**
-     * Create a color from normalized ARGB float components.
-     *
-     * <p>Each component should be in [0.0,1.0]; values will be clamped. Returned
-     * channels are converted to 8-bit integers with rounding.
-     *
-     * @param a normalized alpha in [0.0,1.0]
-     * @param r normalized red in [0.0,1.0]
-     * @param g normalized green in [0.0,1.0]
-     * @param b normalized blue in [0.0,1.0]
-     * @return a new DLColor instance representing the specified ARGB color
-     */
+    /** Creates a color from normalized ARGB channels (0.0–1.0). */
     public static DLColor of(float a, float r, float g, float b) {
-        return new DLColor((int) (clamp(a) * 255f + 0.5f), (int) (clamp(r) * 255f + 0.5f), (int) (clamp(g) * 255f + 0.5f), (int) (clamp(b) * 255f + 0.5f));
+        return new DLColor(toByte(a), toByte(r), toByte(g), toByte(b));
     }
 
-    /**
-     * Create a DLColor from a packed ARGB integer (0xAARRGGBB).
-     *
-     * @param argb packed 32-bit ARGB value
-     * @return a new DLColor with channels extracted from the packed value
-     */
+    /** Creates a color from a packed {@code 0xAARRGGBB} int. */
     public static DLColor fromInt(int argb) {
         return new DLColor((argb >> 24) & 0xFF, (argb >> 16) & 0xFF, (argb >> 8) & 0xFF, argb & 0xFF);
     }
 
-    /**
-     * Parse a hex color string and return the corresponding DLColor.
-     *
-     * <p>Supported formats (with or without leading '#'):
-     * <ul>
-     *   <li>#RGB (3 hex digits) – shorthand for RRGGBB with alpha = 255</li>
-     *   <li>#RRGGBB (6 hex digits) – RGB with alpha = 255</li>
-     *   <li>#ARGB (4 hex digits) – shorthand including alpha</li>
-     *   <li>#AARRGGBB (8 hex digits) – explicit alpha + RGB</li>
-     * </ul>
-     *
-     * @param hexString the hex color string to parse
-     * @return a new DLColor representing the parsed color
-     * @throws IllegalArgumentException if the format is not recognized or contains invalid hex digits
-     */
-    public static DLColor fromHex(String hexString) {
-        int[] c = parseHex(hexString);
-        return new DLColor(c[0], c[1], c[2], c[3]);
+    /** Creates a color from a packed {@code 0xAABBGGRR} int, as used by {@code NativeImage}. */
+    public static DLColor fromABGR(int abgr) {
+        return new DLColor((abgr >> 24) & 0xFF, abgr & 0xFF, (abgr >> 8) & 0xFF, (abgr >> 16) & 0xFF);
     }
 
     /**
-     * Create a color from HSV values.
+     * Parses a hex color string. Accepts {@code RGB}, {@code ARGB}, {@code RRGGBB} and {@code AARRGGBB},
+     * optionally prefixed with {@code #} or {@code 0x}.
      *
-     * <p>Hue is specified in degrees and will be normalized to the range [0,360).
-     * Saturation and value (brightness) are expected in [0.0,1.0] and are clamped.
-     * The produced color is opaque (alpha = 255).
-     *
-     * @param h hue in degrees (may be outside 0..360; will be wrapped)
-     * @param s saturation in [0.0,1.0]
-     * @param v value/brightness in [0.0,1.0]
-     * @return an opaque DLColor corresponding to the HSV input
+     * @throws IllegalArgumentException if the string is not a valid hex color
      */
+    public static DLColor fromHex(String hexString) {
+        return fromInt(parseHex(hexString));
+    }
+
+    /** Creates an opaque color from HSV. Hue in degrees (wrapped), saturation and value in 0.0–1.0. */
     public static DLColor fromHsv(float h, float s, float v) {
         h = (h % 360f + 360f) % 360f;
         s = clamp(s);
@@ -275,183 +158,131 @@ public final class DLColor {
         return DLColor.of(r + m, g + m, b + m);
     }
 
-    // --- Getters & Conversions ---
+    /** Returns the diffuse color of the given dye. */
+    public static DLColor fromDyeColor(DyeColor dye) {
+        float[] rgb = dye.getTextureDiffuseColors();
+        return DLColor.of(rgb[0], rgb[1], rgb[2]);
+    }
+
+    /** Returns the text color of the given formatting, or {@link #UNDEFINED} if it has none (e.g. {@code BOLD}). */
+    public static DLColor fromChatFormatting(ChatFormatting formatting) {
+        Integer rgb = formatting.getColor();
+        return rgb == null ? UNDEFINED : fromInt(0xFF000000 | rgb);
+    }
+
     private void checkDefined() {
         if (!isDefined)
             throw new IllegalStateException("Operation cannot be performed on an UNDEFINED color.");
     }
 
-    /**
-     * Returns the alpha channel as an integer in range 0–255.
-     *
-     * @return alpha channel (0 = fully transparent, 255 = fully opaque)
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Alpha channel (0–255). */
     public int getAlpha() {
         checkDefined();
         return a;
     }
 
-    /**
-     * Returns the red channel as an integer in range 0–255.
-     *
-     * @return red channel
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Red channel (0–255). */
     public int getRed() {
         checkDefined();
         return r;
     }
 
-    /**
-     * Returns the green channel as an integer in range 0–255.
-     *
-     * @return green channel
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Green channel (0–255). */
     public int getGreen() {
         checkDefined();
         return g;
     }
 
-    /**
-     * Returns the blue channel as an integer in range 0–255.
-     *
-     * @return blue channel
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Blue channel (0–255). */
     public int getBlue() {
         checkDefined();
         return b;
     }
 
-    /**
-     * Returns the normalized alpha channel in the range [0.0f, 1.0f].
-     *
-     * @return alpha as a float fraction of 255
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Alpha channel (0.0–1.0). */
     public float getAlphaF() {
         checkDefined();
         return a / 255.0f;
     }
 
-    /**
-     * Returns the normalized red channel in the range [0.0f, 1.0f].
-     *
-     * @return red normalized to [0,1]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Red channel (0.0–1.0). */
     public float getRedF() {
         checkDefined();
         return r / 255.0f;
     }
 
-    /**
-     * Returns the normalized green channel in the range [0.0f, 1.0f].
-     *
-     * @return green normalized to [0,1]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Green channel (0.0–1.0). */
     public float getGreenF() {
         checkDefined();
         return g / 255.0f;
     }
 
-    /**
-     * Returns the normalized blue channel in the range [0.0f, 1.0f].
-     *
-     * @return blue normalized to [0,1]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Blue channel (0.0–1.0). */
     public float getBlueF() {
         checkDefined();
         return b / 255.0f;
     }
 
-    /**
-     * Returns the hue component (in degrees 0..360) of this color in HSB/HSV representation.
-     *
-     * @return hue in degrees
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Hue in degrees (0–360). */
     public float getHue() {
-        checkDefined();
-        return getAsHSB()[0];
+        return getAsHSV()[0];
     }
 
-    /**
-     * Returns the saturation component of this color in HSB/HSV representation.
-     *
-     * @return saturation in [0.0,1.0]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** HSB saturation (0.0–1.0). */
     public float getSaturation() {
-        checkDefined();
-        return getAsHSB()[1];
+        return getAsHSV()[1];
     }
 
-    /**
-     * Returns the brightness/value component of this color in HSB/HSV representation.
-     *
-     * @return brightness/value in [0.0,1.0]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** HSB brightness/value (0.0–1.0). */
     public float getBrightness() {
-        checkDefined();
-        return getAsHSB()[2];
+        return getAsHSV()[2];
     }
 
-    /** Returns the hue component as an integer (0-360). */
+    /** Hue in whole degrees (0–359). */
     public int getHueInt() {
-        checkDefined();
-        return (int) getHue();
+        return Math.round(getHue()) % 360;
     }
 
-    /** Returns the saturation component as an integer (0-100). */
+    /** Saturation in percent (0–100). */
     public int getSaturationInt() {
-        checkDefined();
         return Math.round(getSaturation() * 100);
     }
 
-    /** Returns the value/brightness component as an integer (0-100). */
+    /** Brightness/value in percent (0–100). */
     public int getValueInt() {
-        checkDefined();
         return Math.round(getBrightness() * 100);
     }
 
-    /**
-     * Returns the packed ARGB integer equivalent (0xAARRGGBB).
-     *
-     * @return packed 32-bit ARGB value
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Packed {@code 0xAARRGGBB} int. */
     public int getAsARGB() {
         checkDefined();
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    /**
-     * Returns a HEX string representation of this color.
-     *
-     * @param includeAlpha if true returns "#AARRGGBB", otherwise returns "#RRGGBB"
-     * @return uppercase hex string with leading '#'
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Packed {@code 0xAABBGGRR} int, as used by {@code NativeImage}. */
+    public int getAsABGR() {
+        checkDefined();
+        return (a << 24) | (b << 16) | (g << 8) | r;
+    }
+
+    /** Uppercase hex string, {@code #AARRGGBB} if {@code includeAlpha}, otherwise {@code #RRGGBB}. */
     public String getAsHEX(boolean includeAlpha) {
         checkDefined();
         return includeAlpha ? String.format("#%02X%02X%02X%02X", a, r, g, b) : String.format("#%02X%02X%02X", r, g, b);
     }
 
-    /**
-     * Returns the HSB components as a float array {h, s, b}.
-     *
-     * <p>h in degrees [0,360), s and b in [0.0,1.0].
-     *
-     * @return three-element float array {hue, saturation, brightness}
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Uppercase hex string. Alpha is only included if the color is not fully opaque. */
+    public String getAsHEX() {
+        return getAsHEX(hasTransparency());
+    }
+
+    @Deprecated
     public float[] getAsHSB() {
+        return getAsHSV();
+    }
+
+    /** HSB components as {@code {hue (0–360), saturation (0.0–1.0), brightness (0.0–1.0)}}. */
+    public float[] getAsHSV() {
         checkDefined();
         float r_ = getRedF(), g_ = getGreenF(), b_ = getBlueF();
         float cmax = Math.max(r_, Math.max(g_, b_)), cmin = Math.min(r_, Math.min(g_, b_));
@@ -469,216 +300,124 @@ public final class DLColor {
         return new float[] { h, s, cmax };
     }
 
-    /**
-     * Returns true if this instance is the sentinel {@link #UNDEFINED}.
-     *
-     * @return true for the UNDEFINED instance, false otherwise
-     */
+    /** Whether this is the {@link #UNDEFINED} sentinel. */
     public boolean isUndefined() {
         return !this.isDefined;
     }
 
-    /**
-     * Returns true if the alpha channel is less than fully opaque.
-     *
-     * @return true when alpha normalized {@code < 1.0}
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Whether alpha is below 255. */
     public boolean hasTransparency() {
-        return getAlphaF() < 1;
+        return getAlpha() < 255;
     }
 
-    /**
-     * Returns true if the color is fully transparent (alpha == 0).
-     *
-     * @return true when alpha normalized {@code <= 0.0}
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Whether alpha is 0. */
     public boolean isTransparent() {
-        return getAlphaF() <= 0;
+        return getAlpha() == 0;
     }
 
-    // Transformations (each returns a new DLColor)
-
-    /**
-     * Lighten this color by blending it towards white.
-     *
-     * <p>A factor of 0.0 returns the original color; 1.0 returns pure white. Intermediate
-     * values produce a linear interpolation in RGBA space.
-     *
-     * @param amount blend factor in [0.0,1.0] (clamped)
-     * @return a new DLColor representing the lightened color
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Blends towards white by {@code amount} (0.0–1.0). */
     public DLColor lighten(float amount) {
         checkDefined();
-        return blend(this, WHITE, amount);
+        return blend(this, WHITE.withAlpha(a), amount);
     }
 
-    /**
-     * Darken this color by blending it towards black.
-     *
-     * <p>Semantics analogous to {@link #lighten(float)} but towards black.
-     *
-     * @param amount blend factor in [0.0,1.0] (clamped)
-     * @return a new DLColor representing the darkened color
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Blends towards black by {@code amount} (0.0–1.0). */
     public DLColor darken(float amount) {
         checkDefined();
-        return blend(this, BLACK, amount);
+        return blend(this, BLACK.withAlpha(a), amount);
     }
 
-    /**
-     * Returns the color with RGB channels inverted; alpha preserved.
-     *
-     * @return a new DLColor with each RGB channel replaced by 255 - channel
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Inverts the RGB channels. Alpha is kept. */
     public DLColor invert() {
         checkDefined();
         return new DLColor(a, 255 - r, 255 - g, 255 - b);
     }
 
-    /**
-     * Convert this color to grayscale using luminance coefficients (Rec. 601 luma).
-     *
-     * <p>Alpha is preserved.
-     *
-     * @return a new DLColor in grayscale
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Converts to grayscale using Rec. 601 luma. Alpha is kept. */
     public DLColor grayscale() {
         checkDefined();
         int gray = (int) Math.round(r * 0.299 + g * 0.587 + b * 0.114);
         return new DLColor(a, gray, gray, gray);
     }
 
-    /**
-     * Increase or decrease saturation by an additive amount.
-     *
-     * <p>Amount is added to the HSB saturation and clamped to [0.0,1.0].
-     * Alpha is preserved on the returned color.
-     *
-     * @param amount additive saturation change, positive to saturate more, negative to desaturate
-     * @return a new DLColor with adjusted saturation
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Adds {@code amount} to the HSB saturation. Negative values desaturate. Alpha is kept. */
     public DLColor saturate(float amount) {
-        checkDefined();
-        float[] hsv = getAsHSB();
-        hsv[1] = clamp(hsv[1] + amount);
-        return DLColor.fromHsv(hsv[0], hsv[1], hsv[2]).withAlpha(this.a);
+        float[] hsv = getAsHSV();
+        return DLColor.fromHsv(hsv[0], clamp(hsv[1] + amount), hsv[2]).withAlpha(a);
     }
 
-    /**
-     * Rotate the hue by the specified degrees.
-     *
-     * <p>Hue wraps modulo 360. Alpha is preserved.
-     *
-     * @param degrees degrees to add to the hue (can be negative)
-     * @return a new DLColor with rotated hue
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Rotates the hue by the given degrees. Alpha is kept. */
     public DLColor rotateHue(float degrees) {
-        checkDefined();
-        float[] hsv = getAsHSB();
-        hsv[0] = (hsv[0] + degrees) % 360f;
-        return DLColor.fromHsv(hsv[0], hsv[1], hsv[2]).withAlpha(this.a);
+        float[] hsv = getAsHSV();
+        return DLColor.fromHsv(hsv[0] + degrees, hsv[1], hsv[2]).withAlpha(a);
     }
 
-    /**
-     * Return a copy of this color with a different alpha channel.
-     *
-     * @param newAlpha alpha in integer range [0,255]
-     * @return a new DLColor with the same RGB channels and the supplied alpha
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Copy with a different alpha (0–255). */
     public DLColor withAlpha(int newAlpha) {
         checkDefined();
         return new DLColor(newAlpha, r, g, b);
     }
 
-    /**
-     * Swap two RGB channels and return the resulting color.
-     *
-     * <p>Only RGB channels are affected; alpha remains unchanged.
-     *
-     * @param c1 first channel to swap
-     * @param c2 second channel to swap
-     * @return a new DLColor with c1 and c2 exchanged
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
-    public DLColor swapChannels(ColorChannel c1, ColorChannel c2) {
-        checkDefined();
-        int red = r, green = g, blue = b;
-        int val1 = getChannelValue(c1), val2 = getChannelValue(c2);
-        red = setChannelValue(ColorChannel.R, c1, val2, setChannelValue(ColorChannel.R, c2, val1, red));
-        green = setChannelValue(ColorChannel.G, c1, val2, setChannelValue(ColorChannel.G, c2, val1, green));
-        blue = setChannelValue(ColorChannel.B, c1, val2, setChannelValue(ColorChannel.B, c2, val1, blue));
-        return new DLColor(a, red, green, blue);
+    /** Copy with a different alpha (0.0–1.0). */
+    public DLColor withAlpha(float newAlpha) {
+        return withAlpha(toByte(newAlpha));
     }
 
-    /**
-     * Compute relative luminance using standard coefficients on linearized RGB (here approximated by gamma-encoded channels).
-     *
-     * @return luminance in the range [0.0f,1.0f]
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Copy with a different red channel (0–255). */
+    public DLColor withRed(int newRed) {
+        checkDefined();
+        return new DLColor(a, newRed, g, b);
+    }
+
+    /** Copy with a different green channel (0–255). */
+    public DLColor withGreen(int newGreen) {
+        checkDefined();
+        return new DLColor(a, r, newGreen, b);
+    }
+
+    /** Copy with a different blue channel (0–255). */
+    public DLColor withBlue(int newBlue) {
+        checkDefined();
+        return new DLColor(a, r, g, newBlue);
+    }
+
+    /** Swaps two RGB channels. Alpha is kept. */
+    public DLColor swapChannels(ColorChannel c1, ColorChannel c2) {
+        checkDefined();
+        int[] rgb = { r, g, b };
+        int tmp = rgb[c1.ordinal()];
+        rgb[c1.ordinal()] = rgb[c2.ordinal()];
+        rgb[c2.ordinal()] = tmp;
+        return new DLColor(a, rgb[0], rgb[1], rgb[2]);
+    }
+
+    /** Perceived brightness (Rec. 601 luma, 0.0–1.0). */
     public float getLuminance() {
         checkDefined();
         return (0.299f * getRedF()) + (0.587f * getGreenF()) + (0.114f * getBlueF());
     }
 
-    /**
-     * Return whether this color is considered "light" compared to a threshold.
-     *
-     * @param threshold luminance threshold in [0.0,1.0] (caller-defined)
-     * @return true if luminance &gt; threshold
-     * @throws IllegalStateException if called on {@link #UNDEFINED}
-     */
+    /** Whether {@link #getLuminance()} is above the given threshold. */
     public boolean isLight(float threshold) {
-        checkDefined();
         return getLuminance() > threshold;
     }
 
-    // --- Static Utility Methods ---
-
-    /**
-     * Linearly blend two colors by the given factor.
-     *
-     * <p>Factor 0.0 returns color1, 1.0 returns color2. Alpha channels are blended linearly
-     * in the same manner as RGB channels. Inputs must be defined colors.
-     *
-     * @param color1 first color (factor==0.0 result)
-     * @param color2 second color (factor==1.0 result)
-     * @param factor interpolation factor in [0.0,1.0]
-     * @return a new DLColor representing the interpolated color
-     * @throws IllegalStateException if either color is {@link #UNDEFINED}
-     */
+    /** Linear interpolation of all ARGB channels. {@code factor} 0.0 returns {@code color1}, 1.0 returns {@code color2}. */
     public static DLColor blend(DLColor color1, DLColor color2, float factor) {
         color1.checkDefined();
         color2.checkDefined();
         factor = clamp(factor);
-        float t_ = 1.0f - factor;
-        int a = (int) (color1.a * t_ + color2.a * factor), r = (int) (color1.r * t_ + color2.r * factor);
-        int g = (int) (color1.g * t_ + color2.g * factor), b = (int) (color1.b * t_ + color2.b * factor);
-        return new DLColor(a, r, g, b);
+        float t = 1.0f - factor;
+        return new DLColor(
+            Math.round(color1.a * t + color2.a * factor),
+            Math.round(color1.r * t + color2.r * factor),
+            Math.round(color1.g * t + color2.g * factor),
+            Math.round(color1.b * t + color2.b * factor)
+        );
     }
 
-    /**
-     * Combine two colors using the specified pixel-wise combine mode.
-     *
-     * <p>The method operates on normalized RGB channels and returns a color with alpha
-     * averaged from the inputs (division by 2 via normalized value ((a1+a2)/510f) in implementation).
-     * Depending on the mode, different algebra is applied; see {@link CombineMode} for semantics.
-     *
-     * @param c1 first operand color
-     * @param c2 second operand color
-     * @param mode the combine algorithm to apply
-     * @return new DLColor with combined RGB values and combined alpha as implemented
-     * @throws IllegalStateException if either color is {@link #UNDEFINED}
-     */
+    /** Combines the RGB channels of two colors using the given mode. Alpha is averaged. */
+    @SuppressWarnings("removal")
     public static DLColor combine(DLColor c1, DLColor c2, CombineMode mode) {
         c1.checkDefined();
         c2.checkDefined();
@@ -696,15 +435,11 @@ public final class DLColor {
                 resB = b1 - b2;
                 break;
             case MULTIPLY:
-                resR = MathUtils.clamp(r1 * r2, 0, 255);
-                resG = MathUtils.clamp(g1 * g2, 0, 255);
-                resB = MathUtils.clamp(b1 * b2, 0, 255);
+                resR = r1 * r2;
+                resG = g1 * g2;
+                resB = b1 * b2;
                 break;
             case NEGATIVE_MULTIPLY:
-                resR = 1 - (1 - r1) * (1 - r2);
-                resG = 1 - (1 - g1) * (1 - g2);
-                resB = 1 - (1 - b1) * (1 - b2);
-                break;
             case SCREEN:
                 resR = 1 - (1 - r1) * (1 - r2);
                 resG = 1 - (1 - g1) * (1 - g2);
@@ -726,18 +461,7 @@ public final class DLColor {
         return DLColor.of((c1.a + c2.a) / 510f, resR, resG, resB);
     }
 
-    /**
-     * Alpha-composite foreground over background using standard "over" operator.
-     *
-     * <p>Resulting alpha is fgA + bgA * (1 - fgA). RGB channels are premultiplied during calculation
-     * and divided by resulting alpha to produce non-premultiplied output. If resulting alpha is zero,
-     * {@link #TRANSPARENT} is returned.
-     *
-     * @param foreground top layer color
-     * @param background bottom layer color
-     * @return composited DLColor
-     * @throws IllegalStateException if either color is {@link #UNDEFINED}
-     */
+    /** Composites {@code foreground} over {@code background} (Porter-Duff "over"). */
     public static DLColor alphaBlend(DLColor foreground, DLColor background) {
         foreground.checkDefined();
         background.checkDefined();
@@ -750,90 +474,31 @@ public final class DLColor {
         return DLColor.of(outA, r, g, b);
     }
 
-    /**
-     * Produce a visually plausible tint between two colors.
-     *
-     * <p>The method blends channels using a heuristic that emphasizes the larger channel values,
-     * creating a tint that tends towards the more dominant channel while blending some of the other.
-     * Alpha is averaged.
-     *
-     * @param colorA first color
-     * @param colorB second color
-     * @return new DLColor representing the tint
-     * @throws IllegalStateException if either color is {@link #UNDEFINED}
-     */
+    /** Mixes two colors into a tint that leans towards the dominant channels. Alpha is averaged. */
     public static DLColor mixTint(DLColor colorA, DLColor colorB) {
-        float alphaA = colorA.getAlphaF();
-        float alphaB = colorB.getAlphaF();
-        float[] A = new float[] { colorA.getRedF(), colorA.getGreenF(), colorA.getBlueF() };
-        float[] B = new float[] { colorB.getRedF(), colorB.getGreenF(), colorB.getBlueF() };
-        float w = 1f;
-        for (int i = 0; i < 3; i++) {
-            float maxVal = Math.max(A[i], B[i]);
-            float minVal = Math.min(maxVal, 1f);
-            w *= minVal;
-        }
-
+        colorA.checkDefined();
+        colorB.checkDefined();
+        float[] A = { colorA.getRedF(), colorA.getGreenF(), colorA.getBlueF() };
+        float[] B = { colorB.getRedF(), colorB.getGreenF(), colorB.getBlueF() };
+        float w = Math.max(A[0], B[0]) * Math.max(A[1], B[1]) * Math.max(A[2], B[2]);
         float[] result = new float[3];
         for (int i = 0; i < 3; i++) {
             result[i] = Math.max(A[i], B[i]) * (1f - w) + Math.min(A[i], B[i]) * w;
         }
-        return DLColor.of((alphaA + alphaB) / 2f, result[0], result[1], result[2]);
+        return DLColor.of((colorA.getAlphaF() + colorB.getAlphaF()) / 2f, result[0], result[1], result[2]);
     }
 
-    /**
-     * Choose between two colors based on the perceived brightness of a base color.
-     *
-     * <p>If the base color is considered light (strictly greater than threshold) the method returns
-     * {@code darkColor} (suitable for foreground elements), otherwise returns {@code lightColor}.
-     *
-     * @param base the color used to evaluate brightness
-     * @param lightColor color returned for dark bases
-     * @param darkColor color returned for light bases
-     * @param threshold luminance threshold in [0.0,1.0]
-     * @return either darkColor or lightColor depending on base's brightness
-     * @throws IllegalStateException if {@code base} is {@link #UNDEFINED}
-     */
+    /** Returns {@code darkColor} if {@code base} is light, otherwise {@code lightColor}. Useful for readable text on a background. */
     public static DLColor pickBasedOnBrightness(DLColor base, DLColor lightColor, DLColor darkColor, float threshold) {
-        base.checkDefined();
         return base.isLight(threshold) ? darkColor : lightColor;
     }
 
-    /**
-     * Euclidean distance between two colors in RGB 8-bit space.
-     *
-     * <p>Useful for basic nearest-color or difference tests; this distance does not account for
-     * perceptual color difference metrics (like CIEDE2000).
-     *
-     * @param c1 first color
-     * @param c2 second color
-     * @return Euclidean distance in RGB space as a double
-     * @throws IllegalStateException if either color is {@link #UNDEFINED}
-     */
+    /** Euclidean distance in RGB space (not perceptual). */
     public static double distance(DLColor c1, DLColor c2) {
         c1.checkDefined();
         c2.checkDefined();
         int dr = c1.r - c2.r, dg = c1.g - c2.g, db = c1.b - c2.b;
         return Math.sqrt(dr * dr + dg * dg + db * db);
-    }
-
-    // --- Private Helper Methods ---
-    private int getChannelValue(ColorChannel channel) {
-        checkDefined();
-        switch (channel) {
-            case R:
-                return r;
-            case G:
-                return g;
-            case B:
-                return b;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    private int setChannelValue(ColorChannel target, ColorChannel source, int value, int current) {
-        return target == source ? value : current;
     }
 
     private static int clamp(int v) {
@@ -844,49 +509,46 @@ public final class DLColor {
         return Math.max(0.0f, Math.min(1.0f, v));
     }
 
-    private static int[] parseHex(String hex) {
-        String clean = hex.startsWith("#") ? hex.substring(1) : hex;
-        int a = 255, r, g, b;
-        try {
-            if (clean.length() == 3) {
-                r = Integer.parseInt(clean.substring(0, 1) + clean.substring(0, 1), 16);
-                g = Integer.parseInt(clean.substring(1, 2) + clean.substring(1, 2), 16);
-                b = Integer.parseInt(clean.substring(2, 3) + clean.substring(2, 3), 16);
-            } else if (clean.length() == 4) {
-                a = Integer.parseInt(clean.substring(0, 1) + clean.substring(0, 1), 16);
-                r = Integer.parseInt(clean.substring(1, 2) + clean.substring(1, 2), 16);
-                g = Integer.parseInt(clean.substring(2, 3) + clean.substring(2, 3), 16);
-                b = Integer.parseInt(clean.substring(3, 4) + clean.substring(3, 4), 16);
-            } else if (clean.length() == 6) {
-                r = Integer.parseInt(clean.substring(0, 2), 16);
-                g = Integer.parseInt(clean.substring(2, 4), 16);
-                b = Integer.parseInt(clean.substring(4, 6), 16);
-            } else if (clean.length() == 8) {
-                a = Integer.parseInt(clean.substring(0, 2), 16);
-                r = Integer.parseInt(clean.substring(2, 4), 16);
-                g = Integer.parseInt(clean.substring(4, 6), 16);
-                b = Integer.parseInt(clean.substring(6, 8), 16);
-            } else {
-                throw new IllegalArgumentException();
-            }
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid HEX color string: " + hex, e);
-        }
-        return new int[] { a, r, g, b };
+    private static int toByte(float v) {
+        return (int) (clamp(v) * 255f + 0.5f);
     }
 
-    // --- Overridden Standard Methods ---
+    private static DataResult<DLColor> parseHexResult(String hex) {
+        try {
+            return DataResult.success(fromHex(hex));
+        } catch (IllegalArgumentException e) {
+            return DataResult.error(e::getMessage);
+        }
+    }
 
-    /**
-     * Equality semantics:
-     * <ul>
-     *   <li>If either side is {@link #UNDEFINED}, equality is true only if both are the sentinel.</li>
-     *   <li>For defined colors equality is true when all four ARGB channels match exactly.</li>
-     * </ul>
-     *
-     * @param o object to compare
-     * @return true when equal according to the rules above
-     */
+    private static int parseHex(String hex) {
+        if (hex == null)
+            throw new IllegalArgumentException("HEX color string must not be null.");
+        String clean = hex.trim();
+        if (clean.startsWith("#"))
+            clean = clean.substring(1);
+        else if (clean.startsWith("0x") || clean.startsWith("0X"))
+            clean = clean.substring(2);
+
+        if (!clean.matches("[0-9a-fA-F]+"))
+            throw new IllegalArgumentException("Invalid HEX color string: " + hex);
+
+        if (clean.length() == 3 || clean.length() == 4) {
+            StringBuilder sb = new StringBuilder();
+            for (char c : clean.toCharArray()) {
+                sb.append(c).append(c);
+            }
+            clean = sb.toString();
+        }
+        if (clean.length() == 6)
+            clean = "FF" + clean;
+        if (clean.length() != 8)
+            throw new IllegalArgumentException("Invalid HEX color string: " + hex);
+
+        return (int) Long.parseLong(clean, 16);
+    }
+
+    /** Two colors are equal if all ARGB channels match. {@link #UNDEFINED} is only equal to itself. */
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -899,27 +561,13 @@ public final class DLColor {
         return a == c.a && r == c.r && g == c.g && b == c.b;
     }
 
-    /**
-     * Hash code for this color.
-     *
-     * <p>Defined colors return the packed ARGB int. The {@link #UNDEFINED} sentinel returns -1
-     * to distinguish it from any valid ARGB value.
-     *
-     * @return int hash code
-     */
     @Override
     public int hashCode() {
         return isDefined ? getAsARGB() : -1;
     }
 
-    /**
-     * Human-readable string describing this color or the UNDEFINED sentinel.
-     *
-     * @return string in the form "DLColor[A=.., R=.., G=.., B=..]" or "DLColor[UNDEFINED]"
-     */
     @Override
     public String toString() {
         return isDefined ? String.format("DLColor[A=%d, R=%d, G=%d, B=%d]", a, r, g, b) : "DLColor[UNDEFINED]";
     }
-
 }
