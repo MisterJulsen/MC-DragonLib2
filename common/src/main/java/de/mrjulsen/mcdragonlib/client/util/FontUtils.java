@@ -28,32 +28,42 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
 
+/**
+ * Text helpers. The static measuring/substring helpers are safe to use. The instance API (glyph UV manipulation) is deprecated.
+ */
 public class FontUtils {
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public Font font;
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public FontSet fontSet;
     
     protected static record UVData(float u0, float v0, float u1, float v1) {}
     protected static final Map<Integer, Deque<UVData>> uvStack = new HashMap<>();
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public FontUtils(ResourceLocation fontStyle) {
         this.font = Minecraft.getInstance().font;
         this.fontSet = ((FontAccessor)this.font).dragonlib$invokeGetFontSet(fontStyle);
     }    
 
-    private void checkAndUpdateFont() {
-        if (this.font != Minecraft.getInstance().font) {
-        }
-    }
-
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public BakedGlyphAccessor getGlyphAccessor(int charCode) {
         return (BakedGlyphAccessor)getGlyph(charCode);
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public void pushUV(int charCode) {
         BakedGlyphAccessor glyph = getGlyphAccessor(charCode);
         pushUV(charCode, glyph.dragonlib$getU0(), glyph.dragonlib$getV0(), glyph.dragonlib$getU1(), glyph.dragonlib$getV1());
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     protected void pushUV(int charCode, float u0, float v0, float u1, float v1) {
         if (!uvStack.containsKey(charCode)) {
             uvStack.put(charCode, new ArrayDeque<>());
@@ -61,6 +71,8 @@ public class FontUtils {
         uvStack.get(charCode).addLast(new UVData(u0, v0, u1, v1));
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public boolean popUV(int charCode) {
         if (!uvStack.containsKey(charCode)) {
             return false;
@@ -79,14 +91,20 @@ public class FontUtils {
         return true;
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public GlyphInfo getGlyphInfo(int charCode) {
         return fontSet.getGlyphInfo(charCode, false);
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public BakedGlyph getGlyph(int charCode) {
         return fontSet.getGlyph(charCode);
     }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     public void reset() {
         uvStack.clear();
     }

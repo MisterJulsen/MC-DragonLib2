@@ -1,17 +1,15 @@
 package de.mrjulsen.mcdragonlib.client.ber;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang3.mutable.MutableFloat;
+import java.util.List;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import com.mojang.blaze3d.font.GlyphInfo;
+import com.mojang.blaze3d.vertex.PoseStack;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.PaddingF;
+import de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource;
 import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
-import de.mrjulsen.mcdragonlib.client.util.FontUtils;
 import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
-import de.mrjulsen.mcdragonlib.mixin.client.BakedGlyphAccessor;
+import de.mrjulsen.mcdragonlib.mixin.client.StringSplitterAccessor;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.Pair;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
@@ -23,11 +21,14 @@ import de.mrjulsen.mcdragonlib.util.properties.ColorProperty;
 import de.mrjulsen.mcdragonlib.util.properties.NumberProperty;
 import de.mrjulsen.mcdragonlib.util.properties.Property;
 import de.mrjulsen.mcdragonlib.util.properties.VirtualProperty;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 
@@ -35,23 +36,7 @@ public class BERLabel {
 
     public enum EScrollMode { NEVER, WHEN_NEEDED, ALWAYS, FLEX_FIT }
 
-    protected static record StyledChar(
-        CharData charData,
-        Style style,
-        float unscaledAdvance
-    ) {}
-
-    protected static record CharData(
-        int charCode,
-        String charString,
-        boolean isBold,
-        GlyphInfo glyphInfo,
-        BakedGlyphAccessor glyph,
-        float glyphUWidth,
-        float glyphVHeight
-    ) {}
-
-    protected static final Map<Integer, CharData> charDataCache = new ConcurrentHashMap<>();
+    private static final Matrix4f IDENTITY = new Matrix4f();
 
     public final Property<Rectangle> clippingArea = new Property<>(Rectangle.withSize(0, 0, Short.MAX_VALUE, Short.MAX_VALUE));
     public final NumberProperty<Float> x = new NumberProperty<>(0F);
@@ -112,61 +97,90 @@ public class BERLabel {
     public final Property<EScrollMode> horizontalScrollMode = new Property<>(EScrollMode.NEVER);
     public final Property<EScrollMode> verticalScrollMode = new Property<>(EScrollMode.NEVER);
 
-    private final FontUtils fontUtils = new FontUtils(Style.DEFAULT_FONT);
+    private final ClippingBufferSource clippingBufferSource = new ClippingBufferSource();
 
     private long lastRenderTime = 0;
     private float horizontalScrollOffset = 0.0f;
     private float verticalScrollOffset = 0.0f;
 
-    private List<StyledChar> cachedGlyphs = null;
+    private static final int[] NO_CODE_POINTS = new int[0];
+    private static final Style[] NO_STYLES = new Style[0];
+    private static final float[] NO_WIDTHS = new float[] { 0f };
+
+    private int[] cachedCodePoints = NO_CODE_POINTS;
+    private Style[] cachedStyles = NO_STYLES;
+    private float[] cachedPrefixWidths = NO_WIDTHS;
     private float cachedUnscaledTextWidth = 0f;
+    private int visibleFrom, visibleTo;
+    private final FormattedCharSequence visibleSequence = sink -> {
+        for (int i = visibleFrom; i <= visibleTo; i++) {
+            if (!sink.accept(i, cachedStyles[i], cachedCodePoints[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
     private Component lastRenderedText = null;
     
     private float cachedFinalHScale = 1.0f;
     private float cachedFinalVScale = 1.0f;
 
     public BERLabel() {
-        charDataCache.clear();
         text.withAfterPropertyChangedCallback((oldVal, newVal) -> invalidateCache());
     }
 
     private void invalidateCache() {
-        cachedGlyphs = null;
+        cachedCodePoints = NO_CODE_POINTS;
+        cachedStyles = NO_STYLES;
+        cachedPrefixWidths = NO_WIDTHS;
         cachedUnscaledTextWidth = 0f;
         lastRenderedText = null;
-    }    
-
-    private CharData getCharData(int codePoint, Style style) {
-        int key = codePoint;
-        if (style.isBold()) key |= (1 << 24); 
-
-        return charDataCache.computeIfAbsent(key, c -> {
-            boolean isBold = (c & (1 << 24)) != 0;
-            GlyphInfo info = fontUtils.fontSet.getGlyphInfo(codePoint, isBold);
-            BakedGlyphAccessor glyph = fontUtils.getGlyphAccessor(codePoint);
-            float glyphUVWidth = glyph.dragonlib$getU1() - glyph.dragonlib$getU0();
-            float glyphUVHeight = glyph.dragonlib$getV1() - glyph.dragonlib$getV0();
-            return new CharData(codePoint, String.valueOf(Character.toChars(codePoint)), isBold, info, glyph, glyphUVWidth, glyphUVHeight);
-        });
     }
 
     private void updateGlyphCache(Component component) {
         if (component == null || component.equals(lastRenderedText)) return;
 
-        List<StyledChar> glyphs = new ArrayList<>();
-        MutableFloat widthSum = new MutableFloat();
-
-        StringDecomposer.iterateFormatted(component, Style.EMPTY, (charIndex, styl, codePoint) -> {
-            CharData data = getCharData(codePoint, styl);
-            float adv = data.glyphInfo().getAdvance(styl.isBold());
-            glyphs.add(new StyledChar(data, styl, adv));
-            widthSum.add(adv);
+        StringSplitter.WidthProvider widthProvider = ((StringSplitterAccessor)Minecraft.getInstance().font.getSplitter()).dragonlib$getWidthProvider();
+        List<Style> styles = new ArrayList<>();
+        List<Integer> codePoints = new ArrayList<>();
+        StringDecomposer.iterateFormatted(component, Style.EMPTY, (charIndex, style, codePoint) -> {
+            codePoints.add(codePoint);
+            styles.add(style);
             return true;
         });
 
-        cachedGlyphs = glyphs;
-        cachedUnscaledTextWidth = widthSum.getValue();
+        int n = codePoints.size();
+        int[] cps = new int[n];
+        Style[] stl = styles.toArray(new Style[n]);
+        float[] prefix = new float[n + 1];
+        for (int i = 0; i < n; i++) {
+            cps[i] = codePoints.get(i);
+            prefix[i + 1] = prefix[i] + widthProvider.getWidth(cps[i], stl[i]);
+        }
+
+        cachedCodePoints = cps;
+        cachedStyles = stl;
+        cachedPrefixWidths = prefix;
+        cachedUnscaledTextWidth = prefix[n];
         lastRenderedText = component;
+    }
+
+    private int firstCharEndingAfter(float x) {
+        int lo = 0, hi = cachedCodePoints.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (cachedPrefixWidths[mid + 1] > x) hi = mid; else lo = mid + 1;
+        }
+        return lo;
+    }
+
+    private int lastCharStartingBefore(float x) {
+        int lo = 0, hi = cachedCodePoints.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (cachedPrefixWidths[mid] < x) lo = mid + 1; else hi = mid;
+        }
+        return lo - 1;
     }
 
     private void calculateFinalScales() {
@@ -375,77 +389,42 @@ public class BERLabel {
             */
         }
 
-        graphics.poseStack().pushPose();
-        graphics.poseStack().translate(finalX, finalY, 0.002);
-        if (hasBg) {
-            graphics.poseStack().translate(0, 0, 0.02);
-        }
+        int charCount = cachedCodePoints.length;
+        if (charCount > 0) {
+            float localClipLeft = (float)((finalClipBounds.left() - finalX) / finalHScale);
+            float localClipRight = (float)((finalClipBounds.right() - finalX) / finalHScale);
+            float localClipTop = (float)((finalClipBounds.top() - finalY) / finalVScale);
+            float localClipBottom = (float)((finalClipBounds.bottom() - finalY) / finalVScale);
 
-        float currentUnscaledX = 0f;
-        for (StyledChar styledChar : cachedGlyphs) {
-            CharData charData = styledChar.charData();
-            Style style = styledChar.style();
-            float glyphAdvance = styledChar.unscaledAdvance();
+            int from = Math.max(0, firstCharEndingAfter(localClipLeft) - 1);
+            int to = Math.min(charCount - 1, lastCharStartingBefore(localClipRight) + 1);
 
-            float quadWidth = charQuadSize * finalHScale;
-            float quadHeight = charQuadSize * finalVScale;
-            float quadWorldX = finalX + currentUnscaledX * finalHScale;
-            float quadWorldY = finalY;
+            if (from <= to) {
+                PoseStack poseStack = graphics.poseStack();
+                poseStack.pushPose();
+                poseStack.translate(finalX, finalY, hasBg ? 0.022 : 0.002);
+                poseStack.scale(finalHScale, finalVScale, 1.0f);
+                PoseStack.Pose pose = poseStack.last();
 
-            if (quadWorldX + quadWidth < finalClipBounds.left() || quadWorldX > finalClipBounds.right() ||
-                quadWorldY + quadHeight < finalClipBounds.top() || quadWorldY > finalClipBounds.bottom()) {
-                currentUnscaledX += glyphAdvance;
-                continue;
+                clippingBufferSource.setup(graphics.multiBufferSource(), pose.pose(), pose.normal(), localClipLeft, localClipTop, localClipRight, localClipBottom);
+                visibleFrom = from;
+                visibleTo = to;
+
+                Minecraft.getInstance().font.drawInBatch(
+                    visibleSequence,
+                    cachedPrefixWidths[from], 0,
+                    color.get().getAsARGB(),
+                    false,
+                    IDENTITY,
+                    clippingBufferSource,
+                    Font.DisplayMode.NORMAL,
+                    0,
+                    light
+                );
+
+                poseStack.popPose();
             }
-
-            float u0Offset = 0f, u1Offset = 0f, v0Offset = 0f, v1Offset = 0f;
-            float clipXLeft = 0f, clipXRight = 0f, clipYTop = 0f, clipYBottom = 0f;
-
-            float glyphUWidth = charData.glyphUWidth();
-            float glyphVHeight = charData.glyphVHeight();
-
-            if (quadWorldX < finalClipBounds.left()) { clipXLeft = (float)(finalClipBounds.left() - quadWorldX) / quadWidth; u0Offset = glyphUWidth * clipXLeft; }
-            if (quadWorldX + quadWidth > finalClipBounds.right()) { clipXRight = (float)(quadWorldX + quadWidth - finalClipBounds.right()) / quadWidth; u1Offset = glyphUWidth * clipXRight; }
-            if (quadWorldY < finalClipBounds.top()) { clipYTop = (float)(finalClipBounds.top() - quadWorldY) / quadHeight; v0Offset = glyphVHeight * clipYTop; }
-            if (quadWorldY + quadHeight > finalClipBounds.bottom()) { clipYBottom = (float)(quadWorldY + quadHeight - finalClipBounds.bottom()) / quadHeight; v1Offset = glyphVHeight * clipYBottom; }
-
-            fontUtils.pushUV(charData.charCode());
-            BakedGlyphAccessor glyph = charData.glyph();
-            glyph.dragonlib$setU0(glyph.dragonlib$getU0() + u0Offset);
-            glyph.dragonlib$setU1(glyph.dragonlib$getU1() - u1Offset);
-            glyph.dragonlib$setV0(glyph.dragonlib$getV0() + v0Offset);
-            glyph.dragonlib$setV1(glyph.dragonlib$getV1() - v1Offset);
-
-            graphics.poseStack().pushPose();
-            graphics.poseStack().scale(finalHScale, finalVScale, 1.0f);
-            graphics.poseStack().translate(currentUnscaledX, 0, 0);
-
-            graphics.poseStack().translate(charQuadSize * clipXLeft, charQuadSize * clipYTop, 0);
-            graphics.poseStack().scale(1.0f - clipXLeft - clipXRight, 1.0f - clipYTop - clipYBottom, 1.0f);
-
-            int finalColor = color.get().getAsARGB();
-            if (style.getColor() != null) {
-                finalColor = style.getColor().getValue() | 0xFF000000;
-            }
-
-            Font.StringRenderOutput sro = fontUtils.font.new StringRenderOutput(
-                graphics.multiBufferSource(),
-                0, 0,
-                finalColor,
-                style.isObfuscated(),
-                graphics.poseStack().last().pose(),
-                Font.DisplayMode.NORMAL,
-                light
-            );
-            StringDecomposer.iterateFormatted(charData.charString(), style, sro);
-
-            graphics.poseStack().popPose();
-            fontUtils.popUV(charData.charCode());
-
-            currentUnscaledX += glyphAdvance;
         }
-
-        graphics.poseStack().popPose();
 
         /*
         RenderUtils.drawDebugLine(graphics, new Vector3f((float)initialBounds.x(), (float)initialBounds.y(), 0), new Vector3f((float)initialBounds.right(), (float)initialBounds.y(), 0), DLColor.RED);
@@ -461,18 +440,14 @@ public class BERLabel {
     }
 
     public float getRenderedWidth() {
-        if (this.cachedGlyphs == null) {
-            updateGlyphCache(this.text.get());
-        }
+        updateGlyphCache(this.text.get());
         calculateFinalScales();
         
         return this.cachedUnscaledTextWidth * this.cachedFinalHScale;
     }
 
     public float getRenderedHeight() {
-        if (this.cachedGlyphs == null) {
-            updateGlyphCache(this.text.get());
-        }
+        updateGlyphCache(this.text.get());
         calculateFinalScales();
         
         return 8.0f * this.cachedFinalVScale;

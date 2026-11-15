@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public interface IBlockEntityRendererInstance<T extends BlockEntity> {
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     final FontUtils fontUtils = new FontUtils(Style.DEFAULT_FONT);
 
     /**
@@ -37,6 +39,8 @@ public interface IBlockEntityRendererInstance<T extends BlockEntity> {
      */
     default void update(Level level, BlockPos pos, BlockState state, T blockEntity, Object data) { }
 
+    /** @deprecated Modifies shared glyphs and caches the FontSet, which breaks after resource/language reloads (corrupted font). Use {@link de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource} for clipped text instead. */
+    @Deprecated(forRemoval = true)
     default FontUtils getFontUtils() {
         return fontUtils;
     }
