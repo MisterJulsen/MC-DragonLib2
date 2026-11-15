@@ -2,18 +2,26 @@ package de.mrjulsen.mcdragonlib.util.collision;
 
 import java.util.Optional;
 
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.Vector3f;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Abstraction that can test collision/raycast against a block position in a level.
  *
  * <p>Implementations should return an Optional Hit result if the supplied ray (origin + direction)
  * intersects collidable content at the provided block position; otherwise Optional.empty().
+ *
+ * @deprecated Use {@link IRayCollisionProvider} instead, which uses double precision and a maximum distance.
+ *             Existing implementations keep working: they are bridged to the new interface automatically.
  */
-public interface ICollisionProvider {
+@Deprecated
+@FunctionalInterface
+public interface ICollisionProvider extends IRayCollisionProvider {
     /**
      * Attempt to raycast/hit the block at {@code pos} using the given ray.
      *
@@ -22,7 +30,20 @@ public interface ICollisionProvider {
      * @param rayOrigin world-space origin of the ray
      * @param rayDirection normalized world-space direction of the ray
      * @return Optional containing a RaycastHitResult when a hit occurred, otherwise empty
+     * @deprecated Use {@link #tryHit(Level, BlockPos, Vector3dc, Vector3dc, double)}.
      */
+    @Deprecated
     Optional<RaycastHitResult> tryHit(Level level, BlockPos pos, Vector3f rayOrigin, Vector3f rayDirection);
-}
 
+    /**
+     * Default bridge for legacy implementations. Calls {@link #tryHit(Level, BlockPos, Vector3f, Vector3f)}
+     * and filters the result by {@code maxDistance}.
+     */
+    @Override
+    default Optional<RaycastHitResult> tryHit(Level level, BlockPos pos, Vector3dc rayOrigin, Vector3dc rayDirection, double maxDistance) {
+        Vector3f originVec = new Vector3f((float)rayOrigin.x(), (float)rayOrigin.y(), (float)rayOrigin.z());
+        Vector3f directionVec = new Vector3f((float)rayDirection.x(), (float)rayDirection.y(), (float)rayDirection.z()).normalize();
+        return tryHit(level, pos, originVec, directionVec)
+            .filter(hit -> hit.getPreciseDistance() >= 0 && hit.getPreciseDistance() <= maxDistance);
+    }
+}

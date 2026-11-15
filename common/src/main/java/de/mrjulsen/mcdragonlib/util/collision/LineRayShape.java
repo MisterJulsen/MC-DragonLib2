@@ -1,18 +1,43 @@
 package de.mrjulsen.mcdragonlib.util.collision;
 
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.Vector3f;
+
+import net.minecraft.core.Direction;
+
 import java.util.Optional;
 
 /**
- * Ray-trace shape representing a finite cylindrical line segment (capsule) between two points.
+ * Ray-trace shape representing a capsule: the set of all points within {@code radius} of the
+ * segment [pointA, pointB] (a cylinder with hemispherical end caps).
  *
- * <p>The shape is the set of points within {@code radius} of the segment [pointA, pointB].
- * intersects(...) computes the first point where a ray intersects this capsule, if any.
+ * <p>If both points are equal, the shape is a sphere.
  */
+@SuppressWarnings("deprecation")
 public class LineRayShape implements IRayTraceShape {
-    private final Vector3f pointA;
-    private final Vector3f pointB;
-    private final float radius;
+    private static final double EPSILON = 1.0E-9;
+
+    private final Vector3dc pointA;
+    private final Vector3dc pointB;
+    private final double radius;
+
+    /**
+     * Create a capsule-shaped line between two points with given radius.
+     *
+     * @param a segment start position
+     * @param b segment end position
+     * @param radius capsule radius (>= 0)
+     */
+    public LineRayShape(Vector3dc a, Vector3dc b, double radius) {
+        if (radius < 0 || !Double.isFinite(radius)) {
+            throw new IllegalArgumentException("radius must be a finite value >= 0, but was " + radius);
+        }
+        this.pointA = a;
+        this.pointB = b;
+        this.radius = radius;
+    }
 
     /**
      * Create a capsule-shaped line between two points with given radius.
@@ -22,68 +47,105 @@ public class LineRayShape implements IRayTraceShape {
      * @param radius capsule radius (>= 0)
      */
     public LineRayShape(Vector3f a, Vector3f b, float radius) {
-        this.pointA = new Vector3f(a);
-        this.pointB = new Vector3f(b);
-        this.radius = radius;
+        this(new Vector3d(a), new Vector3d(b), radius);
+    }
+
+    public Vector3dc getPointA() {
+        return pointA;
+    }
+
+    public Vector3dc getPointB() {
+        return pointB;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    @Override
+    public Optional<RayIntersection> intersect(Vector3dc rayOrigin, Vector3dc rayDirection, double maxDistance) {
+        Vector3d rd = new Vector3d(rayDirection).normalize();
+        if (rd.lengthSquared() < EPSILON) {
+            return Optional.empty();
+        }
+
+        double r2 = radius * radius;
+        Vector3dc closestToOrigin = closestPointOnSegment(rayOrigin);
+        if (rayOrigin.distanceSquared(closestToOrigin) <= r2) {
+            return Optional.of(new RayIntersection(rayOrigin, 0, RaycastUtils.faceFromDirection(rd), true));
+        }
+
+        double t = Double.POSITIVE_INFINITY;
+        Vector3dc ba = new Vector3d(pointB).sub(pointA);
+        Vector3dc oa = new Vector3d(rayOrigin).sub(pointA);
+        double baba = ba.dot(ba);
+
+        if (baba > EPSILON) {
+            double bard = ba.dot(rd);
+            double baoa = ba.dot(oa);
+            double rdoa = rd.dot(oa);
+            double oaoa = oa.dot(oa);
+
+            double a = baba - bard * bard;
+            if (a > EPSILON * baba) {
+                double b = baba * rdoa - baoa * bard;
+                double c = baba * oaoa - baoa * baoa - r2 * baba;
+                double h = b * b - a * c;
+                if (h >= 0) {
+                    double tc = (-b - Math.sqrt(h)) / a;
+                    double y = baoa + tc * bard;
+                    if (tc >= 0 && y >= 0 && y <= baba) {
+                        t = tc;
+                    }
+                }
+            }
+            t = Math.min(t, intersectSphere(rayOrigin, rd, pointB, r2));
+        }
+        t = Math.min(t, intersectSphere(rayOrigin, rd, pointA, r2));
+
+        if (t == Double.POSITIVE_INFINITY || t > maxDistance) {
+            return Optional.empty();
+        }
+
+        Vector3dc hit = new Vector3d(rayOrigin).add(new Vector3d(rd).mul(t));
+        Vector3dc normal = new Vector3d(hit).sub(closestPointOnSegment(hit));
+        Direction face = normal.lengthSquared() > EPSILON ? Direction.getNearest(normal.x(), normal.y(), normal.z()) : RaycastUtils.faceFromDirection(rd);
+        return Optional.of(new RayIntersection(hit, t, face, false));
     }
 
     /**
      * Compute the first intersection point between the provided ray and this capsule.
      *
-     * <p>Returns an Optional containing the world-space hit position when intersected,
-     * otherwise Optional.empty().
-     *
      * @param rayOrigin ray origin
      * @param rayDirection normalized ray direction
      * @return hit position if ray intersects this capsule
+     * @deprecated Use {@link #intersect(Vector3dc, Vector3dc, double)}.
      */
     @Override
+    @Deprecated
     public Optional<Vector3f> intersects(Vector3f rayOrigin, Vector3f rayDirection) {
-        Vector3f ba = new Vector3f(pointB).sub(pointA);
-        Vector3f oa = new Vector3f(rayOrigin).sub(pointA);
-
-        Vector3f d = new Vector3f(rayDirection);
-        Vector3f baNorm = new Vector3f(ba).normalize();
-
-        Vector3f dProj = projectOntoPlane(d, baNorm);
-        Vector3f oaProj = projectOntoPlane(oa, baNorm);
-
-        float a = dProj.dot(dProj);
-        float b = 2f * dProj.dot(oaProj);
-        float c = oaProj.dot(oaProj) - radius * radius;
-
-        float discriminant = b * b - 4f * a * c;
-        if (discriminant < 0) {
-            return Optional.empty();
-        }
-
-        float sqrtDisc = (float) Math.sqrt(discriminant);
-        float t1 = (-b - sqrtDisc) / (2f * a);
-        float t2 = (-b + sqrtDisc) / (2f * a);
-
-        float t = Math.min(t1, t2);
-        if (t < 0) t = Math.max(t1, t2);
-        if (t < 0) return Optional.empty();
-
-        Vector3f hitPoint = new Vector3f(rayOrigin).fma(t, d);
-        
-        float hitProj = new Vector3f(hitPoint).sub(pointA).dot(baNorm);
-        if (hitProj < 0 || hitProj > ba.length()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(hitPoint);
+        return intersect(new Vector3d(rayOrigin), new Vector3d(rayDirection), Double.POSITIVE_INFINITY).map(hit -> new Vector3f((float)hit.location().x(), (float)hit.location().y(), (float)hit.location().z()));
     }
 
-    /**
-     * Project a vector onto the plane orthogonal to {@code normal}.
-     *
-     * @param vec vector to project
-     * @param normal plane normal (assumed normalized)
-     * @return projection of vec onto plane orthogonal to normal
-     */
-    private Vector3f projectOntoPlane(Vector3f vec, Vector3f normal) {
-        Vector3f proj = new Vector3f(normal).mul(vec.dot(normal));
-        return new Vector3f(vec).sub(proj);
+    private Vector3dc closestPointOnSegment(Vector3dc point) {
+        Vector3d ba = new Vector3d(pointB).sub(pointA);
+        double baba = ba.dot(ba);
+        if (baba <= EPSILON) {
+            return pointA;
+        }
+        double h = Math.max(0, Math.min(1, new Vector3d(point).sub(pointA).dot(ba) / baba));
+        return new Vector3d(pointA).add(ba.mul(h));
+    }
+
+    private static double intersectSphere(Vector3dc origin, Vector3dc rd, Vector3dc center, double r2) {
+        Vector3dc oc = new Vector3d(origin).sub(center);
+        double b = oc.dot(rd);
+        double c = oc.dot(oc) - r2;
+        double h = b * b - c;
+        if (h < 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+        double t = -b - Math.sqrt(h);
+        return t >= 0 ? t : Double.POSITIVE_INFINITY;
     }
 }

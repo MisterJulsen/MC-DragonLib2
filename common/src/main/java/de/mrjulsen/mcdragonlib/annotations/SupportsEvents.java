@@ -17,6 +17,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Deprecated
 public @interface SupportsEvents {
     /**
      * @return A list of event classes supported by this component.
