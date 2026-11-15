@@ -7,7 +7,9 @@ import net.minecraft.util.Mth;
 
 /**
  * @related https://github.com/Creators-of-Create/Create/blob/mc1.18/dev/src/main/java/com/simibubi/create/foundation/utility/animation/LerpedFloat.java
+ *
  */
+@Deprecated(forRemoval = true)
 public class LerpedFloat {
 
 	protected Interpolator interpolator;
