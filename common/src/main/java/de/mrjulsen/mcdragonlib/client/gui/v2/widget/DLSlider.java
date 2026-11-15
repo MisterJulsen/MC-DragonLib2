@@ -203,7 +203,7 @@ public class DLSlider extends GuiComponent {
 
         final double textX = textAreaX + Math.max(0, GuiUtils.alignmentOffset(textAlignment.get(), textAreaWidth, textWidth));
         if (iconWidth > 0) {
-            sprite.render(g.legacy(), (int)iconX, (int)((dHeight() - sprite.getHeight()) / 2.0D));
+            sprite.render(g, (int)iconX, (int)((dHeight() - sprite.getHeight()) / 2.0D));
         }
         if (textWidth > 0) {
             GuiUtils.text(g, label, textX, TextUtils.centerTextY(g.font(), dHeight()), getThemeValue(!enabled.get() ? Theme.TEXT_DISABLED : Theme.TEXT), drawFontShadow.get());

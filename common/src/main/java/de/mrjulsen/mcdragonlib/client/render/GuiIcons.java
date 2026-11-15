@@ -67,6 +67,11 @@ public enum GuiIcons {
         return Arrays.stream(values()).filter(x -> x.getId().equals(id)).findFirst().orElse(GuiIcons.EMPTY);
     }
 
+    public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, GuiIcons.ICON_TEXTURE, x, y, ICON_SIZE, ICON_SIZE, getU(), getV(), ICON_SIZE, ICON_SIZE);
+    }
+
+    @Deprecated
     public void render(DLGuiGraphics graphics, int x, int y) {
         GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, ICON_SIZE, ICON_SIZE, getU(), getV());
     }

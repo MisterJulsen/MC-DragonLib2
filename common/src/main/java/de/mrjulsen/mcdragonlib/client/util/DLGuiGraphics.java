@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.resources.ResourceLocation;
 
+@Deprecated
 public record DLGuiGraphics(GuiGraphics graphics, PoseStack poseStack, Font defaultFont, float partialTick) {
 
     public BufferSource bufferSource() {

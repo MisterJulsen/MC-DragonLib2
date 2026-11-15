@@ -18,11 +18,9 @@ import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
-import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Font.DisplayMode;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
@@ -52,11 +50,11 @@ public final class RenderUtils {
     }
 
     public static void setTint(DLColor color) {
-        GuiUtils.setTint(color);
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.setTint(color);
     }
 
     public static void resetTint() {
-        GuiUtils.resetTint();
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.resetTint();
     }
 
     public static void addVert(VertexConsumer builder, DLGraphics graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
@@ -236,7 +234,7 @@ public final class RenderUtils {
         drawDebugLineGradient(graphics, from, to, color, color);
     }
 
-    protected static void renderNameTag(PoseStack poseStack, MultiBufferSource buffer, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
+    public static void renderNameTag(PoseStack poseStack, MultiBufferSource buffer, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
         if (Minecraft.getInstance().getCameraEntity().position().toVector3f().distance(pos) > 64) {
             return;
         }
@@ -263,7 +261,7 @@ public final class RenderUtils {
         poseStack.popPose();
     }
 
-    protected static void renderNameTag(DLGraphics graphics, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
+    public static void renderNameTag(DLGraphics graphics, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
         renderNameTag(graphics.poseStack(), graphics.multiBufferSource(), pos, yOffset, text, packedLight);
     }
 }

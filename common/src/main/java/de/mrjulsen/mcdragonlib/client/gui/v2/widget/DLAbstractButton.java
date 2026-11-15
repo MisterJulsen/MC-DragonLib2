@@ -155,7 +155,7 @@ public abstract class DLAbstractButton extends GuiComponent {
         final double offset = isPressed() && getPressedButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT ? 1 : 0;
 
         if (iconWidth > 0) {
-            sprite.render(g.legacy(), (int)Math.floor(iconX), (int)Math.floor((dHeight() - sprite.getHeight()) / 2D + offset));
+            sprite.render(g, (int)Math.floor(iconX), (int)Math.floor((dHeight() - sprite.getHeight()) / 2D + offset));
         }
         if (textWidth > 0) {
             GuiUtils.text(g, label, textX, TextUtils.centerTextY(g.font(), dHeight()) + offset, getThemeValue(!enabled.get() ? Theme.TEXT_DISABLED : Theme.TEXT), drawFontShadow.get());

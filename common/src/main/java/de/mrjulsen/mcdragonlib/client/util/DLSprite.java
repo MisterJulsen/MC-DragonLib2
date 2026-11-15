@@ -156,14 +156,36 @@ public class DLSprite {
 	 * @param x screen X coordinate
 	 * @param y screen Y coordinate
 	 */
-	public void render(DLGuiGraphics graphics, int x, int y) {
+	public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
         if (isEmpty()) {
             return;
         }
         if (getTexture().isPresent()) {
-            GuiUtils.drawTexture(texture, graphics, x, y, width, height, u, v, uWidth, vHeight, TextureFillMode.STRETCH);
+            de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, texture, x, y, width, height, u, v, uWidth, vHeight, de.mrjulsen.mcdragonlib.client.gui.v2.render.TextureFillMode.STRETCH);
         } else if (getItem().isPresent()) {
-            GuiUtils.renderItem(graphics, item, x, y, 1F / 16F * width, itemDecorations);
+            de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.item(graphics, item, x, y, 1F / 16F * width, itemDecorations);
         }
     }
+
+	/**
+	 * Render the sprite using the provided graphics context at the given screen coordinates.
+	 *
+	 * <p>If the sprite is texture-backed the texture is drawn; if item-backed the item is rendered.
+	 * Empty sprites are ignored.
+	 *
+	 * @param graphics rendering helper/context
+	 * @param x screen X coordinate
+	 * @param y screen Y coordinate
+	 */
+	@Deprecated
+	public void render(DLGuiGraphics graphics, int x, int y) {
+		if (isEmpty()) {
+			return;
+		}
+		if (getTexture().isPresent()) {
+			GuiUtils.drawTexture(texture, graphics, x, y, width, height, u, v, uWidth, vHeight, TextureFillMode.STRETCH);
+		} else if (getItem().isPresent()) {
+			GuiUtils.renderItem(graphics, item, x, y, 1F / 16F * width, itemDecorations);
+		}
+	}
 }

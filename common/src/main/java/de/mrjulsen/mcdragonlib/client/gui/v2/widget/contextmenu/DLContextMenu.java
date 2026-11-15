@@ -109,10 +109,10 @@ public class DLContextMenu extends GuiComponent {
                 int iconX = (int)(width - GuiIcons.ICON_SIZE) / 2;
 
                 GuiUtils.withTint(component.canScrollUp() ? active : inactive, () -> {
-                    GuiIcons.ARROW_UP.render(g.legacy(), iconX, (int) (topY + (double) (SCROLL_AREA_SIZE - GuiIcons.ICON_SIZE) / 2));
+                    GuiIcons.ARROW_UP.render(g, iconX, (int) (topY + (double) (SCROLL_AREA_SIZE - GuiIcons.ICON_SIZE) / 2));
                 });
                 GuiUtils.withTint(component.canScrollDown() ? active : inactive, () -> {
-                    GuiIcons.ARROW_DOWN.render(g.legacy(), iconX, (int)(bottomY + (double)(SCROLL_AREA_SIZE - GuiIcons.ICON_SIZE) / 2));
+                    GuiIcons.ARROW_DOWN.render(g, iconX, (int)(bottomY + (double)(SCROLL_AREA_SIZE - GuiIcons.ICON_SIZE) / 2));
                 });
             }
         }
@@ -130,18 +130,18 @@ public class DLContextMenu extends GuiComponent {
                 boolean showIcon = i.getIcon() != null && !i.getIcon().isEmpty() && (!checked || layout.hasCheckMargin());
                 GuiUtils.withTint(item.isEnabled() ? component.getThemeValue(Theme.TEXT) : component.getThemeValue(Theme.TEXT_INVERTED), () -> {
                     if (showIcon) {
-                        i.getIcon().render(g.legacy(), layout.iconX() + ((layout.iconMarginW() - i.getIcon().getWidth()) / 2), (int)((height - i.getIcon().getHeight()) / 2));
+                        i.getIcon().render(g, layout.iconX() + ((layout.iconMarginW() - i.getIcon().getWidth()) / 2), (int)((height - i.getIcon().getHeight()) / 2));
                     }
                     if (checked) {
                         GuiIcons icon = switch (i.getCheckType()) {
                             case RADIO_BUTTON -> GuiIcons.BULLET_S;
                             default -> GuiIcons.CHECK_S;
                         };
-                        icon.render(g.legacy(), layout.checkMarkX() + ((layout.checkMarkMarginW() - GuiIcons.ICON_SIZE) / 2), (int)((height - GuiIcons.ICON_SIZE) / 2));
+                        icon.render(g, layout.checkMarkX() + ((layout.checkMarkMarginW() - GuiIcons.ICON_SIZE) / 2), (int)((height - GuiIcons.ICON_SIZE) / 2));
                     }
                     if (i.getSubItems().length > 0) {
                         Insets padding = component.getThemeValue(THEME_KEY_ITEM_PADDING);
-                        GuiIcons.OPEN_ARROW_RIGHT.render(g.legacy(), (int)(width - padding.right() - SUB_ITEM_ARROW_SIZE + (double)(SUB_ITEM_ARROW_SIZE - GuiIcons.ICON_SIZE) / 2), (int)((height - GuiIcons.ICON_SIZE) / 2));
+                        GuiIcons.OPEN_ARROW_RIGHT.render(g, (int)(width - padding.right() - SUB_ITEM_ARROW_SIZE + (double)(SUB_ITEM_ARROW_SIZE - GuiIcons.ICON_SIZE) / 2), (int)((height - GuiIcons.ICON_SIZE) / 2));
                     }
                 });
                 GuiUtils.text(g, i.getText(), layout.textX(), TextUtils.centerTextY(g.font(), height), item.isEnabled() ? component.getThemeValue(Theme.TEXT) : component.getThemeValue(Theme.TEXT_INVERTED), false);

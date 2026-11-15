@@ -150,6 +150,7 @@ public final class DLGuiGraphics {
      * A v1 graphics object sharing this frame's state, so old rendering code can be reused. Created on
      * first use.
      */
+    @Deprecated(forRemoval = true)
     public de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics legacy() {
         if (legacy == null) {
             legacy = new de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics(graphics, graphics.pose(), font, partialTick);

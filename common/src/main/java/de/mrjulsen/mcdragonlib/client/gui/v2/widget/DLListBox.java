@@ -191,7 +191,7 @@ public class DLListBox<T> extends GuiComponent {
             g.pose().pushPose();
             g.pose().translate(x, (height - size) / 2, 0);
             g.pose().scale(scale, scale, 1);
-            icon.render(g.legacy(), 0, 0);
+            icon.render(g, 0, 0);
             g.pose().popPose();
         }
 

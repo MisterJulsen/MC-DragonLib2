@@ -436,7 +436,7 @@ public final class GuiUtils {
         if (sprite == null) {
             return;
         }
-        sprite.render(g.legacy(), (int)Transform.snap(x), (int)Transform.snap(y), (int)Transform.snap(width), (int)Transform.snap(height));
+        sprite.render(g, (int)Transform.snap(x), (int)Transform.snap(y), (int)Transform.snap(width), (int)Transform.snap(height));
     }
 
     /**
@@ -481,6 +481,50 @@ public final class GuiUtils {
      */
     public static void texture(DLGuiGraphics g, ResourceLocation texture, double x, double y, double width, double height, float u, float v, double uW, double vH, int textureWidth, int textureHeight, TextureFillMode mode) {
         drawTexture(g, texture, 0, x, y, width, height, u, v, uW, vH, textureWidth, textureHeight, mode);
+    }
+
+    /**
+     * Draws a texture whose file size equals the destination size, 1:1.
+     */
+    public static void texture(DLGuiGraphics g, int textureId, double x, double y, double width, double height) {
+        texture(g, textureId, x, y, width, height, 0, 0, width, height, (int)Transform.snap(width), (int)Transform.snap(height), TextureFillMode.STRETCH);
+    }
+
+    /**
+     * Draws a texture whose file size equals the destination size.
+     * With {@link TextureFillMode#TILE} the whole texture is used as the tile.
+     */
+    public static void texture(DLGuiGraphics g, int textureId, double x, double y, double width, double height, TextureFillMode mode) {
+        texture(g, textureId, x, y, width, height, 0, 0, width, height, (int)Transform.snap(width), (int)Transform.snap(height), mode);
+    }
+
+    /**
+     * Draws the top left region of a texture file, using a source region the size of the destination area.
+     */
+    public static void texture(DLGuiGraphics g, int textureId, double x, double y, double width, double height, int textureWidth, int textureHeight, TextureFillMode mode) {
+        texture(g, textureId, x, y, width, height, 0, 0, width, height, textureWidth, textureHeight, mode);
+    }
+
+    /**
+     * Draws a region of a texture file, starting at {@code u}/{@code v} and the size of the destination area.
+     */
+    public static void texture(DLGuiGraphics g, int textureId, double x, double y, double width, double height, float u, float v, int textureWidth, int textureHeight, TextureFillMode mode) {
+        texture(g, textureId, x, y, width, height, u, v, width, height, textureWidth, textureHeight, mode);
+    }
+
+    /**
+     * Draws a region of a texture file into the destination area.
+     * Does nothing if the destination area, the source region or the texture size is empty.
+     *
+     * @param u  left edge of the source region, in texture pixels
+     * @param v  top edge of the source region, in texture pixels
+     * @param uW width of the source region, and the tile width for {@link TextureFillMode#TILE}
+     * @param vH height of the source region, and the tile height for {@link TextureFillMode#TILE}
+     * @param textureWidth  full width of the texture file, used for the UV calculation
+     * @param textureHeight full height of the texture file, used for the UV calculation
+     */
+    public static void texture(DLGuiGraphics g, int textureId, double x, double y, double width, double height, float u, float v, double uW, double vH, int textureWidth, int textureHeight, TextureFillMode mode) {
+        drawTexture(g, null, textureId, x, y, width, height, u, v, uW, vH, textureWidth, textureHeight, mode);
     }
 
     /**

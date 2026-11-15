@@ -5,10 +5,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-
-import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
-import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
-import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
+import de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics;
+import de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils;
+import de.mrjulsen.mcdragonlib.client.gui.v2.render.TextureFillMode;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
@@ -30,7 +29,17 @@ public class DLTextureSheetData {
         public DLTextureSheetData metadata() {
             return data;
         }
-        public abstract void render(DLGuiGraphics graphics, int x, int y, int w, int h);
+
+        /**
+         * @deprecated Use {@link #render(DLGuiGraphics, int, int, int, int)}.
+         */
+        @Deprecated(forRemoval = true)
+        public void render(de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics graphics, int x, int y, int w, int h) {
+        }
+
+        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) { // Must be abstract in a future release
+            render(graphics.legacy(), x, y, w, h);
+        }
     }
 
     public static class StretchedSprite extends AbstractSprite {
@@ -61,15 +70,17 @@ public class DLTextureSheetData {
 
         @Override
         public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
-            graphics.graphics().blit(
-                metadata().location(),
-                x, y, w, h,
-                u(),
-                v(),
-                width(),
-                height(),
-                metadata().width(),
-                metadata().height()
+            GuiUtils.texture(
+                    graphics,
+                    metadata().location(),
+                    x, y, w, h,
+                    u(),
+                    v(),
+                    width(),
+                    height(),
+                    metadata().width(),
+                    metadata().height(),
+                    TextureFillMode.STRETCH
             );
         }
     }
@@ -102,17 +113,17 @@ public class DLTextureSheetData {
 
         @Override
         public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
-            GuiUtils.drawTexture(
-                metadata().location(),
+            GuiUtils.texture(
                 graphics,
+                metadata().location(),
                 x, y, w, h,
                 u(),
                 v(),
                 width(),
                 height(),
-                TextureFillMode.TILE,
                 metadata().textureSize[0],
-                metadata().textureSize[1]
+                metadata().textureSize[1],
+                TextureFillMode.TILE
             );
         }
     }
@@ -176,17 +187,17 @@ public class DLTextureSheetData {
         @Override
         public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
 
-            GuiUtils.drawTexture(metadata().location(), graphics, x, y, leftBorder(), topBorder(), u(), v(), leftBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Left
-            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y, rightBorder(), topBorder(), u() + width() - rightBorder(), v(), rightBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top Right
-            GuiUtils.drawTexture(metadata().location(), graphics, x, y + h - bottomBorder(), leftBorder(), bottomBorder(), u(), v() + height() - bottomBorder(), leftBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom Left
-            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y + h - bottomBorder(), rightBorder(), bottomBorder(), u() + width() - rightBorder(), v() + height() - bottomBorder(), rightBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom Right
+            GuiUtils.texture(graphics, metadata().location(), x, y, leftBorder(), topBorder(), u(), v(), leftBorder(), topBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Top Left
+            GuiUtils.texture(graphics, metadata().location(), x + w - rightBorder(), y, rightBorder(), topBorder(), u() + width() - rightBorder(), v(), rightBorder(), topBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Top Right
+            GuiUtils.texture(graphics, metadata().location(), x, y + h - bottomBorder(), leftBorder(), bottomBorder(), u(), v() + height() - bottomBorder(), leftBorder(), bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Bottom Left
+            GuiUtils.texture(graphics, metadata().location(), x + w - rightBorder(), y + h - bottomBorder(), rightBorder(), bottomBorder(), u() + width() - rightBorder(), v() + height() - bottomBorder(), rightBorder(), bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Bottom Right
 
-            GuiUtils.drawTexture(metadata().location(), graphics, x + leftBorder(), y, w - leftBorder() - rightBorder(), topBorder(), u() + leftBorder(), v(), width() - leftBorder() - rightBorder(), topBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Top
-            GuiUtils.drawTexture(metadata().location(), graphics, x + leftBorder(), y + h - bottomBorder(), w - leftBorder() - rightBorder(), bottomBorder(), u() + leftBorder(), v() + height() - bottomBorder(), width() - leftBorder() - rightBorder(), bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Bottom
-            GuiUtils.drawTexture(metadata().location(), graphics, x, y + topBorder(), leftBorder(), h - topBorder() - bottomBorder(), u(), v() + topBorder(), leftBorder(), height() - topBorder() - bottomBorder(), tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Left
-            GuiUtils.drawTexture(metadata().location(), graphics, x + w - rightBorder(), y + topBorder(), rightBorder(), h - topBorder() - bottomBorder(), u() + width() - rightBorder(), v() + topBorder(), rightBorder(), height() - topBorder() - bottomBorder(),  tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]); // Right
+            GuiUtils.texture(graphics, metadata().location(), x + leftBorder(), y, w - leftBorder() - rightBorder(), topBorder(), u() + leftBorder(), v(), width() - leftBorder() - rightBorder(), topBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Top
+            GuiUtils.texture(graphics, metadata().location(), x + leftBorder(), y + h - bottomBorder(), w - leftBorder() - rightBorder(), bottomBorder(), u() + leftBorder(), v() + height() - bottomBorder(), width() - leftBorder() - rightBorder(), bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Bottom
+            GuiUtils.texture(graphics, metadata().location(), x, y + topBorder(), leftBorder(), h - topBorder() - bottomBorder(), u(), v() + topBorder(), leftBorder(), height() - topBorder() - bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Left
+            GuiUtils.texture(graphics, metadata().location(), x + w - rightBorder(), y + topBorder(), rightBorder(), h - topBorder() - bottomBorder(), u() + width() - rightBorder(), v() + topBorder(), rightBorder(), height() - topBorder() - bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledBorder() ? TextureFillMode.TILE : TextureFillMode.STRETCH); // Right
             
-            GuiUtils.drawTexture(metadata().location(), graphics, x + rightBorder(), y + rightBorder(), w - rightBorder() - leftBorder(), h - topBorder() - bottomBorder(), u() + rightBorder(), v() + topBorder(), width() - rightBorder() - leftBorder(), height() - topBorder() - bottomBorder(), tiledContent() ? TextureFillMode.TILE : TextureFillMode.STRETCH, metadata().textureSize[0], metadata().textureSize[1]);
+            GuiUtils.texture(graphics, metadata().location(), x + rightBorder(), y + rightBorder(), w - rightBorder() - leftBorder(), h - topBorder() - bottomBorder(), u() + rightBorder(), v() + topBorder(), width() - rightBorder() - leftBorder(), height() - topBorder() - bottomBorder(), metadata().textureSize[0], metadata().textureSize[1], tiledContent() ? TextureFillMode.TILE : TextureFillMode.STRETCH);
 
         }
     }

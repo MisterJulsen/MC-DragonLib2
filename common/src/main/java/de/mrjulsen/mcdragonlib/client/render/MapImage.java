@@ -45,6 +45,12 @@ public class MapImage {
         RenderSystem.setShaderTexture(0, this.texture.getId());
     }
 
+    public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
+        bindTexture();
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, this.texture.getId(), x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth, areaHeight, areaWidth, areaHeight, de.mrjulsen.mcdragonlib.client.gui.v2.render.TextureFillMode.STRETCH);
+    }
+
+    @Deprecated
     public void render(DLGuiGraphics graphics, int x, int y) {
         bindTexture();
         GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth, areaHeight, TextureFillMode.STRETCH, areaWidth, areaHeight);

@@ -66,7 +66,7 @@ public class DLComboBox<T> extends GuiComponent {
                 GuiUtils.sprite(g, spriteSheet.getSprite(SPRITE_NORMAL), btnX, y, BUTTON_WIDTH, height);
             }
             int offset = component.isPressed() ? 1 : 0;
-            GuiIcons.ARROW_DOWN.render(g.legacy(), (int)(btnX + (double)(BUTTON_WIDTH - GuiIcons.ICON_SIZE) / 2), (int)(height - GuiIcons.ICON_SIZE) / 2 + offset);
+            GuiIcons.ARROW_DOWN.render(g, (int)(btnX + (double)(BUTTON_WIDTH - GuiIcons.ICON_SIZE) / 2), (int)(height - GuiIcons.ICON_SIZE) / 2 + offset);
         }
     }
 

@@ -68,6 +68,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * <p>All methods in this class are stateless and operate on provided graphics
  * contexts or global Minecraft client state.
  */
+@Deprecated
 public class GuiUtils {
 
     /**
