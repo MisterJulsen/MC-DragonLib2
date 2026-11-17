@@ -1,6 +1,7 @@
 {
   "pack": {
-    "description": "${display_name}",
-    "pack_format": ${datapack_version}
+    "description": "${description}",
+    "forge:data_pack_format": ${datapack_version},
+    "pack_format": ${resourcepack_version}
   }
 }

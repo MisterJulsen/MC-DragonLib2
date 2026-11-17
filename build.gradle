@@ -69,6 +69,7 @@ subprojects {
             "version": version,
             "minecraft_version": rootProject.minecraft_version,
             "datapack_version": rootProject.datapack_version,
+            "resourcepack_version": rootProject.resourcepack_version,
             "issues": rootProject.issues,
             "source": rootProject.source,
             "license": rootProject.license,

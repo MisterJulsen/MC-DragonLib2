@@ -34,7 +34,7 @@ dependencies {
     modImplementation(include("dev.architectury:architectury-fabric:${rootProject.architectury_api_version}"))
     modImplementation(include("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${rootProject.forge_config_api_port_version}"))
     
-    //modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
+    modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixin_extras_version}"))
     implementation(include("io.github.llamalad7:mixinextras-fabric:${rootProject.mixin_extras_version}"))
