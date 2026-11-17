@@ -30,15 +30,22 @@ public class DLTextureSheetData {
             return data;
         }
 
-        /**
-         * @deprecated Use {@link #render(DLGuiGraphics, int, int, int, int)}.
-         */
         @Deprecated(forRemoval = true)
         public void render(de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics graphics, int x, int y, int w, int h) {
+            render(toModern(graphics), x, y, w, h);
         }
 
-        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) { // Must be abstract in a future release
+        @SuppressWarnings("removal")
+        public void render(DLGuiGraphics graphics, int x, int y, int w, int h) {
             render(graphics.legacy(), x, y, w, h);
+        }
+
+        @Deprecated(forRemoval = true)
+        private static DLGuiGraphics toModern(de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics legacy) {
+            com.mojang.blaze3d.platform.Window window = net.minecraft.client.Minecraft.getInstance().getWindow();
+            DLGuiGraphics graphics = new DLGuiGraphics();
+            graphics.beginFrame(legacy.graphics(), legacy.defaultFont(), legacy.partialTick(), window.getGuiScaledWidth(), window.getGuiScaledHeight(), 0, 0);
+            return graphics;
         }
     }
 
