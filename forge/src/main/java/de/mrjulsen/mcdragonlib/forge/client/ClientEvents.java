@@ -24,6 +24,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
+import net.minecraft.client.renderer.ShaderInstance;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import de.mrjulsen.mcdragonlib.client.util.SmoothTextRenderTypes;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -55,7 +59,6 @@ public final class ClientEvents {
             return event.getModelBakery().getModel(location);
         }
     }
-
 
     @SubscribeEvent
     public static void registerGeometryLoaders(ModelEvent.RegisterGeometryLoaders event) {
@@ -128,6 +131,21 @@ public final class ClientEvents {
                     registry.put(location, newModel);
                 }
             }
+        }
+    }
+
+
+    @SubscribeEvent
+    public static void registerShaders(RegisterShadersEvent event) {
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), SmoothTextRenderTypes.SHADER_ID, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), SmoothTextRenderTypes::setShader);
+        } catch (Exception e) {
+            SmoothTextRenderTypes.onShaderLoadFailed(SmoothTextRenderTypes.SHADER_ID, e);
+        }
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), SmoothTextRenderTypes.INTENSITY_SHADER_ID, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), SmoothTextRenderTypes::setIntensityShader);
+        } catch (Exception e) {
+            SmoothTextRenderTypes.onShaderLoadFailed(SmoothTextRenderTypes.INTENSITY_SHADER_ID, e);
         }
     }
 }

@@ -1,5 +1,7 @@
 package de.mrjulsen.mcdragonlib.client.util;
 
+import java.util.function.UnaryOperator;
+
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -8,16 +10,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 
-/**
- * {@link MultiBufferSource} wrapper that routes every buffer through a {@link ClippingVertexConsumer}.
- * Pass it together with an identity matrix to e.g. {@code Font.drawInBatch} to get clipped text in world space.
- * <p>
- * Reusable: call {@link #setup} before each use. Not thread-safe.
- */
 public class ClippingBufferSource implements MultiBufferSource {
 
     private final ClippingVertexConsumer consumer = new ClippingVertexConsumer();
     private MultiBufferSource source;
+    private UnaryOperator<RenderType> renderTypeMapper;
 
     public ClippingBufferSource setup(MultiBufferSource source, Matrix4f pose, Matrix3f normal, float minX, float minY, float maxX, float maxY) {
         this.source = source;
@@ -25,8 +22,14 @@ public class ClippingBufferSource implements MultiBufferSource {
         return this;
     }
 
+    public ClippingBufferSource setRenderTypeMapper(UnaryOperator<RenderType> mapper) {
+        this.renderTypeMapper = mapper;
+        return this;
+    }
+
     @Override
     public VertexConsumer getBuffer(RenderType renderType) {
-        return consumer.setDelegate(source.getBuffer(renderType));
+        RenderType type = renderTypeMapper == null ? renderType : renderTypeMapper.apply(renderType);
+        return consumer.setDelegate(source.getBuffer(type));
     }
 }

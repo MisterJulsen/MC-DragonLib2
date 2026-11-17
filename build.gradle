@@ -49,6 +49,11 @@ subprojects {
             }
         }
         maven { url 'https://maven.isxander.dev/releases' }
+        maven { url = "https://api.modrinth.com/maven" // Iris
+            content {
+                includeGroup "maven.modrinth"
+            }
+        }
     }
 
     dependencies {
