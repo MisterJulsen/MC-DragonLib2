@@ -1,14 +1,19 @@
 package de.mrjulsen.mcdragonlib.network.internal;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
+import de.mrjulsen.mcdragonlib.network.v2.ExecutionMode;
+import de.mrjulsen.mcdragonlib.util.DependencyVersionChecker;
 import de.mrjulsen.mcdragonlib.network.v2.DLChannel;
 import de.mrjulsen.mcdragonlib.network.v2.DLNetwork;
 import de.mrjulsen.mcdragonlib.network.v2.NetworkFlow;
@@ -28,27 +33,39 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 
-/**
- * Glue between the deprecated networking API and the current one.
- *
- * <p>Everything a mod built against the old API relies on is expressed in terms of the new
- * transport here, so there is only one wire format and one set of limits to maintain.
- */
 @Deprecated
 public final class LegacyBridge {
 
     private static final AtomicInteger FALLBACK_IDS = new AtomicInteger();
     private static final AtomicInteger FALLBACK_TRANSFERS = new AtomicInteger();
 
+    private static final String FIRST_ASYNC_HANDLER_VERSION = "1.20.1-beta-3.0.20";
+    private static final Map<String, Boolean> MAIN_THREAD_HANDLERS = new ConcurrentHashMap<>();
+
     private LegacyBridge() {}
 
-    /**
-     * Wraps the NBT serialization of a legacy payload type as a codec.
-     *
-     * @param factory creates a blank instance before deserialization
-     * @param <T> the payload type
-     * @return a codec delegating to the payload's own NBT methods
-     */
+    public static ExecutionMode handlerExecutionMode(PacketDefinition definition) {
+        String modid = definition.getChannel().getId().getNamespace();
+        boolean mainThread = MAIN_THREAD_HANDLERS.computeIfAbsent(modid, LegacyBridge::requiresMainThreadHandlers);
+        return mainThread ? ExecutionMode.MAIN : definition.getHandlerExecutionMode();
+    }
+
+    private static boolean requiresMainThreadHandlers(String modid) {
+        boolean result;
+        try {
+            result = DependencyVersionChecker.checkDependencies(modid.replace("wiresapi", "pantographsandwires"), DragonLib.MODID, FIRST_ASYNC_HANDLER_VERSION)
+                .map(r -> r.relation() == DependencyVersionChecker.VersionRelation.IS_OLDER)
+                .orElse(false);
+        } catch (Exception e) {
+            DLNetwork.LOGGER.warn("Could not determine which DragonLib version {} was built with. Assuming a current one.", modid, e);
+            result = false;
+        }
+        if (result) {
+            DLNetwork.LOGGER.warn("{} was built with an older version of DragonLib's networking system. For compatibility, its packet handlers run on the game thread.", modid);
+        }
+        return result;
+    }
+
     public static <T extends NetworkPacketData> DLStreamCodec<T> dataCodec(Function<DLStatus, T> factory) {
         Objects.requireNonNull(factory, "factory");
         return DLStreamCodec.of(
@@ -62,12 +79,6 @@ public final class LegacyBridge {
         );
     }
 
-    /**
-     * Presents a current packet context through the deprecated context interface.
-     *
-     * @param context the context of the received message
-     * @return the same context seen through the old interface
-     */
     public static NetworkPacketContext adapt(PacketContext context) {
         return new NetworkPacketContext() {
             @Override
@@ -100,50 +111,18 @@ public final class LegacyBridge {
         };
     }
 
-    /**
-     * Translates the side a legacy packet was registered for.
-     *
-     * @param side the legacy side
-     * @return the matching direction
-     */
     public static PacketDirection direction(NetworkSide side) {
         return side == NetworkSide.C2S ? PacketDirection.TO_SERVER : PacketDirection.TO_CLIENT;
     }
 
-    /**
-     * Returns the direction a legacy sender transmits in.
-     *
-     * @param sender the legacy sender
-     * @return the flow its packets travel in
-     */
     public static NetworkFlow flowOf(NetworkDirection sender) {
         return sender.getDirection() == NetworkSide.C2S ? NetworkFlow.SERVERBOUND : NetworkFlow.CLIENTBOUND;
     }
 
-    /**
-     * Reserves a correlation id for an exchange whose connection is unknown.
-     *
-     * <p>These ids are negative so they can never be confused with the per-connection ids handed
-     * out by a session.
-     *
-     * @return a negative correlation id
-     */
     public static int nextFallbackId() {
         return -FALLBACK_IDS.incrementAndGet();
     }
 
-    /**
-     * Sends an encoded payload through a legacy sender.
-     *
-     * <p>When the sender knows its connection the message takes the normal path, including
-     * pacing and per-connection bookkeeping. A hand written sender only offers
-     * {@link NetworkDirection#send(Packet)}, so the frames are pushed through that instead.
-     *
-     * @param channel the channel the packet belongs to
-     * @param definition the packet being sent
-     * @param sender the legacy sender
-     * @param writer writes the payload
-     */
     public static void send(DLChannel channel, PacketDefinition definition, NetworkDirection sender, Consumer<FriendlyByteBuf> writer) {
         NetworkFlow flow = flowOf(sender);
         FriendlyByteBuf payload = new FriendlyByteBuf(Unpooled.buffer());

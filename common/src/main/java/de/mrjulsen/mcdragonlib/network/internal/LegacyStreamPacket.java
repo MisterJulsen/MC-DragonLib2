@@ -25,16 +25,6 @@ import de.mrjulsen.mcdragonlib.network.NetworkProcessor.StreamReceiver;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 
-/**
- * Carries a deprecated stream packet over the current transport.
- *
- * <p>The old back and forth is kept as it was, one chunk per round trip, because that is the
- * behaviour existing mods are written against. New code should use
- * {@link StreamPacket}, which keeps several chunks in flight.
- *
- * @param <I> the type sent by the requesting side
- * @param <O> the type sent back per chunk
- */
 @Deprecated
 public final class LegacyStreamPacket<I extends NetworkPacketData, O extends NetworkPacketData> extends PacketDefinition {
 
@@ -60,22 +50,10 @@ public final class LegacyStreamPacket<I extends NetworkPacketData, O extends Net
         this.receiverFactory = Objects.requireNonNull(receiverFactory, "receiverFactory");
     }
 
-    /**
-     * Returns how many streams of connection-less senders are still open.
-     *
-     * @return the number of open fallback streams
-     */
     public int getFallbackCount() {
         return fallback.outgoing.size() + fallback.incoming.size();
     }
 
-    /**
-     * Starts a stream through a legacy sender.
-     *
-     * @param sender where the stream goes
-     * @param provider produces the next value to send from the last one received
-     * @param finishCallback called once with the final status
-     */
     public void send(NetworkDirection sender, StreamProvider<I, O> provider, Consumer<DLStatus> finishCallback) {
         Connection connection = sender.getConnection();
         States states = states(connection);
@@ -118,7 +96,7 @@ public final class LegacyStreamPacket<I extends NetworkPacketData, O extends Net
         }
 
         NetworkPacketContext legacyContext = LegacyBridge.adapt(context);
-        getHandlerExecutionMode().run(context, () -> {
+        LegacyBridge.handlerExecutionMode(this).run(context, () -> {
             O out;
             try {
                 StreamReceiver<I, O> receiver = states.incoming.computeIfAbsent(correlationId, ignored -> receiverFactory.get());
@@ -154,7 +132,7 @@ public final class LegacyStreamPacket<I extends NetworkPacketData, O extends Net
         }
 
         NetworkPacketContext legacyContext = LegacyBridge.adapt(context);
-        getHandlerExecutionMode().run(context, () -> {
+        LegacyBridge.handlerExecutionMode(this).run(context, () -> {
             I next;
             try {
                 next = outgoing.provider().execute(false, Optional.of(in), Optional.of(legacyContext));

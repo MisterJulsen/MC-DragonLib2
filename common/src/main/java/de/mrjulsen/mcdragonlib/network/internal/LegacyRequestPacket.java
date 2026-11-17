@@ -24,16 +24,6 @@ import de.mrjulsen.mcdragonlib.network.NetworkPacketData;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 
-/**
- * Carries a deprecated request and response packet over the current transport.
- *
- * <p>The old contract is kept exactly: a handler that throws still answers with a payload whose
- * status carries the error, and only a timeout or a lost connection completes the waiting future
- * exceptionally.
- *
- * @param <I> the request type
- * @param <O> the response type
- */
 @Deprecated
 public final class LegacyRequestPacket<I extends NetworkPacketData, O extends NetworkPacketData> extends PacketDefinition {
 
@@ -55,22 +45,10 @@ public final class LegacyRequestPacket<I extends NetworkPacketData, O extends Ne
         this.handler = Objects.requireNonNull(handler, "handler");
     }
 
-    /**
-     * Returns how many exchanges of connection-less senders are still waiting.
-     *
-     * @return the number of pending fallback exchanges
-     */
     public static int getFallbackCount() {
         return FALLBACK.size();
     }
 
-    /**
-     * Sends a request and completes the given future with the answer.
-     *
-     * @param sender where the request goes
-     * @param data the value to send
-     * @param future completed with the response, or exceptionally if none arrives
-     */
     public void send(NetworkDirection sender, I data, CompletableFuture<O> future) {
         long deadline = System.currentTimeMillis() + NetworkSettings.getResponseTimeoutMillis();
         Pending pending = new Pending(future, deadline);
@@ -122,7 +100,7 @@ public final class LegacyRequestPacket<I extends NetworkPacketData, O extends Ne
         }
 
         NetworkPacketContext legacyContext = LegacyBridge.adapt(context);
-        getHandlerExecutionMode().run(context, () -> {
+        LegacyBridge.handlerExecutionMode(this).run(context, () -> {
             O result;
             try {
                 result = handler.apply(request, legacyContext);

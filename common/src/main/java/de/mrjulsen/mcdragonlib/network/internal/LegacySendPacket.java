@@ -13,11 +13,6 @@ import de.mrjulsen.mcdragonlib.network.NetworkPacketData;
 import de.mrjulsen.mcdragonlib.network.NetworkProcessor;
 import net.minecraft.network.FriendlyByteBuf;
 
-/**
- * Carries a deprecated send-only packet over the current transport.
- *
- * @param <I> the payload type
- */
 @Deprecated
 public final class LegacySendPacket<I extends NetworkPacketData> extends PacketDefinition {
 
@@ -30,12 +25,6 @@ public final class LegacySendPacket<I extends NetworkPacketData> extends PacketD
         this.processor = Objects.requireNonNull(processor, "processor");
     }
 
-    /**
-     * Sends a payload through a legacy sender.
-     *
-     * @param sender where the payload goes
-     * @param data the value to send
-     */
     public void send(NetworkDirection sender, I data) {
         LegacyBridge.send(getChannel(), this, sender, buf -> codec.encode(buf, data));
     }
@@ -49,7 +38,7 @@ public final class LegacySendPacket<I extends NetworkPacketData> extends PacketD
             DLNetwork.LOGGER.error("Could not decode {}.", this, e);
             return;
         }
-        getHandlerExecutionMode().run(context, () -> {
+        LegacyBridge.handlerExecutionMode(this).run(context, () -> {
             try {
                 processor.execute(data, LegacyBridge.adapt(context));
             } catch (Exception e) {
