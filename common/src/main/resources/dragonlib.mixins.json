@@ -15,7 +15,8 @@
         "client.ScreenAccessor",
         "client.StringSplitterAccessor",
         "client.TextureManagerMixin",
-        "client.VertexFormatAccessor"
+        "client.VertexFormatAccessor",
+        "FontAccessor"
     ],
     "mixins": [
         "common.ConnectionAccessor",
