@@ -126,7 +126,7 @@ public final class ClientEvents {
                         location = new ModelResourceLocation(location, "inventory");
                     }
                     BakedModel originalModel = registry.get(location);
-                    DLBlockModelRegistry.setOriginalModel(state, originalModel);
+                    DLBlockModelRegistry.setOriginalModel(r.getType(), state, originalModel);
                     DynamicBakedModel newModel = new DynamicBakedModel(originalModel, state, r.getModelFactory().get());
                     registry.put(location, newModel);
                 }

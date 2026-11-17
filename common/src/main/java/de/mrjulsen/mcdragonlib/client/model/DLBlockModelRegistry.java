@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 public class DLBlockModelRegistry implements ResourceManagerReloadListener {
 
     private static final Map<BlockState, BakedModel> originalModels = new ConcurrentHashMap<>();
+    private static final Map<BlockState, BakedModel> originalItemModels = new ConcurrentHashMap<>();
 
     private static final Queue<ICustomModelFactory> customModels = new LinkedBlockingQueue<>();
 
@@ -189,13 +190,44 @@ public class DLBlockModelRegistry implements ResourceManagerReloadListener {
     }
 
 
+    /**
+     * Same as {@link #setOriginalModel(ModelType, BlockState, BakedModel)} with {@link ModelType#BLOCK}.
+     */
     public static void setOriginalModel(BlockState state, BakedModel model) {
-        originalModels.computeIfAbsent(state, s -> model);
+        setOriginalModel(ModelType.BLOCK, state, model);
     }
 
+    /**
+     * Stores the original model that has been replaced by a dynamic model. Called on every model bake, so the
+     * stored model is always the one of the latest resource reload. DragonLib's own dynamic models are never
+     * stored as original model.
+     */
+    public static void setOriginalModel(ModelType type, BlockState state, BakedModel model) {
+        if (state == null || model instanceof IDynamicBakedModel) {
+            return;
+        }
+        Map<BlockState, BakedModel> models = type == ModelType.ITEM ? originalItemModels : originalModels;
+        if (model == null) {
+            models.remove(state);
+        } else {
+            models.put(state, model);
+        }
+    }
+
+    /**
+     * Same as {@link #getOriginalModel(ModelType, BlockState)} with {@link ModelType#BLOCK}.
+     */
     public static BakedModel getOriginalModel(BlockState state) {
-        if (originalModels.containsKey(state)) {
-            return originalModels.get(state);
+        return getOriginalModel(ModelType.BLOCK, state);
+    }
+
+    public static BakedModel getOriginalModel(ModelType type, BlockState state) {
+        if (state == null) {
+            return null;
+        }
+        BakedModel model = (type == ModelType.ITEM ? originalItemModels : originalModels).get(state);
+        if (model != null) {
+            return model;
         }
         return Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(state);
     }

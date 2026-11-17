@@ -62,7 +62,7 @@ public class DLModelLoadingPlugin implements ModelLoadingPlugin {
                     return original;
                 }
 
-                DLBlockModelRegistry.setOriginalModel(data.state(), original);
+                DLBlockModelRegistry.setOriginalModel(data.factory().getType(), data.state(), original);
                 return new DynamicBakedModel(original, data.state(), data.factory().getModelFactory().get());
             });
         }

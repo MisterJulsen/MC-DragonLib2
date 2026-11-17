@@ -58,8 +58,6 @@ public abstract class Mesh implements ITransformable<Mesh> {
 
         replaceVertices(merged);
 
-        // --- Post processing ---
-
         for (Edge edge : edges) {
             edge.updateVertices(x -> replaceFunc(replaced, x));
         }
@@ -95,8 +93,6 @@ public abstract class Mesh implements ITransformable<Mesh> {
 
         replaceEdges(merged);
 
-        // --- Post processing ---
-
         for (Face face : faces) {
             face.updateEdges(x -> replaceFunc(replaced, x));
         }
@@ -114,9 +110,13 @@ public abstract class Mesh implements ITransformable<Mesh> {
         List<Face> uniqueFaces = new ArrayList<>(faces.size());
 
         for (Face face : faces) {
+            if (face == null) {
+                uniqueFaces.add(null);
+                continue;
+            }
             boolean found = false;
             for (Face u : uniqueFaces) {
-                if (face.overlaps(u, threshold)) {
+                if (u != null && face.overlaps(u, threshold)) {
                     found = true;
                     break;
                 }
@@ -159,7 +159,7 @@ public abstract class Mesh implements ITransformable<Mesh> {
             return getFaces();
         }
         ImmutableList.Builder<Face> builder = ImmutableList.builder();
-        for (Face face : faces) {
+        for (Face face : getFaces()) {
             if (face.getNormalDirection() == direction) {
                 builder.add(face);
             }

@@ -552,7 +552,7 @@ public final class ModelUtils
 
 
     public static boolean positionsIntersect(Vector3f a, Vector3f b, float threshold) {
-        return a.distanceSquared(b) <= Math.pow(threshold, 2);
+        return a.distanceSquared(b) <= threshold * threshold;
     }
 
     @ExpectPlatform

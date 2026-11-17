@@ -37,13 +37,20 @@ public class DLModelExtensionLoader implements IGeometryLoader<DLUnbakedModelExt
         Map<DLFaceKey, DLFaceData> faceData = new HashMap<>();
 
         Map<DirectionKey, MutableInt> faceIndex = new HashMap<>();
-        JsonArray elements = json.getAsJsonArray("elements");
+        JsonArray elements = json.has("elements") ? json.getAsJsonArray("elements") : new JsonArray();
         for (int e = 0; e < elements.size(); e++) {
             JsonObject element = elements.get(e).getAsJsonObject();
             JsonObject faces = element.getAsJsonObject("faces");
+            if (faces == null) {
+                continue;
+            }
 
-            for (Map.Entry<String, JsonElement> entry : faces.entrySet()) {
-                JsonObject face = entry.getValue().getAsJsonObject();
+            for (Direction direction : Direction.values()) {
+                JsonElement faceJson = faces.get(direction.getName());
+                if (faceJson == null) {
+                    continue;
+                }
+                JsonObject face = faceJson.getAsJsonObject();
                 Direction cullFace = this.getCullFacing(face);
                 MutableInt idx = faceIndex.computeIfAbsent(new DirectionKey(cullFace), c -> new MutableInt(0));
                 DLFaceData data = DLFaceData.read(face.getAsJsonObject("dragonlib_data"), DLFaceData.DEFAULT);

@@ -2,6 +2,7 @@ package de.mrjulsen.mcdragonlib.client.model.mesh;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +46,23 @@ public class CubeMesh extends Mesh {
         }
     }
 
+    @Override
+    public List<Face> getFaces() {
+        List<Face> result = new ArrayList<>(faces.size());
+        for (Face face : faces) {
+            if (face != null) {
+                result.add(face);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
     public Face removeFace(Direction direction) {
         Map<Vertex, Vertex> replacements = new HashMap<>(4);
         Face face = faces.get(direction.get3DDataValue());
+        if (face == null) {
+            return null;
+        }
         faces.set(direction.get3DDataValue(), null);
         for (FaceVertex wrapper : face.getCorners()) {
             Vertex current = wrapper.getVertex();

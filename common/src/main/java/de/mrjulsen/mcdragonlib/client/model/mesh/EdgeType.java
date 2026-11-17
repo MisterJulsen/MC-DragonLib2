@@ -1,6 +1,5 @@
 package de.mrjulsen.mcdragonlib.client.model.mesh;
 
-import java.util.Arrays;
 
 public enum EdgeType {
     LEFT((byte)0),
@@ -18,7 +17,12 @@ public enum EdgeType {
         return index;
     }
 
+    private static final EdgeType[] VALUES = values();
+
     public static EdgeType getByIndex(int index) {
-        return Arrays.stream(values()).filter(x -> x.index() == index).findFirst().orElse(LEFT);
+        for (EdgeType type : VALUES) {
+            if (type.index() == index) return type;
+        }
+        return LEFT;
     }
 }

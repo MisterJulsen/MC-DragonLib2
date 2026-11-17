@@ -1,6 +1,5 @@
 package de.mrjulsen.mcdragonlib.client.model.mesh;
 
-import java.util.Arrays;
 
 public enum CornerType {
     TOP_LEFT    ((byte)0, new float[] { 0, 0 }),
@@ -24,7 +23,12 @@ public enum CornerType {
         return uv;
     }
 
+    private static final CornerType[] VALUES = values();
+
     public static CornerType getByIndex(int index) {
-        return Arrays.stream(values()).filter(x -> x.index() == index).findFirst().orElse(TOP_LEFT);
+        for (CornerType type : VALUES) {
+            if (type.index() == index) return type;
+        }
+        return TOP_LEFT;
     }
 }
