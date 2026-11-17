@@ -1,23 +1,32 @@
+/*
+ * DragonLib 3 - 1.20.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.internal;
 
-import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.ber.BERGraphics;
 import de.mrjulsen.mcdragonlib.client.ber.BERLabel;
 import de.mrjulsen.mcdragonlib.client.ber.BasicBlockEntityRenderer;
-import de.mrjulsen.mcdragonlib.client.model.mesh.CornerType;
-import de.mrjulsen.mcdragonlib.client.model.mesh.CubeMesh;
-import de.mrjulsen.mcdragonlib.client.model.mesh.Mesh;
-import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
-import de.mrjulsen.mcdragonlib.util.DLColor;
-import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.Rectangle;
+import dev.architectury.platform.Platform;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import org.joml.Vector3f;
 
 public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<DragonLibBlockEntity> {
     private final BERLabel label = new BERLabel();
@@ -30,12 +39,15 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
         label.fullBackground.set(false);
         label.horizontalScrollingSpeed.set(8f);
         label.horizontalAlign.set(ETextAlignment.LEFT);
-        label.horizontalMaxScale.set(0.5f);
-        label.horizontalMinScale.set(0.5f);
-        label.verticalMaxScale.set(0.5f);
-        label.verticalMinScale.set(0.5f);
+        label.horizontalMaxScale.set(0.1f);
+        label.horizontalMinScale.set(0.1f);
+        label.verticalMaxScale.set(0.1f);
+        label.verticalMinScale.set(0.1f);
         label.clippingArea.set(Rectangle.withSize(0, 0, 8, 16));
         label.horizontalScrollMode.set(BERLabel.EScrollMode.ALWAYS);
+        label.glowing.set(true);
+        label.shadow.set(true);
+        label.scrollPause.set(20f);
 
         /*
         model = BasicMesh.fromBlock(Blocks.MAGENTA_GLAZED_TERRACOTTA.defaultBlockState(), RandomSource.create());
@@ -52,6 +64,10 @@ public class DragonLibBlockEntityRenderer extends BasicBlockEntityRenderer<Drago
 
     @Override
     protected void renderBlock(BERGraphics<DragonLibBlockEntity> graphics, float partialTick) {
+        if (!Platform.isDevelopmentEnvironment()) {
+            return;
+        }
+
         graphics.poseStack().pushPose();
         graphics.poseStack().translate(0, 0, 16.01f);
         //model.render(graphics, graphics.packedLight(), true);
