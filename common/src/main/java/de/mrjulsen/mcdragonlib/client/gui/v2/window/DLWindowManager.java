@@ -618,11 +618,11 @@ public class DLWindowManager {
         root.applyLayout();
     }
 
-    /**
-     * Renders the whole GUI: pending tasks, layout, component tree, tooltip of the hovered component,
-     * the drag ghost and finally the deferred layers.
-     */
     public void render(GuiGraphics guiGraphics, Font font, float partialTick, double mouseX, double mouseY) {
+        render(guiGraphics, font, partialTick, mouseX, mouseY, null);
+    }
+
+    public void render(GuiGraphics guiGraphics, Font font, float partialTick, double mouseX, double mouseY, Consumer<DLGuiGraphics> underlay) {
         runPendingTasks();
         performLayout();
 
@@ -630,6 +630,9 @@ public class DLWindowManager {
         RenderSystem.depthMask(true);
 
         graphics.beginFrame(guiGraphics, font, partialTick, screenWidth, screenHeight, mouseX, mouseY);
+        if (underlay != null) {
+            underlay.accept(graphics);
+        }
         root.renderComponents(graphics, mouseX, mouseY);
 
         renderHoveredTooltip(mouseX, mouseY);

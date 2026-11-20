@@ -20,7 +20,9 @@ package de.mrjulsen.mcdragonlib;
 
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
+import com.mojang.blaze3d.platform.InputConstants;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLHudManager;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.*;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
@@ -45,12 +47,14 @@ import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.ReloadListenerRegistry;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -71,6 +75,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +114,8 @@ public class DragonLib {
     private static final Registrar<Item> ITEMS = MANAGER.get().get(Registries.ITEM);        
     private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
     private static final Registrar<BlockEntityType<?>> BLOCK_ENTITIES = MANAGER.get().get(Registries.BLOCK_ENTITY_TYPE);
+
+    public static final KeyMapping KEY_OVERLAY_SETTINGS = new KeyMapping("key." + DragonLib.MODID + ".overlay_interaction_mode", InputConstants.Type.KEYSYM, -1, "category." + DragonLib.MODID + ".keybinds");
 
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
@@ -158,6 +165,8 @@ public class DragonLib {
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             DLOverlayManager.init();
+            DLHudManager.init();
+            KeyMappingRegistry.register(KEY_OVERLAY_SETTINGS);
 
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);

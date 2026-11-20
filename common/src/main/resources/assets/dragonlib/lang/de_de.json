@@ -75,5 +75,8 @@
     "gui.dragonlib.textbox.paste_plain": "Unformatierten Text einfügen",
     "gui.dragonlib.textbox.format": "Formatierung",
 
+    "category.dragonlib.keybinds": "DragonLib Aktionen",
+    "key.dragonlib.overlay_interaction_mode": "Overlay-Interaktionsmodus umschalten",
+
     "block.dragonlib.dragon": "Drache"
 }

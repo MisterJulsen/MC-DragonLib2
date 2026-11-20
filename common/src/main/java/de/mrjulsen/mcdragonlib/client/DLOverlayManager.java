@@ -29,6 +29,7 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.minecraft.client.Minecraft;
 
+@Deprecated
 public final class DLOverlayManager {
     private DLOverlayManager() {}
 

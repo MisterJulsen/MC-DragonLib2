@@ -79,6 +79,9 @@
     "gui.dragonlib.textbox.paste_plain": "Paste as plain text",
     "gui.dragonlib.textbox.format": "Formatting",
 
+    "category.dragonlib.keybinds": "DragonLib Actions",
+    "key.dragonlib.overlay_interaction_mode": "Toggle Overlay Interaction Mode",
+
 
     "block.dragonlib.dragon": "Dragon"
 }

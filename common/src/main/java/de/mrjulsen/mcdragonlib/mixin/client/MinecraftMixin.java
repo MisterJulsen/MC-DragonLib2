@@ -18,9 +18,8 @@
 
 package de.mrjulsen.mcdragonlib.mixin.client;
 
-import com.mojang.realmsclient.client.RealmsClient;
-
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLHudManager;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,5 +40,6 @@ public class MinecraftMixin {
     @Inject(method = "resizeDisplay", at = @At(value = "TAIL"))
     public void dragonlib$resizeDisplay(CallbackInfo ci) {
         DLOverlayManager.resizeDisplay();
+        DLHudManager.resizeDisplay();
     }
 }
