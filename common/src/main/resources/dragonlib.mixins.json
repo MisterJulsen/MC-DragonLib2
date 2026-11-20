@@ -10,6 +10,7 @@
         "client.BakedGlyphAccessor",
         "client.FontAccessor",
         "client.ItemRendererMixin",
+        "client.LevelRendererMixin",
         "client.MinecraftMixin",
         "client.MouseHandlerMixin",
         "client.ScreenAccessor",

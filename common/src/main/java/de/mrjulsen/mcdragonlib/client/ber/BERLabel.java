@@ -27,10 +27,12 @@ import org.joml.Vector3f;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.richtext.PaddingF;
 import de.mrjulsen.mcdragonlib.client.util.ClippingBufferSource;
 import de.mrjulsen.mcdragonlib.client.util.DLGraphics;
 import de.mrjulsen.mcdragonlib.client.util.RenderUtils;
+import de.mrjulsen.mcdragonlib.client.util.SmoothTextDeferred;
 import de.mrjulsen.mcdragonlib.client.util.SmoothTextRenderTypes;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.data.EVerticalAlignment;
@@ -55,6 +57,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.gui.font.glyphs.BakedGlyph;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -447,15 +450,25 @@ public class BERLabel {
             argb = (argb & 0x00FFFFFF) | (4 << 24);
         }
 
-        CLIPPING_BUFFER_SOURCE.setRenderTypeMapper(SmoothTextRenderTypes.isEnabled() ? SmoothTextRenderTypes::getFor : null);
+        boolean smoothText = SmoothTextRenderTypes.isEnabled();
         boolean dropShadow = shadow.get();
         float glyphOffsetY = (lineHeight.get() - GLYPH_HEIGHT) / 2.0F;
+
+        boolean deferText = smoothText && SmoothTextDeferred.shouldDefer(graphics);
+        MultiBufferSource.BufferSource flushSource = smoothText && !deferText ? smoothTextFlushSource(graphics) : null;
+        textMode = !smoothText ? TextMode.VANILLA : deferText ? TextMode.DEFERRED : TextMode.SMOOTH;
+        if (flushSource != null) {
+            flushSource.endBatch();
+        }
 
         int copies = 0;
         for (float posX = startX; ; posX += periodX) {
             for (float posY = startY; ; posY += periodY) {
                 if (hasBg && !fullBackground.get()) {
                     renderTextBackground(graphics, posX, posY, bgColor, padding, light);
+                    if (flushSource != null) {
+                        flushSource.endBatch();
+                    }
                 }
                 if (hasText) {
                     renderText(graphics, posX, posY, hScale, vScale, glyphOffsetY, argb, dropShadow, light);
@@ -464,6 +477,23 @@ public class BERLabel {
             }
             if (periodX <= 0 || posX + periodX >= clipRight || ++copies >= MAX_SCROLL_COPIES) break;
         }
+
+        if (flushSource != null) {
+            flushSource.endBatch();
+        }
+    }
+
+    private static boolean unsupportedSourceLogged = false;
+
+    private static MultiBufferSource.BufferSource smoothTextFlushSource(DLGraphics graphics) {
+        if (graphics.multiBufferSource() instanceof MultiBufferSource.BufferSource bufferSource) {
+            return bufferSource;
+        }
+        if (!unsupportedSourceLogged) {
+            unsupportedSourceLogged = true;
+            DragonLib.LOGGER.info("Smooth text: buffer source {} cannot be flushed, the draw order of labels rendered through it is not guaranteed.", graphics.multiBufferSource().getClass().getName());
+        }
+        return null;
     }
 
     private static float firstVisibleCopy(float start, float period, float content, float viewportStart) {
@@ -492,6 +522,31 @@ public class BERLabel {
         visibleFrom = from;
         visibleTo = to;
 
+        switch (textMode) {
+            case VANILLA -> {
+                CLIPPING_BUFFER_SOURCE.setRenderTypeMapper(null);
+                drawVisibleText(glyphOffsetY, argb, dropShadow, light, from);
+            }
+            case SMOOTH -> {
+                CLIPPING_BUFFER_SOURCE.setRenderTypeMapper(SmoothTextRenderTypes::getFor);
+                drawVisibleText(glyphOffsetY, argb, dropShadow, light, from);
+            }
+            case DEFERRED -> {
+                CLIPPING_BUFFER_SOURCE.setup(SmoothTextDeferred.source(), pose.pose(), pose.normal(), localClipLeft, localClipTop, localClipRight, localClipBottom);
+                CLIPPING_BUFFER_SOURCE.setRenderTypeMapper(SmoothTextRenderTypes::getFor);
+                drawVisibleText(glyphOffsetY, argb, dropShadow, light, from);
+            }
+        }
+        CLIPPING_BUFFER_SOURCE.setRenderTypeMapper(null);
+
+        poseStack.popPose();
+    }
+
+    private enum TextMode { VANILLA, SMOOTH, DEFERRED }
+
+    private TextMode textMode = TextMode.VANILLA;
+
+    private void drawVisibleText(float glyphOffsetY, int argb, boolean dropShadow, int light, int from) {
         Minecraft.getInstance().font.drawInBatch(
             visibleSequence,
             cachedPrefixWidths[from], glyphOffsetY,
@@ -503,8 +558,6 @@ public class BERLabel {
             0,
             light
         );
-
-        poseStack.popPose();
     }
 
     private void renderFullBackground(DLGraphics graphics, DLColor bgColor, PaddingF padding, int light) {

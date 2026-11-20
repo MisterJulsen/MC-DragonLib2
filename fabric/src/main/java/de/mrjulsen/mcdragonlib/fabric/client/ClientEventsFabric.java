@@ -22,7 +22,9 @@ import de.mrjulsen.mcdragonlib.fabric.client.model.geometry.RegisterGeometryLoad
 import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.fabric.client.model.loaders.MultipartObjLoader;
 import de.mrjulsen.mcdragonlib.fabric.client.model.obj.ObjLoader;
+import de.mrjulsen.mcdragonlib.client.util.SmoothTextDeferred;
 import de.mrjulsen.mcdragonlib.client.util.SmoothTextRenderTypes;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
@@ -51,5 +53,7 @@ public class ClientEventsFabric implements ClientModInitializer {
 				SmoothTextRenderTypes.onShaderLoadFailed(SmoothTextRenderTypes.INTENSITY_SHADER_ID, e);
 			}
 		});
+
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> SmoothTextDeferred.draw());
     }
 }
