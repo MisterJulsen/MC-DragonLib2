@@ -60,7 +60,7 @@ public final class DLHudInteractionScreen extends Screen {
         if (DLHudManager.isReady() && DLHudManager.getWindowManager().keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
-        if (DragonLib.KEY_OVERLAY_SETTINGS.matches(keyCode, scanCode)) {
+        if (DLHudManager.KEY_OVERLAY_SETTINGS.matches(keyCode, scanCode)) {
             onClose();
             return true;
         }

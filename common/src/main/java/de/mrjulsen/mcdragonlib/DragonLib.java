@@ -115,8 +115,6 @@ public class DragonLib {
     private static final Registrar<Block> BLOCKS = MANAGER.get().get(Registries.BLOCK);
     private static final Registrar<BlockEntityType<?>> BLOCK_ENTITIES = MANAGER.get().get(Registries.BLOCK_ENTITY_TYPE);
 
-    public static final KeyMapping KEY_OVERLAY_SETTINGS = new KeyMapping("key." + DragonLib.MODID + ".overlay_interaction_mode", InputConstants.Type.KEYSYM, -1, "category." + DragonLib.MODID + ".keybinds");
-
     /** A sample block which is added by DragonLib to test stuff. Does nothing by default and can safely be used in your world. Think of it as a small ~~easter~~ dragon egg. 🐉*/
     public static final RegistrySupplier<Block> DRAGON_BLOCK = registerBlock("dragon", () -> new DragonLibBlock(BlockBehaviour.Properties.of().strength(1.5f)));
     public static final RegistrySupplier<BlockEntityType<DragonLibBlockEntity>> DRAGONLIB_BLOCK_ENTITY = BLOCK_ENTITIES.register(DLUtils.resourceLocation(MODID, "dragonlib_block_entity"), () -> BlockEntityType.Builder.of(DragonLibBlockEntity::new, DragonLib.DRAGON_BLOCK.get()).build(null));
@@ -166,7 +164,6 @@ public class DragonLib {
         if (Platform.getEnv() == EnvType.CLIENT) {
             DLOverlayManager.init();
             DLHudManager.init();
-            KeyMappingRegistry.register(KEY_OVERLAY_SETTINGS);
 
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);

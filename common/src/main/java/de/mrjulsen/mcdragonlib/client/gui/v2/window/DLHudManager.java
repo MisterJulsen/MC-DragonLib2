@@ -18,19 +18,24 @@
 
 package de.mrjulsen.mcdragonlib.client.gui.v2.window;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.events.client.HudEvents;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
 public class DLHudManager {
     private DLHudManager() {}
 
+    public static final KeyMapping KEY_OVERLAY_SETTINGS = new KeyMapping("key." + DragonLib.MODID + ".overlay_interaction_mode", InputConstants.Type.KEYSYM, -1, "category." + DragonLib.MODID + ".keybinds");
     private static final DLWindowManager manager = new DLWindowManager();
+
     public static DLWindowManager getWindowManager() {
         return manager;
     }
@@ -40,8 +45,10 @@ public class DLHudManager {
     }
 
     public static void init() {
+        KeyMappingRegistry.register(KEY_OVERLAY_SETTINGS);
+
         ClientTickEvent.CLIENT_POST.register((mc) -> {
-            if (DragonLib.KEY_OVERLAY_SETTINGS.consumeClick() && manager.hasWindows()) {
+            if (KEY_OVERLAY_SETTINGS.consumeClick() && manager.hasWindows()) {
                 Screen previous = Minecraft.getInstance().screen;
                 DLHudInteractionScreen editor = new DLHudInteractionScreen();
                 Minecraft.getInstance().setScreen(editor);
