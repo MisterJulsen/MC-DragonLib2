@@ -134,10 +134,12 @@ public final class InputRouter {
      * Drops all input state: hover, press, drag and cursor. Called when the screen closes.
      */
     public void clearState() {
-        for (GuiComponent c : hoverStack) {
-            c.setHovered(false);
-        }
+        List<GuiComponent> left = hoverStack;
         hoverStack = List.of();
+        for (GuiComponent c : left) {
+            c.setHovered(false);
+            c.invokeEvent(c, new GuiEvents.MouseLeaveEvent(c, lastScreenX, lastScreenY));
+        }
         releasePressed();
         dragging = false;
         if (dragSession != null) {
