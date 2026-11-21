@@ -73,8 +73,6 @@ public class DragonLibBlock extends BaseEntityBlock {
             if (pPlayer.isShiftKeyDown()) {
                 DLScreen.open(mgr -> new TestGui());
             } else {
-                DLWindow window = DLHudManager.getWindowManager().openWindow(new ListBoxTestWindow());
-                window.scale.set(0.5);
                 //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
                 //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
             }
