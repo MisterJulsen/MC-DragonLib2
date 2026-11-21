@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.util;
 
 import java.util.BitSet;
@@ -18,11 +36,9 @@ import de.mrjulsen.mcdragonlib.data.ETextAlignment;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
 import de.mrjulsen.mcdragonlib.util.math.MathUtils;
-import de.mrjulsen.mcdragonlib.util.math.Rectangle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Font.DisplayMode;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
@@ -52,11 +68,11 @@ public final class RenderUtils {
     }
 
     public static void setTint(DLColor color) {
-        GuiUtils.setTint(color);
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.setTint(color);
     }
 
     public static void resetTint() {
-        GuiUtils.resetTint();
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.resetTint();
     }
 
     public static void addVert(VertexConsumer builder, DLGraphics graphics, float x, float y, float z, float u, float v, float r, float g, float b, float a, int lu, int lv) {
@@ -237,7 +253,7 @@ public final class RenderUtils {
         drawDebugLineGradient(graphics, from, to, color, color);
     }
 
-    protected static void renderNameTag(PoseStack poseStack, MultiBufferSource buffer, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
+    public static void renderNameTag(PoseStack poseStack, MultiBufferSource buffer, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
         if (Minecraft.getInstance().getCameraEntity().position().toVector3f().distance(pos) > 64) {
             return;
         }
@@ -264,7 +280,7 @@ public final class RenderUtils {
         poseStack.popPose();
     }
 
-    protected static void renderNameTag(DLGraphics graphics, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
+    public static void renderNameTag(DLGraphics graphics, Vector3f pos, float yOffset, List<Component> text, int packedLight) {
         renderNameTag(graphics.poseStack(), graphics.multiBufferSource(), pos, yOffset, text, packedLight);
     }
 }

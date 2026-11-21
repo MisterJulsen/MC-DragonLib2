@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.gui.widgets.components;
 
 import java.util.List;
@@ -12,7 +30,7 @@ import de.mrjulsen.mcdragonlib.client.gui.events.DLGuiStandardEvents;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLGuiComponent;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.CursorType;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
-import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
+import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils.TextureFillMode;
@@ -319,21 +337,21 @@ public class DLColorPicker extends DLGuiComponent {
 
     @Override
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        DLTextureSheet.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)quadArea.get().x() - 1, (int)quadArea.get().y() - 1, (int)quadArea.get().width() + 2, (int)quadArea.get().height() + 2);
+        DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)quadArea.get().x() - 1, (int)quadArea.get().y() - 1, (int)quadArea.get().width() + 2, (int)quadArea.get().height() + 2);
         int w = quadTexture.get().getPixels().getWidth();
         int h = quadTexture.get().getPixels().getHeight();
         GuiUtils.drawTexture(quadTexture.get().getId(), graphics, (int)quadArea.get().x(), (int)quadArea.get().y(), w, h, 0, 0, w, h, TextureFillMode.STRETCH, w, h);
 
-        if (showColorSlider.get()) {
-            DLTextureSheet.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)colorSliderArea.get().x() - 1, (int)colorSliderArea.get().y() - 1, (int)colorSliderArea.get().width() + 2, (int)colorSliderArea.get().height() + 2);
+        if (showColorSlider.get()) {            
+            DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)colorSliderArea.get().x() - 1, (int)colorSliderArea.get().y() - 1, (int)colorSliderArea.get().width() + 2, (int)colorSliderArea.get().height() + 2);
             w = colorSliderTexture.get().getPixels().getWidth();
             h = colorSliderTexture.get().getPixels().getHeight();
             GuiUtils.drawTexture(colorSliderTexture.get().getId(), graphics, (int)colorSliderArea.get().x(), (int)colorSliderArea.get().y(), w, h, 0, 0, w, h, TextureFillMode.STRETCH, w, h);
         }
         
-        if (showAlphaSlider.get()) {
-            DLTextureSheet.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)alphaSliderArea.get().x() - 1, (int)alphaSliderArea.get().y() - 1, (int)alphaSliderArea.get().width() + 2, (int)alphaSliderArea.get().height() + 2);
-            DLTextureSheet.DRAGONLIB_UI.getSprite("transparency").render(graphics, (int)alphaSliderArea.get().x(), (int)alphaSliderArea.get().y(), (int)alphaSliderArea.get().width(), (int)alphaSliderArea.get().height());
+        if (showAlphaSlider.get()) {            
+            DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, (int)alphaSliderArea.get().x() - 1, (int)alphaSliderArea.get().y() - 1, (int)alphaSliderArea.get().width() + 2, (int)alphaSliderArea.get().height() + 2);
+            DefaultGuiTextures.DRAGONLIB_UI.getSprite("transparency").render(graphics, (int)alphaSliderArea.get().x(), (int)alphaSliderArea.get().y(), (int)alphaSliderArea.get().width(), (int)alphaSliderArea.get().height());
             if (sliderAlign.get().isHorizontal()) {
                 GuiUtils.fillGradient(graphics, alphaSliderArea.get(), DLColor.TRANSPARENT, color.get().withAlpha(255), EAlign.TOP);
             } else {

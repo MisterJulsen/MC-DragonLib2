@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client;
 
 import java.util.Optional;
@@ -8,10 +26,10 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.base.WindowBuilder;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientScreenInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.minecraft.client.Minecraft;
 
+@Deprecated
 public final class DLOverlayManager {
     private DLOverlayManager() {}
 
@@ -66,11 +84,6 @@ public final class DLOverlayManager {
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_DRAGGED_POST.register((mc, screen, mouseX, mouseY, button, dragX, dragY) -> {
             if (!initialized()) return EventResult.pass();
             boolean result = root.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-            return result ? EventResult.interruptTrue() : EventResult.pass();
-        });
-        ClientScreenInputEvent.MOUSE_SCROLLED_POST.register((mc, screen, mouseX, mouseY, scrollX, scrollY) -> {
-            if (!initialized()) return EventResult.pass();
-            boolean result = root.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
             return result ? EventResult.interruptTrue() : EventResult.pass();
         });
         dev.architectury.event.events.client.ClientScreenInputEvent.MOUSE_RELEASED_PRE.register((mc, screen, mouseX, mouseY, button) -> {

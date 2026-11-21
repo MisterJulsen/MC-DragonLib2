@@ -1,0 +1,49 @@
+{
+    "dragonlib-gui": {
+        "texture_size": [ 64, 32 ],
+        "sprites": {
+            "": {
+                "type": "stretch",
+                "uv": [ 0, 0 ],
+                "size": [ 12, 12 ]
+            },
+            "checkbox_checked": {
+                "type": "stretch",
+                "uv": [ 12, 0 ],
+                "size": [ 12, 12 ]
+            },
+            "checkbox_selected": {
+                "type": "stretch",
+                "uv": [ 24, 0 ],
+                "size": [ 12, 12 ]
+            },
+            "checkbox_checked_selected": {
+                "type": "stretch",
+                "uv": [ 36, 0 ],
+                "size": [ 12, 12 ]
+            },
+
+            
+            "radiobutton": {
+                "type": "stretch",
+                "uv": [ 0, 12 ],
+                "size": [ 12, 12 ]
+            },
+            "radiobutton_checked": {
+                "type": "stretch",
+                "uv": [ 12, 12 ],
+                "size": [ 12, 12 ]
+            },
+            "radiobutton_selected": {
+                "type": "stretch",
+                "uv": [ 24, 12 ],
+                "size": [ 12, 12 ]
+            },
+            "radiobutton_checked_selected": {
+                "type": "stretch",
+                "uv": [ 36, 12 ],
+                "size": [ 12, 12 ]
+            }
+        }
+    }
+}

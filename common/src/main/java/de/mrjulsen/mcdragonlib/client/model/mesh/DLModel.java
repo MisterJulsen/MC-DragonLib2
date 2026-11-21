@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.model.mesh;
 
 import java.util.ArrayList;
@@ -9,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.ListMultimap;
@@ -20,7 +39,6 @@ import de.mrjulsen.mcdragonlib.client.model.DLBlockModelRegistry;
 import de.mrjulsen.mcdragonlib.client.model.IDynamicBakedModel;
 import de.mrjulsen.mcdragonlib.client.model.ModelCacheKey;
 import de.mrjulsen.mcdragonlib.client.model.ModelContext;
-import de.mrjulsen.mcdragonlib.util.Cache;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
@@ -48,7 +66,9 @@ public abstract class DLModel {
         }
     }
 
-    private final Map<ModelCacheKey, Map<DirectionKey, ListMultimap<RenderType, BakedQuad>>> cachedBlockQuads = Collections.synchronizedMap(new HashMap<>());
+    private final Map<ModelCacheKey, Map<DirectionKey, ListMultimap<RenderType, BakedQuad>>> cachedBlockQuads = new ConcurrentHashMap<>();
+    private final Set<RenderType> knownRenderTypes = new HashSet<>();
+    private volatile List<RenderType> renderTypes = null;
 
     /**
      * Creates the key for the cache of this model. This method is not called for item models.
@@ -65,6 +85,18 @@ public abstract class DLModel {
         return false;
     }
 
+    public void clearCache() {
+        cachedBlockQuads.clear();
+        synchronized (knownRenderTypes) {
+            knownRenderTypes.clear();
+            renderTypes = null;
+        }
+    }
+
+    public void clearCache(ModelCacheKey key) {
+        cachedBlockQuads.remove(key);
+    }
+
     /**
      * Enabled or disables ambient occlusion for this model.
      * 
@@ -78,18 +110,6 @@ public abstract class DLModel {
 
     protected abstract Mesh getMesh(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context);
 
-    private final Cache<List<RenderType>> renderTypesCache = new Cache<>(() -> {
-        Set<RenderType> types = new HashSet<>(RenderType.chunkBufferLayers().size());
-        for (Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> m : cachedBlockQuads.values()) {
-            for (ListMultimap<RenderType, BakedQuad> k : m.values()) {
-                for (RenderType t : k.keySet()) {
-                    types.add(t);
-                }
-            }
-        }
-        return new ArrayList<>(types);
-    });
-    
 
     private static class DirectionKey {
         private static final HashMap<Direction, DirectionKey> keys;
@@ -113,38 +133,24 @@ public abstract class DLModel {
         boolean isItem = type == ModelType.ITEM;
         ModelCacheKey key = !isItem ? createCacheKey(state, random, context) : new ModelCacheKey(context);
 
-        if (invalidateCacheFor(type, state, random, context) && cachedBlockQuads.containsKey(key)) {
+        if (invalidateCacheFor(type, state, random, context)) {
             cachedBlockQuads.remove(key);
         }
 
-        Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> quadsByCullface = cachedBlockQuads.computeIfAbsent(key,
-            c -> {
-                boolean clearRenderTypeCache = false;
-                Mesh mesh = getMesh(type, originalModel, state, random, c.context());
+        Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> quadsByCullface = cachedBlockQuads.get(key);
+        if (quadsByCullface == null) {
+            quadsByCullface = buildQuads(type, originalModel, state, random, key.context());
+            Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> existing = cachedBlockQuads.putIfAbsent(key, quadsByCullface);
+            if (existing != null) {
+                quadsByCullface = existing;
+            }
+        }
 
-                Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> map = new HashMap<>(6);
-                for (Face face : mesh.getFaces()) {
-                    DirectionKey cullfaceKey = DirectionKey.of(face.getCullface());
-                    ListMultimap<RenderType, BakedQuad> mm = map.computeIfAbsent(cullfaceKey,
-                            x -> ListMultimapBuilder.hashKeys(RenderType.chunkBufferLayers().size())
-                                    .arrayListValues().build());
-                    if (!clearRenderTypeCache && !mm.containsKey(face.getRenderType())) {
-                        clearRenderTypeCache = true;
-                    }
-                    mm.putAll(face.getRenderType(), face.build());
-                }
-
-                if (clearRenderTypeCache)
-                    clearCaches();
-                return map;
-            });
-
-        DirectionKey requestedCullfaceKey = DirectionKey.of(cullface);
-        if (!quadsByCullface.containsKey(requestedCullfaceKey)) {
+        ListMultimap<RenderType, BakedQuad> quadsByRenderType = quadsByCullface.get(DirectionKey.of(cullface));
+        if (quadsByRenderType == null) {
             return List.of();
         }
 
-        ListMultimap<RenderType, BakedQuad> quadsByRenderType = quadsByCullface.get(requestedCullfaceKey);
         if (isItem) {
             return new ArrayList<>(quadsByRenderType.values());
         }
@@ -155,12 +161,33 @@ public abstract class DLModel {
         return quadsByRenderType.get(renderType);
     }
 
-    public final List<RenderType> getSupportedRenderTypes() {
-        return cachedBlockQuads.isEmpty() ? RenderType.chunkBufferLayers() : renderTypesCache.get();
+    private Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> buildQuads(ModelType type, BakedModel originalModel, BlockState state, RandomSource random, ModelContext context) {
+        Mesh mesh = getMesh(type, originalModel, state, random, context);
+
+        Map<DirectionKey, ListMultimap<RenderType, BakedQuad>> map = new HashMap<>(6);
+        for (Face face : mesh.getFaces()) {
+            DirectionKey cullfaceKey = DirectionKey.of(face.getCullface());
+            ListMultimap<RenderType, BakedQuad> mm = map.computeIfAbsent(cullfaceKey,
+                    x -> ListMultimapBuilder.hashKeys(RenderType.chunkBufferLayers().size())
+                            .arrayListValues().build());
+            mm.putAll(face.getRenderType(), face.build());
+        }
+
+        synchronized (knownRenderTypes) {
+            boolean changed = false;
+            for (ListMultimap<RenderType, BakedQuad> mm : map.values()) {
+                changed |= knownRenderTypes.addAll(mm.keySet());
+            }
+            if (changed || renderTypes == null) {
+                renderTypes = List.copyOf(knownRenderTypes);
+            }
+        }
+        return map;
     }
 
-    private final void clearCaches() {
-        renderTypesCache.clear();
+    public final List<RenderType> getSupportedRenderTypes() {
+        List<RenderType> types = renderTypes;
+        return cachedBlockQuads.isEmpty() || types == null ? RenderType.chunkBufferLayers() : types;
     }
 
 
@@ -196,13 +223,14 @@ public abstract class DLModel {
     public void render(PoseStack.Pose pose, VertexConsumer consumer, ModelType type, @Nullable BlockState state, ModelContext context, DLColor color, int packedLight, int packedOverlay) {
         RandomSource randomSource = RandomSource.create();
         long seed = 42L;
+        BakedModel originalModel = DLBlockModelRegistry.getOriginalModel(type, state);
         for (RenderType renderType : getSupportedRenderTypes()) {
             for (Direction direction : Direction.values()) {
                 randomSource.setSeed(seed);
-                renderQuadList(pose, consumer, color, getQuads(type, DLBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, direction, context), packedLight, packedOverlay);
+                renderQuadList(pose, consumer, color, getQuads(type, originalModel, state, randomSource, renderType, direction, context), packedLight, packedOverlay);
             }
             randomSource.setSeed(seed);
-            renderQuadList(pose, consumer, color, getQuads(type, DLBlockModelRegistry.getOriginalModel(state), state, randomSource, renderType, null, context), packedLight, packedOverlay);
+            renderQuadList(pose, consumer, color, getQuads(type, originalModel, state, randomSource, renderType, null, context), packedLight, packedOverlay);
         }
         
     }

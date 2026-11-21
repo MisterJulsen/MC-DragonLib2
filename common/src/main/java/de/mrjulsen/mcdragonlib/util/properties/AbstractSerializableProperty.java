@@ -1,5 +1,25 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.util.properties;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -57,7 +77,8 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
     private final S defaultValue;
     private Optional<IPropertyUpdateCallback<T>> onModify = Optional.empty();
     private Optional<IPropertyAfterUpdateCallback<T>> afterChanged = Optional.empty();
-    
+    private final List<IPropertyAfterUpdateCallback<T>> changeListeners = new ArrayList<>();
+
     private S value;
 
     /**
@@ -98,6 +119,26 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         return (P)this;
     }
 
+    public void addChangeListener(IPropertyAfterUpdateCallback<T> listener) {
+        if (listener != null) {
+            changeListeners.add(listener);
+        }
+    }
+
+    public boolean removeChangeListener(IPropertyAfterUpdateCallback<T> listener) {
+        return changeListeners.remove(listener);
+    }
+
+    protected boolean hasChangeListeners() {
+        return !changeListeners.isEmpty() || afterChanged.isPresent();
+    }
+
+    protected void notifyChangeListeners(T oldValue, T newValue) {
+        for (IPropertyAfterUpdateCallback<T> l : changeListeners) {
+            l.update(oldValue, newValue);
+        }
+    }
+
     protected abstract S serialize(T t);
     protected abstract T deserialize(S s);
 
@@ -127,6 +168,7 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         T val = getModificationCallback().map(x -> x.update(old, t)).orElse(t);
         this.value = serialize(val);
         getAfterChangeCallback().ifPresent(x -> x.update(old, val));
+        notifyChangeListeners(old, val);
         return t;
     }
 
@@ -153,6 +195,7 @@ public abstract class AbstractSerializableProperty<T, S> implements IProperty<T>
         T val = getModificationCallback().map(x -> x.update(old, t)).orElse(t);
         this.value = serialize(val);
         getAfterChangeCallback().ifPresent(x -> x.update(old, val));
+        notifyChangeListeners(old, val);
         return t;
     }
 

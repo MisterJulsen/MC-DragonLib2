@@ -1,18 +1,32 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.internal;
 
 import com.mojang.serialization.MapCodec;
-import de.mrjulsen.mcdragonlib.DragonLib;
-import de.mrjulsen.mcdragonlib.block.DLWritableSignBlockEntity;
-import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
-import de.mrjulsen.mcdragonlib.client.gui.builtin.WritableSignScreen;
-import de.mrjulsen.mcdragonlib.client.gui.widgets.base.DLWindow;
-import de.mrjulsen.mcdragonlib.data.DLStatus;
+
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLHudManager;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLScreen;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLWindow;
 import de.mrjulsen.mcdragonlib.menu.PlayerInventoryContainerMenu;
-import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.util.TextUtils;
-import net.minecraft.client.Minecraft;
+import dev.architectury.platform.Platform;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
@@ -52,30 +66,25 @@ public class DragonLibBlock extends BaseEntityBlock {
     public BlockEntity newBlockEntity(BlockPos arg0, BlockState arg1) {
         return new DragonLibBlockEntity(arg0, arg1);
     }
-    
+
     @Override
-    public RenderShape getRenderShape(BlockState pState) {
+    protected RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) {
-            //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
-            //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
+    protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHit) {
+        if (!Platform.isDevelopmentEnvironment()) {
+            return InteractionResult.PASS;
+        }
 
-            /*
-            NetworkTest.SEND_AND_RECEIVE.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"), (response) -> {
-                if (response.getStatus().isError()) {
-                    System.out.println("ERROR: " + response.getStatus().message());
-                }
-                System.out.println("RESPONSE: " + response.txt);
-            }, () -> {
-                System.out.println("ERROR callback");
-            });
-             */
-
-            //NetworkTest.SEND.send(NetworkDirection.toServer(), new NetworkTest.TestData(DLStatus.OK, "Salzingen Hbf"));
+        if (pLevel.isClientSide) {
+            if (pPlayer.isShiftKeyDown()) {
+                DLScreen.open(mgr -> new TestGui());
+            } else {
+                //DLOverlayManager.addOverlay(mgr -> new TimeWindow(mgr));
+                //DLWindow.openWindow(mgr -> new DLTestWindow(mgr));
+            }
             return InteractionResult.SUCCESS;
         } else {
             //pPlayer.openMenu(pState.getMenuProvider(pLevel, pPos));
@@ -83,7 +92,8 @@ public class DragonLibBlock extends BaseEntityBlock {
         }
     }
 
-    public MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
+    @Override
+    protected MenuProvider getMenuProvider(BlockState pState, Level pLevel, BlockPos pPos) {
         return new SimpleMenuProvider((containerId, inv, player) -> {
             return new PlayerInventoryContainerMenu.Base(containerId, inv, ContainerLevelAccess.create(pLevel, pPos));
         }, TextUtils.text(""));

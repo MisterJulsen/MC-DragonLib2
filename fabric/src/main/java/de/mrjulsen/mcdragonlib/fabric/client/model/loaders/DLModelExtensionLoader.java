@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.fabric.client.model.loaders;
 
 import com.google.common.collect.Lists;
@@ -38,13 +56,20 @@ public class DLModelExtensionLoader implements IGeometryLoader<DLUnbakedModelExt
         Map<DLFaceKey, DLFaceData> faceData = new HashMap<>();
 
         Map<DirectionKey, MutableInt> faceIndex = new HashMap<>();
-        JsonArray elements = json.getAsJsonArray("elements");
+        JsonArray elements = json.has("elements") ? json.getAsJsonArray("elements") : new JsonArray();
         for (int e = 0; e < elements.size(); e++) {
             JsonObject element = elements.get(e).getAsJsonObject();
             JsonObject faces = element.getAsJsonObject("faces");
+            if (faces == null) {
+                continue;
+            }
 
-            for (Map.Entry<String, JsonElement> entry : faces.entrySet()) {
-                JsonObject face = entry.getValue().getAsJsonObject();
+            for (Direction direction : Direction.values()) {
+                JsonElement faceJson = faces.get(direction.getName());
+                if (faceJson == null) {
+                    continue;
+                }
+                JsonObject face = faceJson.getAsJsonObject();
                 Direction cullFace = this.getCullFacing(face);
                 MutableInt idx = faceIndex.computeIfAbsent(new DirectionKey(cullFace), c -> new MutableInt(0));
                 DLFaceData data = DLFaceData.read(face.getAsJsonObject("dragonlib_data"), DLFaceData.DEFAULT);

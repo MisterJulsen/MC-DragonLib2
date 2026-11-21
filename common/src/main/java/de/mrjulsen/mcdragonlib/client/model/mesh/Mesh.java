@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.model.mesh;
 
 import java.util.ArrayList;
@@ -58,8 +76,6 @@ public abstract class Mesh implements ITransformable<Mesh> {
 
         replaceVertices(merged);
 
-        // --- Post processing ---
-
         for (Edge edge : edges) {
             edge.updateVertices(x -> replaceFunc(replaced, x));
         }
@@ -95,8 +111,6 @@ public abstract class Mesh implements ITransformable<Mesh> {
 
         replaceEdges(merged);
 
-        // --- Post processing ---
-
         for (Face face : faces) {
             face.updateEdges(x -> replaceFunc(replaced, x));
         }
@@ -114,9 +128,13 @@ public abstract class Mesh implements ITransformable<Mesh> {
         List<Face> uniqueFaces = new ArrayList<>(faces.size());
 
         for (Face face : faces) {
+            if (face == null) {
+                uniqueFaces.add(null);
+                continue;
+            }
             boolean found = false;
             for (Face u : uniqueFaces) {
-                if (face.overlaps(u, threshold)) {
+                if (u != null && face.overlaps(u, threshold)) {
                     found = true;
                     break;
                 }
@@ -159,7 +177,7 @@ public abstract class Mesh implements ITransformable<Mesh> {
             return getFaces();
         }
         ImmutableList.Builder<Face> builder = ImmutableList.builder();
-        for (Face face : faces) {
+        for (Face face : getFaces()) {
             if (face.getNormalDirection() == direction) {
                 builder.add(face);
             }

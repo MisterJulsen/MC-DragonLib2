@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.fabric.client.model.loaders;
 
 import de.mrjulsen.mcdragonlib.client.model.extension.DLBakedQuad;
@@ -17,6 +35,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -61,16 +80,21 @@ public class DLBakedModelExtension extends ForwardingBakedModel {
 
     @Override
     public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
-        emitQuads(context, randomSupplier.get(), state);
+        emitQuads(context, randomSupplier.get(), state, true);
     }
 
-    private void emitQuads(RenderContext context, RandomSource rand, BlockState state) {
+    @Override
+    public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
+        emitQuads(context, randomSupplier.get(), null, false);
+    }
+
+    private void emitQuads(RenderContext context, RandomSource rand, BlockState state, boolean cullFaces) {
         QuadEmitter emitter = context.getEmitter();
 
         for (int i = 0; i <= ModelHelper.NULL_FACE_ID; i++) {
             final Direction cullFace = ModelHelper.faceFromIndex(i);
 
-            if (cullFace != null && context.isFaceCulled(cullFace)) {
+            if (cullFaces && cullFace != null && context.isFaceCulled(cullFace)) {
                 continue;
             }
 
@@ -101,7 +125,7 @@ public class DLBakedModelExtension extends ForwardingBakedModel {
         if (quad.isEmissive()) {
             return material.emissive(true).ambientOcclusion(TriState.FALSE).disableDiffuse(true);
         } else if (!quad.isAmbientOcclusion()) {
-            return material.copyFrom(NO_AO_MAT);
+            return material.ambientOcclusion(TriState.FALSE);
         }
         return material;
     }

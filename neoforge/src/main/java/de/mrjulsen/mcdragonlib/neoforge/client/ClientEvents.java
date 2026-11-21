@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.neoforge.client;
 
 import java.util.HashMap;
@@ -13,7 +31,8 @@ import de.mrjulsen.mcdragonlib.client.model.mesh.DLModel.ModelType;
 import de.mrjulsen.mcdragonlib.events.client.ModelEvents;
 import de.mrjulsen.mcdragonlib.events.client.ModelEvents.ModifyModels;
 import de.mrjulsen.mcdragonlib.events.client.ModelReplacements;
-import de.mrjulsen.mcdragonlib.mixin.ModelBakeryAccessor;
+import de.mrjulsen.mcdragonlib.client.util.SmoothTextRenderTypes;
+import de.mrjulsen.mcdragonlib.mixin.client.ModelBakeryAccessor;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.DynamicBakedModel;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.loaders.DLModelExtensionLoader;
 import de.mrjulsen.mcdragonlib.neoforge.client.model.loaders.ObjLoader;
@@ -29,6 +48,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.minecraft.client.renderer.ShaderInstance;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 
 @EventBusSubscriber(modid = DragonLib.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientEvents {
@@ -69,7 +91,8 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void onRegisterModels(ModelEvent.RegisterAdditional event) {
-        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(event::register);
+        // NeoForge only accepts additional models with the standalone variant
+        ModelEvents.ADDITIONAL_MODELS.invoker().registerAdditionalModels(model -> event.register(ModelResourceLocation.standalone(model)));
     }
 
 
@@ -126,11 +149,26 @@ public final class ClientEvents {
                         location = new ModelResourceLocation(location.id(), "inventory");
                     }
                     BakedModel originalModel = registry.get(location);
-                    DLBlockModelRegistry.setOriginalModel(state, originalModel);
+                    DLBlockModelRegistry.setOriginalModel(r.getType(), state, originalModel);
                     DynamicBakedModel newModel = new DynamicBakedModel(originalModel, state, r.getModelFactory().get());
                     registry.put(location, newModel);
                 }
             }
+        }
+    }
+
+
+    @SubscribeEvent
+    public static void registerShaders(RegisterShadersEvent event) {
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), SmoothTextRenderTypes.SHADER_ID, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), SmoothTextRenderTypes::setShader);
+        } catch (Exception e) {
+            SmoothTextRenderTypes.onShaderLoadFailed(SmoothTextRenderTypes.SHADER_ID, e);
+        }
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), SmoothTextRenderTypes.INTENSITY_SHADER_ID, DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP), SmoothTextRenderTypes::setIntensityShader);
+        } catch (Exception e) {
+            SmoothTextRenderTypes.onShaderLoadFailed(SmoothTextRenderTypes.INTENSITY_SHADER_ID, e);
         }
     }
 }

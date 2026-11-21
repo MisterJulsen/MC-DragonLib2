@@ -1,6 +1,6 @@
 {
   "pack": {
-    "description": "${display_name}",
+    "description": "${description}",
     "pack_format": ${datapack_version}
   }
 }

@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.util.properties;
 
 import java.util.ArrayList;
@@ -54,8 +72,7 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
 
     @Override
     public List<T> set(List<T> t) {
-        clear();
-        addAll(t);
+        setAll(t);
         return get();
     }
 
@@ -65,10 +82,14 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
         return getModificationCallback().map(x -> x.update(get(), input)).orElse(input);
     }
 
-    protected void runAfterChange(ListOperation operation) {
-        List<T> old = get();
-        getOnUpdateCallback().ifPresent(x -> x.update(old, operation));
+    protected List<T> snapshot() {
+        return hasChangeListeners() ? Collections.unmodifiableList(new ArrayList<>(getList())) : get();
+    }
+
+    protected void runAfterChange(List<T> old, ListOperation operation) {
+        getOnUpdateCallback().ifPresent(x -> x.update(get(), operation));
         getAfterChangeCallback().ifPresent(x -> x.update(old, get()));
+        notifyChangeListeners(old, get());
     }
 
     protected List<T> getList() {
@@ -88,34 +109,39 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
     }
 
     public boolean addAll(T... c) {
+        List<T> old = snapshot();
         boolean b = this.getList().addAll(modifyInput(ImmutableList.copyOf(c)));
-        runAfterChange(ListOperation.ADD);
+        runAfterChange(old, ListOperation.ADD);
         return b;
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
+        List<T> old = snapshot();
         boolean b = this.getList().addAll(modifyInput(ImmutableList.copyOf(c)));
-        runAfterChange(ListOperation.ADD);
+        runAfterChange(old, ListOperation.ADD);
         return b;
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
+        List<T> old = snapshot();
         boolean b = this.getList().addAll(index, modifyInput(ImmutableList.copyOf(c)));
-        runAfterChange(ListOperation.ADD);
+        runAfterChange(old, ListOperation.ADD);
         return b;
     }
 
     public void setAll(Collection<? extends T> c) {
+        List<T> old = snapshot();
         List<T> newValues = modifyInput(ImmutableList.copyOf(c));
         this.getList().clear();
         this.getList().addAll(newValues);
-        runAfterChange(ListOperation.REPLACE);
+        runAfterChange(old, ListOperation.REPLACE);
     }
 
     @Override
     public void clear() {
+        List<T> old = snapshot();
         this.getList().clear();
         List<T> currentState = get();
         List<T> modifiedState = modifyInput(List.of());
@@ -123,7 +149,7 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
-        runAfterChange(ListOperation.CLEAR);
+        runAfterChange(old, ListOperation.CLEAR);
     }
 
     @Override
@@ -173,11 +199,21 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
 
     @Override
     public boolean remove(Object o) {
-        return this.getList().remove(o);
+        List<T> old = snapshot();
+        boolean b = this.getList().remove(o);
+        List<T> currentState = get();
+        List<T> modifiedState = modifyInput(currentState);
+        if (currentState != modifiedState) {
+            this.getList().clear();
+            this.getList().addAll(modifiedState);
+        }
+        runAfterChange(old, ListOperation.REMOVE);
+        return b;
     }
 
     @Override
     public T remove(int index) {
+        List<T> old = snapshot();
         T o = this.getList().remove(index);
         List<T> currentState = get();
         List<T> modifiedState = modifyInput(currentState);
@@ -185,12 +221,13 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
-        runAfterChange(ListOperation.REMOVE);
+        runAfterChange(old, ListOperation.REMOVE);
         return o;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
+        List<T> old = snapshot();
         boolean b = this.getList().removeAll(c);
         List<T> currentState = get();
         List<T> modifiedState = modifyInput(currentState);
@@ -198,12 +235,13 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
-        runAfterChange(ListOperation.REMOVE);
+        runAfterChange(old, ListOperation.REMOVE);
         return b;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
+        List<T> old = snapshot();
         boolean b = this.getList().retainAll(c);
         List<T> currentState = get();
         List<T> modifiedState = modifyInput(currentState);
@@ -211,12 +249,13 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
-        runAfterChange(ListOperation.RETAIN);
+        runAfterChange(old, ListOperation.RETAIN);
         return b;
     }
 
     @Override
     public T set(int index, T o) {
+        List<T> old = snapshot();
         T t = this.getList().set(index, o);
         List<T> currentState = get();
         List<T> modifiedState = modifyInput(currentState);
@@ -224,6 +263,7 @@ public class ListProperty<T> extends Property<List<T>> implements List<T> {
             this.getList().clear();
             this.getList().addAll(modifiedState);
         }
+        runAfterChange(old, ListOperation.REPLACE);
         return t;
     }
 

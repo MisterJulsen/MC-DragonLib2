@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.util;
 
 import java.util.Optional;
@@ -156,14 +174,36 @@ public class DLSprite {
 	 * @param x screen X coordinate
 	 * @param y screen Y coordinate
 	 */
-	public void render(DLGuiGraphics graphics, int x, int y) {
+	public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
         if (isEmpty()) {
             return;
         }
         if (getTexture().isPresent()) {
-            GuiUtils.drawTexture(texture, graphics, x, y, width, height, u, v, uWidth, vHeight, TextureFillMode.STRETCH);
+            de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, texture, x, y, width, height, u, v, uWidth, vHeight, de.mrjulsen.mcdragonlib.client.gui.v2.render.TextureFillMode.STRETCH);
         } else if (getItem().isPresent()) {
-            GuiUtils.renderItem(graphics, item, x, y, 1F / 16F * width, itemDecorations);
+            de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.item(graphics, item, x, y, 1F / 16F * width, itemDecorations);
         }
     }
+
+	/**
+	 * Render the sprite using the provided graphics context at the given screen coordinates.
+	 *
+	 * <p>If the sprite is texture-backed the texture is drawn; if item-backed the item is rendered.
+	 * Empty sprites are ignored.
+	 *
+	 * @param graphics rendering helper/context
+	 * @param x screen X coordinate
+	 * @param y screen Y coordinate
+	 */
+	@Deprecated
+	public void render(DLGuiGraphics graphics, int x, int y) {
+		if (isEmpty()) {
+			return;
+		}
+		if (getTexture().isPresent()) {
+			GuiUtils.drawTexture(texture, graphics, x, y, width, height, u, v, uWidth, vHeight, TextureFillMode.STRETCH);
+		} else if (getItem().isPresent()) {
+			GuiUtils.renderItem(graphics, item, x, y, 1F / 16F * width, itemDecorations);
+		}
+	}
 }

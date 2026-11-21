@@ -50,6 +50,11 @@ subprojects {
             }
         }
         maven { url 'https://maven.isxander.dev/releases' }
+        maven { url = "https://api.modrinth.com/maven" // Iris
+            content {
+                includeGroup "maven.modrinth"
+            }
+        }
     }
 
     dependencies {
@@ -65,6 +70,7 @@ subprojects {
             "version": version,
             "minecraft_version": rootProject.minecraft_version,
             "datapack_version": rootProject.datapack_version,
+            "resourcepack_version": rootProject.resourcepack_version,
             "issues": rootProject.issues,
             "source": rootProject.source,
             "license": rootProject.license,

@@ -1,9 +1,26 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.model;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -553,7 +570,16 @@ public final class ModelUtils
 
 
     public static boolean positionsIntersect(Vector3f a, Vector3f b, float threshold) {
-        return a.distanceSquared(b) <= Math.pow(threshold, 2);
+        return a.distanceSquared(b) <= threshold * threshold;
+    }
+
+    /**
+     * Returns a model that was registered through {@code ModelEvents.ADDITIONAL_MODELS}, identified by its model file
+     * (e.g. {@code mymod:block/my_model}). Since 1.21 each loader stores these models under its own variant.
+     */
+    @ExpectPlatform
+    public static BakedModel getModel(ResourceLocation location) {
+        throw new AssertionError();
     }
 
     public static BakedModel getModel(ModelResourceLocation location) {

@@ -1,111 +1,33 @@
-# DragonLib
-<p align="center">
+<p>
   <img src="https://i.imgur.com/neOFoxn.png" alt="Logo">
 </p>
 
+DragonLib is a multiloader Minecraft library and framework built on top of [Architectury API](https://modrinth.com/mod/architectury-api). It offers many useful tools, abstraction layers, and its own internal systems to simplify modding in Minecraft between different modloaders and versions.
+
 <p align="center">
-  <a href="https://discord.gg/AeSbNgvc7f"><img src="https://i.imgur.com/YnDoeHs.png" alt="Discord"></a>
-  <a href="https://modrinth.com/mod/dragonlib"><img src="https://i.imgur.com/uLIB4gb.png" alt="CurseForge"></a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/dragonlib"><img src="https://i.imgur.com/XZYlGVF.png" alt="Modrinth"></a>
+  <a href="https://discord.com/invite/AeSbNgvc7f"><img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/social/discord-plural_vector.svg"></a>
+  <a href="https://wiki.mrjulsen.net/dragonlib/"><img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/documentation/generic_vector.svg"></a>
+  <a href="https://ko-fi.com/mrjulsen"><img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/donate/kofi-singular_vector.svg"></a>
 </p>
 
-**DragonLib** is a multiloader Minecraft library created by MrJulsen and built on top of [Architectury API](https://github.com/architectury/architectury-api). It offers many useful tools, abstraction layers, and its own systems to simplify modding in Minecraft between different modloaders and versions.
+## 🎮 For Players
+**DragonLib is required by all my mods.**
 
-If you are developer and find the features useful, you can use it if you want. However, I cannot guarantee that everything will work as expected and will be supported in newer versions! Below there is a small tutorial on how to add this library as a dependency to your Forge Mod.
+- Versions `< 3.0.0` are **__INCLUDED__** in my mods! **__NO MANUAL INSTALLATION REQUIRED!__** These versions are not available for download because of this.
+- Versions `> 3.0.0` **__MUST BE INSTALLED SEPARATELY!__** You can download them here.
 
-## Versions
-| Minecraft Version | Latest DragonLib Version|
-| - | - |
-| 1.20.1 | 2.2.19 |
+[Please read this post to see which versions of my other mods are compatible with each other](https://wiki.mrjulsen.net/blog/2026/03/01/dragonlib-3-compatibility/).
 
-You can find all available major versions of DragonLib on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/dragonlib/files) or [Modrinth](https://www.curseforge.com/minecraft/mc-mods/dragonlib).
+## 🧩 For developers
+DragonLib is designed to be an easy-to-use API for everyone. If you find DragonLib useful, feel free to use them in your projects.
 
-## ForgeGradle project setup
-#### 1. Add the following content to your `build.gradle`:
+For more details, please read the [documentation](https://wiki.mrjulsen.net/dragonlib/).
 
-```groovy
-repositories {
-    maven { // DragonLib
-        name = "MrJulsen's Mod Resources"
-        url = "https://raw.githubusercontent.com/MisterJulsen/modsrepo/main/maven"
-    }
-    maven {
-        name = "Architectury API"
-        url "https://maven.architectury.dev/"
-    }
-}
 
-dependencies {
-    implementation("de.mrjulsen.mcdragonlib:dragonlib-forge:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
-}
-```
-As the project is based on [Architectury API](https://docs.architectury.dev/), you also need its repository.
+## 🤝 Contribute
+Thanks to all the people who are helping with development and translating the mod into different languages.
 
-#### 2. Add the following lines to your `mods.toml`:
-```toml
-[[dependencies.<YOUR_MODID>]]
-    modId="dragonlib"
-    mandatory=true
-    versionRange="[<MINECRAFT_VERSION>,<NAXT_MAJOR_MINECRAFT_VERSION>)"
-    ordering="NONE"
-    side="BOTH"
-```
+This project is open source, so if you'd like to help with development or localization, feel free to create pull requests or issues on GitHub and visit our Crowdin page.
 
-## Architectury Loom Multiloader project setup
-#### 1. First download an [Architecury Template](https://github.com/architectury/architectury-templates/releases/) and import it as gradle project.
-#### 2. Add the following content to the `build.gradle` of your root project:
-
-```groovy
-allprojects {
-    repositories {
-        maven { // DragonLib
-            name = "MrJulsen's Mod Resources"
-            url = "https://raw.githubusercontent.com/MisterJulsen/modsrepo/main/maven"
-        }
-        maven { // Forge Config Api (required for fabric version of DragonLib)
-            name = "Fuzs Mod Resources"
-            url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
-        }
-    }
-}
-```
-
-#### 3. Add the following line to all `build.gradle` files of all your sub-projects (forge, fabric, common).
-Replace `<LOADER>` with the specific loader (e.g. `forge`) and use `fabric` in your common project.
-```groovy
-dependencies {
-    modApi("de.mrjulsen.mcdragonlib:dragonlib-<LOADER>:<MINECRAFT_VERSION>-<DRAGONLIB_VERSION>")
-}
-```
-
-#### 4. Add the following lines to your `mods.toml`:
-```toml
-[[dependencies.<YOUR_MODID>]]
-    modId="dragonlib"
-    mandatory=true
-    versionRange="[<MINECRAFT_VERSION>,<NAXT_MAJOR_MINECRAFT_VERSION>)"
-    ordering="NONE"
-    side="BOTH"
-```
-
-## Mixin Refmap Remapping
-If you encounter errors when trying to start Minecraft from your development environment, it is necessary to remap the mixin refmap. Add the following code to each run configuration block.
-
-```groovy
-property 'mixin.env.remapRefMap', 'true'
-property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-```
-
-For example: Your client run configuration should look something like this:
-```groovy
-minecraft {
-    runs {
-        client {
-            // ...
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            // ...
-        }
-    }
-}
-```
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/available/github_vector.svg)](https://github.com/MisterJulsen/MC-DragonLib2)
+[![](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/translate/crowdin_vector.svg)](https://crowdin.com/project/mc-dragonlib)

@@ -1,0 +1,54 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package de.mrjulsen.mcdragonlib.client.gui.v2.widget.contextmenu;
+
+import java.util.function.BooleanSupplier;
+
+public abstract class AbstractContextMenuItem {
+
+    @FunctionalInterface
+    public interface ClickAction {
+        ClickAction NONE = (menu, mouseX, mouseY, button) -> {};
+        void click(DLContextMenu menu, double mouseX, double mouseY, int button);
+    }
+
+    protected BooleanSupplier enabled = () -> true;
+    protected ClickAction clickAction = ClickAction.NONE;
+    protected boolean closeOnClick = true;
+    protected AbstractContextMenuItem[] subItems = new AbstractContextMenuItem[0];
+
+    protected AbstractContextMenuItem() {
+    }
+
+    public boolean isEnabled() {
+        return enabled.getAsBoolean();
+    }
+
+    public ClickAction getClickAction() {
+        return clickAction;
+    }
+
+    public boolean shouldCloseOnClick() {
+        return closeOnClick;
+    }
+
+    public AbstractContextMenuItem[] getSubItems() {
+        return subItems;
+    }
+}

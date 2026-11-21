@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.config;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
@@ -18,6 +36,11 @@ public class ModCommonConfig {
     public static final ModConfigSpec.ConfigValue<Integer> NETWORK_RESPONSE_TIMEOUT;
     public static final ModConfigSpec.ConfigValue<Integer> NETWORK_THREAD_TIMEOUT;
     public static final ModConfigSpec.ConfigValue<Integer> NETWORK_THREAD_COUNT;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_MAX_MESSAGE_SIZE;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_REASSEMBLY_BUDGET;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_REASSEMBLY_TIMEOUT;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_STREAM_CHUNK_SIZE;
+    public static final ModConfigSpec.ConfigValue<Integer> NETWORK_STREAM_WINDOW;
 
     static {
         BUILDER.push(DragonLib.MODID + "_common_config");
@@ -48,6 +71,17 @@ public class ModCommonConfig {
                 .defineInRange("networking.thread_timeout", 30, 10, 60);
         NETWORK_THREAD_COUNT = BUILDER.comment(new String[] { "The number of threads to be used for networking. This should not exceed the number of available CPU cores, as more threads will cause performance issues. By default (auto = 0), the amount of available CPU cores are used, but at least two. (Default: 0)", "A WORLD RESTART IS REQUIRED FOR CHANGES TO TAKE EFFECT!" })
                 .defineInRange("networking.thread_count", 0, 0, 32);
+
+        NETWORK_MAX_MESSAGE_SIZE = BUILDER.comment(new String[] { "in Kibibytes", "The largest payload a single request or response may have. Messages above this size are split across several packets and reassembled by the receiver, which needs this much memory per message. Anything larger should use a stream packet instead. (Default: 16384 = 16 MiB)" })
+                .defineInRange("networking.max_message_size", 16384, 32, 262144);
+        NETWORK_REASSEMBLY_BUDGET = BUILDER.comment(new String[] { "in Kibibytes", "How much memory all unfinished incoming messages of one connection may occupy together. Protects the server against peers that announce large messages and never finish them. (Default: 65536 = 64 MiB)" })
+                .defineInRange("networking.reassembly_budget", 65536, 64, 1048576);
+        NETWORK_REASSEMBLY_TIMEOUT = BUILDER.comment(new String[] { "in Seconds", "How long an unfinished incoming message is kept before it is discarded. (Default: 30)" })
+                .defineInRange("networking.reassembly_timeout", 30, 5, 600);
+        NETWORK_STREAM_CHUNK_SIZE = BUILDER.comment(new String[] { "in Kibibytes", "Default size of a single stream chunk. Larger chunks mean less overhead, smaller chunks mean smoother progress and lower memory use. (Default: 256)" })
+                .defineInRange("networking.stream_chunk_size", 256, 4, 900);
+        NETWORK_STREAM_WINDOW = BUILDER.comment(new String[] { "How many stream chunks may be in flight before the sender waits for the receiver to catch up. Higher values use the connection better on high latency links at the cost of memory. (Default: 8)" })
+                .defineInRange("networking.stream_window", 8, 1, 64);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

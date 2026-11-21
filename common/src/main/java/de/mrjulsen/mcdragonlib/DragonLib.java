@@ -1,33 +1,60 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib;
 
 import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
+import com.mojang.blaze3d.platform.InputConstants;
 import de.mrjulsen.mcdragonlib.client.DLOverlayManager;
+import de.mrjulsen.mcdragonlib.client.gui.v2.window.DLHudManager;
 import de.mrjulsen.mcdragonlib.commands.DebugCommand;
 import de.mrjulsen.mcdragonlib.internal.*;
 import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
 import de.mrjulsen.mcdragonlib.network.NetworkDirection;
 import de.mrjulsen.mcdragonlib.network.NetworkPacketType;
-import de.mrjulsen.mcdragonlib.network.NetworkThreadPool;
+import de.mrjulsen.mcdragonlib.network.v2.DLNetwork;
+import de.mrjulsen.mcdragonlib.network.v2.internal.NetworkHandshake;
+import de.mrjulsen.mcdragonlib.network.v2.PacketTarget;
 import de.mrjulsen.mcdragonlib.network.builtin.WritableSignPacketData;
 import de.mrjulsen.mcdragonlib.util.DLColor;
 import de.mrjulsen.mcdragonlib.util.DLUtils;
 import de.mrjulsen.mcdragonlib.util.ScheduledTask;
 import de.mrjulsen.mcdragonlib.util.time.datapack.TimeSystemDatapackLoader;
+import de.mrjulsen.mcdragonlib.time.v1.internal.TimeSystemSync;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
+import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.platform.Mod;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.ReloadListenerRegistry;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.architectury.utils.Env;
 import net.fabricmc.api.EnvType;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -48,6 +75,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,13 +155,15 @@ public class DragonLib {
 
         DragonLibCrossPlatform.registerConfig();        
         ReloadListenerRegistry.register(PackType.SERVER_DATA, new TimeSystemDatapackLoader());
-        NetworkTest.init();
+        TimeSystemSync.init();
+        NetworkHandshake.init();
         //ModMenuTypes.register();
 
         
 
         if (Platform.getEnv() == EnvType.CLIENT) {
             DLOverlayManager.init();
+            DLHudManager.init();
 
             ClientLifecycleEvent.CLIENT_SETUP.register(mc -> {
                 BlockEntityRendererRegistry.register(DRAGONLIB_BLOCK_ENTITY.get(), DragonLibBlockEntityRenderer::new);
@@ -145,12 +175,12 @@ public class DragonLib {
                 */
             });
 
-            ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((mc) -> {
-                NetworkThreadPool.init();
+            ClientPlayerEvent.CLIENT_PLAYER_QUIT.register((mc) -> {
+                DLNetwork.shutdown();
             });
 
-            ClientPlayerEvent.CLIENT_PLAYER_QUIT.register((mc) -> {
-                NetworkThreadPool.shutdown();
+            ClientTickEvent.CLIENT_POST.register((mc) -> {
+                DLNetwork.tick();
             });
 
             //DLBlockModelRegistry.registerForBlock(DRAGON_BLOCK, TestModel::new, TestModel::new);
@@ -159,17 +189,23 @@ public class DragonLib {
         // On server tick
         TickEvent.Server.SERVER_POST.register((server) -> {           
             ScheduledTask.runScheduledTasks();
+            DLNetwork.tick();
+        });
+
+        PlayerEvent.PLAYER_JOIN.register(NetworkHandshake::announce);
+
+        PlayerEvent.PLAYER_QUIT.register((player) -> {
+            DLUtils.doIfNotNull(PacketTarget.connectionOf(player), DLNetwork::onDisconnect);
         });
 
         LifecycleEvent.SERVER_STARTED.register((server) -> {
             DragonLib.currentServer = server;
-            NetworkThreadPool.init();
         });
 
         // On Server stop
         LifecycleEvent.SERVER_STOPPING.register((server) -> {
             ScheduledTask.cancelAllTasks();
-            NetworkThreadPool.shutdown();
+            DLNetwork.shutdown();
         });
 
         LifecycleEvent.SERVER_STOPPED.register((server) -> {
@@ -233,6 +269,7 @@ public class DragonLib {
             String border = "+++ 🐉 +++";
             lines.add(border);
             lines.add(String.format("Loaded %s v%s by MrJulsen!", mod.getName(), mod.getVersion()));
+            if (mod.getLicense() != null) lines.add(String.join(", ", mod.getLicense()));
             lines.add(String.format("Minecraft %s %s %s%s%s",
                 Platform.isNeoForge() ? "NeoForge" : (Platform.isFabric() ? "Fabric" : (Platform.isMinecraftForge() ? "Forge" : "")),
                 (Platform.getEnvironment() == Env.CLIENT ? "Client" : (Platform.getEnvironment() == Env.SERVER ? "Server" : "?")),

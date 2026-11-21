@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.render;
 
 import java.util.Arrays;
@@ -21,7 +39,15 @@ public enum GuiIcons {
     ARROW_UP("arrow_up", 7, 0),
     ARROW_LEFT("arrow_left", 8, 0),
     ARROW_RIGHT("arrow_right", 9, 0),
-    X("x", 10, 0);
+    X("x", 10, 0),
+    BULLET_S("bullet_s", 11, 0),
+    CHECK_S("check_s", 12, 0),
+
+
+    OPEN_ARROW_DOWN("open_arrow_down", 6, 1),
+    OPEN_ARROW_UP("open_arrow_up", 7, 1),
+    OPEN_ARROW_LEFT("open_arrow_left", 8, 1),
+    OPEN_ARROW_RIGHT("open_arrow_right", 9, 1);
     
     private String id;
     private int u;
@@ -60,11 +86,16 @@ public enum GuiIcons {
         return Arrays.stream(values()).filter(x -> x.getId().equals(id)).findFirst().orElse(GuiIcons.EMPTY);
     }
 
+    public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, GuiIcons.ICON_TEXTURE, x, y, ICON_SIZE, ICON_SIZE, getU(), getV(), ICON_SIZE, ICON_SIZE);
+    }
+
+    @Deprecated
     public void render(DLGuiGraphics graphics, int x, int y) {
         GuiUtils.drawTexture(GuiIcons.ICON_TEXTURE, graphics, x, y, ICON_SIZE, ICON_SIZE, getU(), getV());
     }
 
     public DLSprite getAsSprite(int renderWidth, int renderHeight) {
-        return new DLSprite(ICON_TEXTURE, ICON_SIZE, ICON_SIZE, getU(), getV(), renderWidth, renderHeight);
+        return new DLSprite(ICON_TEXTURE, renderWidth, renderHeight, getU(), getV(), ICON_SIZE, ICON_SIZE);
     }
 }

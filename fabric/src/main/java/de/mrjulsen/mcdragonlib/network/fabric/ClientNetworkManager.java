@@ -1,27 +1,33 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.network.fabric;
 
-import de.mrjulsen.mcdragonlib.network.DLNetworkManager;
-import de.mrjulsen.mcdragonlib.network.NetworkPacketContext;
-import de.mrjulsen.mcdragonlib.network.NetworkSide;
-import de.mrjulsen.mcdragonlib.util.DLUtils;
-import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import de.mrjulsen.mcdragonlib.network.v2.fabric.ClientNetworkImpl;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * @deprecated Kept for linking. Delegates to {@link ClientNetworkImpl}.
+ */
+@Deprecated
 public class ClientNetworkManager {
-    public static void registerChannel(ResourceLocation channelId, String name, String protocolVersion) {
-        CustomPacketPayload.Type<DLNetworkManager.BufCustomPacketPayload> type = new CustomPacketPayload.Type<>(DLUtils.resourceLocation(channelId.getNamespace(), channelId.getPath() + "/" + name));
 
-        ClientPlayNetworking.registerGlobalReceiver(type, new ClientPlayNetworking.PlayPayloadHandler() {
-            @Override
-            public void receive(CustomPacketPayload payload, ClientPlayNetworking.Context ctx) {
-                NetworkPacketContext context = DLNetworkManagerImpl.context(ctx.player(), ctx.client(), true);
-                RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(((DLNetworkManager.BufCustomPacketPayload)payload).payload()), ctx.player().registryAccess());
-                DLNetworkManager.receiveData(channelId, buf, NetworkSide.C2S, context);
-                buf.release();
-            }
-        });
+    public static void registerChannel(ResourceLocation channelId, String protocolVersion) {
+        ClientNetworkImpl.registerChannel(channelId);
     }
 }

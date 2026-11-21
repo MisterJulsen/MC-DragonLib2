@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.network.packet;
 
 import java.util.ArrayList;
@@ -15,9 +33,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * @deprecated Splitting and reassembling is handled by {@code de.mrjulsen.mcdragonlib.net.transport}.
+ */
+@Deprecated
 public class NetworkPacker {
 
-    public static List<Packet<?>> pack(ResourceLocation channelId, String name, PacketHeaderInfo info, NetworkSide side, CompoundTag rawData) {
+    public static List<Packet<?>> pack(ResourceLocation channelId, PacketHeaderInfo info, NetworkSide side, CompoundTag rawData) {
         final int headerSize = SegmentedPacketHeaderInfo.getSize(info);
         
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -34,7 +56,7 @@ public class NetworkPacker {
             header.writeBufferHeader(stateBuf);
             FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(stateBuf, buf));
             
-            packets.add(DLNetworkManager.toPacket(channelId, name, side, packetBuffer));
+            packets.add(DLNetworkManager.toPacket(channelId, side, packetBuffer));
         } else {
             for (int i = 0; i < parts; i++) {
                 FriendlyByteBuf packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
@@ -51,7 +73,7 @@ public class NetworkPacker {
                 packetBuffer.writeBytes(buf.retainedSlice(buf.readerIndex(), next));
                 buf.skipBytes(next);
                 
-                packets.add(DLNetworkManager.toPacket(channelId, name, side, packetBuffer));
+                packets.add(DLNetworkManager.toPacket(channelId, side, packetBuffer));
             }
             buf.retain();
         }

@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.render;
 
 import com.mojang.blaze3d.platform.NativeImage;
@@ -45,6 +63,12 @@ public class MapImage {
         RenderSystem.setShaderTexture(0, this.texture.getId());
     }
 
+    public void render(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, int x, int y) {
+        bindTexture();
+        de.mrjulsen.mcdragonlib.client.gui.v2.render.GuiUtils.texture(graphics, this.texture.getId(), x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth, areaHeight, areaWidth, areaHeight, de.mrjulsen.mcdragonlib.client.gui.v2.render.TextureFillMode.STRETCH);
+    }
+
+    @Deprecated
     public void render(DLGuiGraphics graphics, int x, int y) {
         bindTexture();
         GuiUtils.drawTexture(this.texture.getId(), graphics, x, y, areaWidth * scale, areaHeight * scale, 0, 0, areaWidth, areaHeight, TextureFillMode.STRETCH, areaWidth, areaHeight);

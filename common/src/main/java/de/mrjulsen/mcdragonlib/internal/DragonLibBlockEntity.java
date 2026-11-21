@@ -1,30 +1,33 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.internal;
 
 import de.mrjulsen.mcdragonlib.DragonLib;
 import de.mrjulsen.mcdragonlib.block.DLSyncedBlockEntity;
-import de.mrjulsen.mcdragonlib.block.DLWritableSignBlockEntity;
-import de.mrjulsen.mcdragonlib.client.gui.builtin.WritableSignScreen;
-import de.mrjulsen.mcdragonlib.util.DLColor;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec2;
 
-public class DragonLibBlockEntity extends DLWritableSignBlockEntity {
+public class DragonLibBlockEntity extends DLSyncedBlockEntity {
 
     protected DragonLibBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-    }
-
-    @Override
-    public WritableSignScreen.WritableSignConfig getRenderConfig() {
-        float y = 120;
-        return new WritableSignScreen.WritableSignConfig(new WritableSignScreen.ConfiguredLineData[] {
-                new WritableSignScreen.ConfiguredLineData(0, -1.0F / 16.0F * 4.25f, new Vec2(1, 1.5f), new Vec2(1.5f, 1.5f), 1.0F / 16.0F * 15, 1, 0)
-        }, true, 1.0F / 16.0F * 6.5f, y, WritableSignScreen.WritableSignConfig.DEFAULT_SCALE, 90, 0.4f, 0.0f, 0.02f, (blockState) -> {
-            return 90f;
-        }, DLColor.pickBasedOnBrightness(DLColor.WHITE, DLColor.WHITE, DLColor.BLACK, 0.5f).getAsARGB());
     }
 
     public DragonLibBlockEntity(BlockPos pos, BlockState state) {

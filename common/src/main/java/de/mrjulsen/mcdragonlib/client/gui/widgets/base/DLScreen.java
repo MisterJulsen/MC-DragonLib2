@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.gui.widgets.base;
 
 import java.nio.file.Path;
@@ -51,8 +69,7 @@ public class DLScreen<M extends AbstractContainerMenu> extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        super.render(guiGraphics, mouseX, mouseY, partialTick); // also renders the background since 1.20.5
         DLGuiGraphics graphics = new DLGuiGraphics(guiGraphics, guiGraphics.pose(), Minecraft.getInstance().font, partialTick);
         root.render(graphics, mouseX, mouseY);
     }
@@ -79,6 +96,16 @@ public class DLScreen<M extends AbstractContainerMenu> extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         return root.mouseReleased(mouseX, mouseY, button) || super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Keep the look of 1.20: no blur while a level is shown behind the screen.
+        if (Minecraft.getInstance().level != null) {
+            renderTransparentBackground(guiGraphics);
+        } else {
+            super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
 
     @Override

@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.model.mesh;
 
 import java.util.ArrayList;
@@ -309,13 +327,13 @@ public class Face implements ITransformable<Face> {
 
 
     private BakedQuad buildSingleQuad(FaceVertex[] specificCorners) {
-        if (getSprite().isEmpty()) {
-            throw new IllegalStateException("Cannot create BakedQuad without a texture sprite.");
+        if (sprite == null) {
+            throw new IllegalStateException("Cannot create BakedQuad without a texture sprite. Standalone textures (" + texture + ") can only be rendered directly.");
         }
 
         Vector3f normal = ModelUtils.fillNormal(specificCorners);
         Direction normalDir = Direction.getNearest(normal.x, normal.y, normal.z);
-        int[] vertexData = new int[specificCorners.length * 8];
+        int[] vertexData = new int[specificCorners.length * ModelUtils.STRIDE];
         
         float spriteW = sprite.getU1() - sprite.getU0();
         float spriteH = sprite.getV1() - sprite.getV0();
@@ -337,7 +355,7 @@ public class Face implements ITransformable<Face> {
             vertexData,
             getTintIndex(),
             hasOverrideNormalDirection() ? overrideNormalDirection : normalDir,
-            getSprite().orElse(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(getTextureLocation())),
+            sprite,
             isShade(),
             ambientOcclusion,
             emissive,
@@ -652,9 +670,11 @@ public class Face implements ITransformable<Face> {
             consumer = graphics.vertexConsumer(getTextureLocation());
         }
 
+        Vector3f faceNormal = getNormal();
+
         if (checkIsPlanar()) {
             FaceVertex[] quadVertices = corners.toArray(FaceVertex[]::new);
-            renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, quadVertices, transformForBER);
+            renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, quadVertices, faceNormal, transformForBER);
         } else {
             FaceVertex v0 = corners.get(0);
             FaceVertex v1 = corners.get(1);
@@ -662,16 +682,16 @@ public class Face implements ITransformable<Face> {
             FaceVertex v3 = corners.get(3);
 
             if (!useAlternateSplitLine) {
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v2, v2 }, transformForBER);
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v2, v3, v3 }, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v2, v2 }, faceNormal, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v2, v3, v3 }, faceNormal, transformForBER);
             } else {
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v3, v3 }, transformForBER);
-                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v1, v2, v3, v3 }, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v0, v1, v3, v3 }, faceNormal, transformForBER);
+                renderQuad(consumer, graphics, packedLight, packedOverlay, ambientOcclusion, sprite, new FaceVertex[] { v1, v2, v3, v3 }, faceNormal, transformForBER);
             }
         }
     }
 
-    private void renderQuad(VertexConsumer consumer, DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, @Nullable TextureAtlasSprite sprite, FaceVertex[] quadVertices, boolean transformForBER) {
+    private void renderQuad(VertexConsumer consumer, DLGraphics graphics, int packedLight, int packedOverlay, boolean ambientOcclusion, @Nullable TextureAtlasSprite sprite, FaceVertex[] quadVertices, Vector3f faceNormal, boolean transformForBER) {
         if (quadVertices.length != 4) {
             return;
         }
@@ -702,7 +722,7 @@ public class Face implements ITransformable<Face> {
                     float[] tempAfloat = new float[Direction.values().length * 2];
                     BitSet tempBitSet = new BitSet(3);
                     
-                    ao.calculate(batg, berGraphics.blockEntity().getBlockState(), pos, getFacingDirection(), tempAfloat, tempBitSet, true);
+                    ao.calculate(batg, berGraphics.blockEntity().getBlockState(), pos, Direction.getNearest(faceNormal.x, faceNormal.y, faceNormal.z), tempAfloat, tempBitSet, true);
 
                     for (int i = 0; i < 4; i++) {
                         brightness[i] = ao.brightness[i];
@@ -741,10 +761,8 @@ public class Face implements ITransformable<Face> {
             consumer.setUv2(getBlockLight(lightmap[i]), getSkyLight(lightmap[i]));
             consumer.setOverlay(packedOverlay);
             
-            Vector3f normal = v.getNormal();
-            consumer.setNormal(lastPose, normal.x(), normal.y(), normal.z());
-            
-            //consumer.endVertex();
+            consumer.setNormal(lastPose, faceNormal.x(), faceNormal.y(), faceNormal.z());
+
         }
     }
 

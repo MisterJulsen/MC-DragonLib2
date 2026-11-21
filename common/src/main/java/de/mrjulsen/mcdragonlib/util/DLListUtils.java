@@ -1,12 +1,24 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -88,5 +100,22 @@ public final class DLListUtils {
             }
         }
         return Optional.empty();
+    }
+
+    public static <T> List<Integer> indicesOf(List<T> items, Collection<T> selectedItems) {
+        if (selectedItems.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<?> selected = selectedItems instanceof Set<?> set ? set : new HashSet<>(selectedItems);
+        List<Integer> indices = new ArrayList<>(selected.size());
+        int i = 0;
+        for (T item : items) {
+            if (selected.contains(item)) {
+                indices.add(i);
+            }
+            i++;
+        }
+        return indices;
     }
 }

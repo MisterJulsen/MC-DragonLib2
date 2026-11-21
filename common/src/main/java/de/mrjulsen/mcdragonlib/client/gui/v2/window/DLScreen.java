@@ -1,0 +1,163 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package de.mrjulsen.mcdragonlib.client.gui.v2.window;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Function;
+
+import org.lwjgl.glfw.GLFW;
+
+import de.mrjulsen.mcdragonlib.util.TextUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+
+/**
+ * Bridge between Minecraft's Screen and the v2 GUI: forwards input, rendering and ticks to a
+ * {@link DLWindowManager} and remembers the screen it was opened from.
+ * <p>Usually there is no need to subclass this, see {@link #open(Function)}.</p>
+ */
+public class DLScreen extends Screen {
+
+    private final DLWindowManager manager = new DLWindowManager();
+    private final Function<DLWindowManager, DLWindow> initialWindow;
+    private final Screen previousScreen;
+    private boolean initialized;
+
+    /**
+     * @param initialWindow builds the window to open as soon as the screen is initialized; may be null
+     *                      for a screen whose windows are opened later
+     */
+    public DLScreen(Function<DLWindowManager, DLWindow> initialWindow) {
+        super(TextUtils.empty());
+        this.initialWindow = initialWindow;
+        this.previousScreen = Minecraft.getInstance().screen;
+        this.manager.setCloseHandler(m -> Minecraft.getInstance().setScreen(m.showPreviousScreenOnClose.get() ? previousScreen : null));
+    }
+
+    /**
+     * Opens a new screen with a single window on it. The usual entry point into a v2 GUI.
+     */
+    public static void open(Function<DLWindowManager, DLWindow> window) {
+        Minecraft.getInstance().setScreen(new DLScreen(window));
+    }
+
+    public DLWindowManager getWindowManager() {
+        return manager;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        manager.resize(width, height);
+        if (!initialized) {
+            initialized = true;
+            if (initialWindow != null) {
+                manager.openWindow(initialWindow.apply(manager));
+            }
+        }
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        manager.render(guiGraphics, Minecraft.getInstance().font, partialTick, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Keep the look of 1.20: no blur while a level is shown behind the screen.
+        if (Minecraft.getInstance().level != null) {
+            renderTransparentBackground(guiGraphics);
+        } else {
+            super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        manager.tick();
+    }
+
+    @Override
+    public void mouseMoved(double mouseX, double mouseY) {
+        manager.mouseMoved(mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return manager.mousePressed(mouseX, mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return manager.mouseReleased(mouseX, mouseY, button) || super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return manager.mouseDragged(mouseX, mouseY, button, dragX, dragY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
+        return manager.mouseScrolled(mouseX, mouseY, deltaX, deltaY) || super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (manager.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && manager.escapePressed()) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        return manager.keyReleased(keyCode, scanCode, modifiers) || super.keyReleased(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        return manager.charTyped(codePoint, modifiers) || super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
+    public void onFilesDrop(List<Path> paths) {
+        if (!manager.filesDropped(paths)) {
+            super.onFilesDrop(paths);
+        }
+    }
+
+    @Override
+    public void onClose() {
+        manager.onClosed();
+        super.onClose();
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return manager.isPauseScreen();
+    }
+}

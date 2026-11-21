@@ -1,11 +1,37 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.network;
 
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import de.mrjulsen.mcdragonlib.internal.ClientWrapper;
+import de.mrjulsen.mcdragonlib.network.v2.PacketTarget;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 
+/**
+ * @deprecated Use {@link PacketTarget}.
+ */
+@Deprecated
 public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDirection.S2C {
     
     @FunctionalInterface
@@ -29,10 +55,35 @@ public sealed interface NetworkDirection permits NetworkDirection.C2S, NetworkDi
 
     void send(Packet<?> packet);
     NetworkSide getDirection();
+
+    /**
+     * Returns the connection this instance sends over, if it knows one.
+     *
+     * <p>The instances handed out by {@link #toPlayer(ServerPlayer)} and {@link #toServer()} do.
+     * A hand written implementation does not, in which case the networking layer falls back to
+     * routing purely through {@link #send(Packet)}.
+     *
+     * @return the connection, or {@code null} if this instance only knows how to send
+     */
+    @Nullable
+    default Connection getConnection() {
+        return null;
+    }
     
 
     public static S2C toPlayer(ServerPlayer player) {
-        return packet -> Objects.requireNonNull(player, "Unable to send packet to a 'null' player!").connection.send(packet);
+        Objects.requireNonNull(player, "Unable to send packet to a 'null' player!");
+        return new S2C() {
+            @Override
+            public void send(Packet<?> packet) {
+                player.connection.send(packet);
+            }
+
+            @Override
+            public Connection getConnection() {
+                return PacketTarget.connectionOf(player);
+            }
+        };
     }
     
     public static C2S toServer() {

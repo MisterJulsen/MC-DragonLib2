@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.util;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -14,15 +32,25 @@ import java.util.List;
 
 public final class PolygonRenderUtils {
 
-    public static enum OutlineMode {
+    public enum OutlineMode {
         INWARD, CENTER, OUTWARD;
     }
 
+    public static void drawPolygon(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, List<Vector2f> points, int z, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawPolygon(graphics.legacy(), points, z, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawPolygon(DLGuiGraphics graphics, List<Vector2f> points, int z, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         fillPolygon(graphics, points, z, fillColor);
         drawPolygonOutline(graphics, points, outlineWidth, outlineColor);
     }
 
+    public static void drawLine(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float x1, float y1, float x2, float y2, float width, DLColor color) {
+        drawLine(graphics.legacy(), x1, y1, x2, y2, width, color);
+    }
+
+    @Deprecated
     public static void drawLine(DLGuiGraphics graphics, float x1, float y1, float x2, float y2, float width, DLColor color) {
         Vector2f p1 = new Vector2f(x1, y1);
         Vector2f p2 = new Vector2f(x2, y2);
@@ -39,6 +67,11 @@ public final class PolygonRenderUtils {
         fillPolygon(graphics, quad, 0, color);
     }
 
+    public static void drawRectangle(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float x, float y, float width, float height, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawRectangle(graphics.legacy(), x, y, width, height, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawRectangle(DLGuiGraphics graphics, float x, float y, float width, float height, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         List<Vector2f> rect = List.of(
                 new Vector2f(x, y),
@@ -49,6 +82,11 @@ public final class PolygonRenderUtils {
         drawPolygon(graphics, rect, 0, fillColor, outlineColor, outlineWidth);
     }
 
+    public static void drawTriangle(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float x1, float y1, float x2, float y2, float x3, float y3, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawTriangle(graphics.legacy(), x1, y1, x2, y2, x3, y3, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawTriangle(DLGuiGraphics graphics, float x1, float y1, float x2, float y2, float x3, float y3, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         List<Vector2f> tri = List.of(
                 new Vector2f(x1, y1),
@@ -58,6 +96,11 @@ public final class PolygonRenderUtils {
         drawPolygon(graphics, tri, 0, fillColor, outlineColor, outlineWidth);
     }
 
+    public static void drawCircle(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float cx, float cy, float radius, int segments, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawCircle(graphics.legacy(), cx, cy, radius, segments, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawCircle(DLGuiGraphics graphics, float cx, float cy, float radius, int segments, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         List<Vector2f> circle = new ArrayList<>();
         for (int i = 0; i < segments; i++) {
@@ -69,6 +112,11 @@ public final class PolygonRenderUtils {
         drawPolygon(graphics, circle, 0, fillColor, outlineColor, outlineWidth);
     }
 
+    public static void drawEllipse(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float cx, float cy, float rx, float ry, int segments, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawEllipse(graphics.legacy(), cx, cy, rx, ry, segments, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawEllipse(DLGuiGraphics graphics, float cx, float cy, float rx, float ry, int segments, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         List<Vector2f> ellipse = new ArrayList<>();
         for (int i = 0; i < segments; i++) {
@@ -80,6 +128,11 @@ public final class PolygonRenderUtils {
         drawPolygon(graphics, ellipse, 0, fillColor, outlineColor, outlineWidth);
     }
 
+    public static void drawRegularPolygon(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, float cx, float cy, float radius, int sides, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
+        drawRegularPolygon(graphics.legacy(), cx, cy, radius, sides, fillColor, outlineColor, outlineWidth);
+    }
+
+    @Deprecated
     public static void drawRegularPolygon(DLGuiGraphics graphics, float cx, float cy, float radius, int sides, DLColor fillColor, DLColor outlineColor, float outlineWidth) {
         List<Vector2f> poly = new ArrayList<>();
         for (int i = 0; i < sides; i++) {
@@ -92,6 +145,11 @@ public final class PolygonRenderUtils {
     }
 
 
+    public static void drawPolygonOutline(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, List<Vector2f> points, float lineWidth, DLColor color) {
+        drawPolygonOutline(graphics.legacy(), points, lineWidth, color);
+    }
+
+    @Deprecated
     public static void drawPolygonOutline(DLGuiGraphics graphics, List<Vector2f> points, float lineWidth, DLColor color) {
         if (points.size() < 2) return;
 
@@ -159,6 +217,11 @@ public final class PolygonRenderUtils {
         return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
     }
 
+    public static void fillPolygon(de.mrjulsen.mcdragonlib.client.gui.v2.render.DLGuiGraphics graphics, List<Vector2f> points, int z, DLColor color) {
+        fillPolygon(graphics.legacy(), points, z, color);
+    }
+
+    @Deprecated
     public static void fillPolygon(DLGuiGraphics graphics, List<Vector2f> points, int z, DLColor color) {
         if (points.size() < 3)
             return;

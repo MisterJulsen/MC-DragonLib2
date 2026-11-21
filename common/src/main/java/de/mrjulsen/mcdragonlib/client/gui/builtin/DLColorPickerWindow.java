@@ -1,3 +1,21 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.client.gui.builtin;
 
 import java.util.function.Consumer;
@@ -13,7 +31,7 @@ import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLCycleButton;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.components.DLNumberPicker;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.EAlign;
 import de.mrjulsen.mcdragonlib.client.gui.widgets.util.INumberFormatAdapter;
-import de.mrjulsen.mcdragonlib.client.render.DLTextureSheet;
+import de.mrjulsen.mcdragonlib.client.render.DefaultGuiTextures;
 import de.mrjulsen.mcdragonlib.client.util.DLGuiGraphics;
 import de.mrjulsen.mcdragonlib.client.util.GuiUtils;
 import de.mrjulsen.mcdragonlib.data.ETextAlignment;
@@ -233,10 +251,10 @@ public class DLColorPickerWindow extends DLWindow {
 
     @Override
     public void renderMainLayer(DLGuiGraphics graphics, double mouseX, double mouseY, Rectangle renderBounds) {
-        DLTextureSheet.DRAGONLIB_UI.getSprite("window_rounded").render(graphics, 0, 0, width(), height());
-        DLTextureSheet.DRAGONLIB_UI.getSprite("slot").render(graphics, picker.x() + picker.width() + 5, picker.y(), 60, 24);
+        DefaultGuiTextures.DRAGONLIB_UI.getSprite("window_rounded").render(graphics, 0, 0, width(), height());
+        DefaultGuiTextures.DRAGONLIB_UI.getSprite("slot").render(graphics, picker.x() + picker.width() + 5, picker.y(), 60, 24);
         if (showAlpha) {
-            DLTextureSheet.DRAGONLIB_UI.getSprite("transparency").render(graphics, picker.x() + picker.width() + 6, picker.y() + 1, 58, 22);
+            DefaultGuiTextures.DRAGONLIB_UI.getSprite("transparency").render(graphics, picker.x() + picker.width() + 6, picker.y() + 1, 58, 22);
         }
 
         if (initialColor.isUndefined()) {

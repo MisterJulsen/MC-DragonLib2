@@ -1,13 +1,36 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.network;
 
 import de.mrjulsen.mcdragonlib.data.INBTSerializable;
 import de.mrjulsen.mcdragonlib.data.DLStatus;
+import de.mrjulsen.mcdragonlib.network.v2.codec.DLStreamCodec;
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Function;
 
+/**
+ * @deprecated Use {@link DLStreamCodec} to describe a payload.
+ */
+@Deprecated
 @FieldsAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class NetworkPacketData implements INBTSerializable {
@@ -19,7 +42,7 @@ public abstract class NetworkPacketData implements INBTSerializable {
         @Override
         protected void read(CompoundTag nbt) {}
     };
-
+    
     private static final String NBT_STATUS = "Status";
     private static final String NBT_DATA = "Data";
 
@@ -32,7 +55,7 @@ public abstract class NetworkPacketData implements INBTSerializable {
     public final DLStatus getStatus() {
         return status;
     }
-
+    
     final void setStatus(DLStatus status) {
         this.status = status;
     }
@@ -59,9 +82,9 @@ public abstract class NetworkPacketData implements INBTSerializable {
 
 
 
-    static final class Empty extends NetworkPacketData {
+    public static final class Empty extends NetworkPacketData {
         public Empty(DLStatus result) {
-            super(DLStatus.OK);
+            super(result);
         }
 
         @Override
@@ -70,6 +93,6 @@ public abstract class NetworkPacketData implements INBTSerializable {
 
         @Override
         protected void read(CompoundTag nbt) {
-        }
+        }        
     }
 }

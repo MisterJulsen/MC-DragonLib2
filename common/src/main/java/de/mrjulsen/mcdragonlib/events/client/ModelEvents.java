@@ -1,7 +1,26 @@
+/*
+ * DragonLib 3 - 1.21.1
+ * Copyright (c) 2026 MrJulsen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package de.mrjulsen.mcdragonlib.events.client;
 
 import java.util.function.Predicate;
 
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import dev.architectury.event.Event;
@@ -21,7 +40,7 @@ public interface ModelEvents {
     /**
      * Registers models that the game would not load on its own because nothing references them from a block state
      * or item model file. They are baked like any other model and can be fetched through
-     * {@code ModelUtils.getModel(ModelResourceLocation)}.
+     * {@code ModelUtils.getModel(ResourceLocation)}.
      */
     Event<AdditionalModels> ADDITIONAL_MODELS = EventFactory.createLoop();
 
@@ -46,7 +65,18 @@ public interface ModelEvents {
 
         @FunctionalInterface
         interface AdditionalModelsRegistry {
-            void register(ModelResourceLocation model);
+            /**
+             * Registers the model file with the given id, e.g. {@code mymod:block/my_model}.
+             */
+            void register(ResourceLocation model);
+
+            /**
+             * Registers the model referenced by the given location. Since 1.21 the location of an additional model only
+             * carries a loader specific variant, so only the id is used.
+             */
+            default void register(ModelResourceLocation model) {
+                register(model.id());
+            }
         }
     }
 
@@ -69,7 +99,7 @@ public interface ModelEvents {
             }
 
             default void replaceItem(Item item, ModelReplacer replacer) {
-                replace(ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(item)), replacer);
+                replace(new ModelResourceLocation(BuiltInRegistries.ITEM.getKey(item), "inventory"), replacer);
             }
 
             default void replaceNamespace(String namespace, ModelReplacer replacer) {
