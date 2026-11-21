@@ -7,8 +7,13 @@ architectury {
     fabric()
 }
 
+def refmapName = "${rootProject.archives_name}-${project.name}-refmap.json"
+
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
+    mixin {
+        defaultRefmapName = refmapName
+    }
 }
 
 configurations {
